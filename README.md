@@ -21,12 +21,15 @@ Phones connect directly to each other with WebRTC (PeerJS). The host's phone run
 - **Impostor:** everyone sees the same object except one player, who gets a similar one. After everyone draws, voting opens at 30 seconds to eliminate the impostor.
 
 ## How drawing works
-- The brush stays fixed in the center of the screen and the sheet moves around it, like looking through a camera at a large piece of paper.
-- **Look around** (default): hold the phone up like a camera and turn or tilt your body to aim. It uses the full 3D orientation of the phone.
-- **Tilt**: hold the phone comfortably and tilt it to slide the sheet.
-- Wherever you aim during the 3-2-1 countdown becomes your starting point. Hold the big button to put the pen down; "Sticky pen" lets you tap once instead.
-- A mini-map in the corner shows the whole sheet, your view and the brush position. In Teams mode the next player starts exactly where the previous one stopped.
-- Colors, eraser, pen size and undo never pause the timer. "Center here" recalibrates without moving the cursor.
+- The brush stays fixed in the center of the screen and the sheet moves around it.
+- **Look around** (default): hold the phone up like a camera and turn or tilt your body to aim. **Tilt**: hold the phone comfortably and tilt it.
+- **Brush reach** (Short, Medium, Long, Extra): like holding a longer brush, small phone movements travel further on the sheet. Movement is relative with acceleration, like a computer mouse: slow movements stay precise, fast ones cover distance.
+- A One Euro filter removes hand tremor, and each stroke is smoothed when you lift the pen.
+- **Draw over the camera**: optional. The rear camera becomes the background and the sheet floats in the room, staying in place as you aim.
+- A mini-map shows the whole sheet. In Teams mode the next player starts exactly where the previous one stopped.
+
+## Time limits
+Seconds per turn, rounds, impostor discussion time and voting time are all adjustable, from the home screen or by the host in the lobby. Nobody can stall a game: on multiple phones, drawing starts automatically 10 seconds after the object appears, a player who still has not finished is cut off a few seconds after their time runs out, and voting closes on time even if someone never votes.
 
 ## AI judge
 The judge is DoodleNet, a small convolutional network trained on Google's Quick Draw dataset (345 categories), loaded with TensorFlow.js. The model weights are embedded in `index.html`, so the game needs no server, API key or account.

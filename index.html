@@ -96,6 +96,7 @@ h2{font-size:22px;line-height:1.1}
 .bar{height:8px;border-radius:9px;background:var(--chip);overflow:hidden}
 .bar i{display:block;height:100%;background:var(--go);transform-origin:left;transition:background .3s}
 .stage{flex:1;min-height:0;display:flex;align-items:center;justify-content:center;position:relative}
+#camv{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;border-radius:14px}
 #cv{position:absolute;inset:0;width:100%;height:100%;border-radius:14px;box-shadow:0 0 0 1px var(--line);touch-action:none}
 .aimhint{position:absolute;left:50%;bottom:12px;transform:translateX(-50%);background:var(--ink);color:var(--bg);font-weight:800;font-size:13px;padding:8px 12px;border-radius:99px;white-space:nowrap;pointer-events:none}
 .overlay{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;pointer-events:none}
@@ -174,18 +175,27 @@ h2{font-size:22px;line-height:1.1}
     <div class="setting"><span>Aiming</span>
       <div class="seg" id="ctrlSeg"><button data-ctrl="look" aria-pressed="true">Look around</button><button data-ctrl="tilt" aria-pressed="false">Tilt</button></div></div>
     <p class="hint" id="ctrlHint" style="text-align:left"></p>
-    <div class="setting" id="sensRow"><span>Sensitivity (degrees to cross the sheet)</span>
-      <div class="stepper"><button data-d="-5" aria-label="More sensitive">−</button><output id="sens">50°</output><button data-d="5" aria-label="Less sensitive">+</button></div></div>
+    <div class="setting"><span>Brush reach</span>
+      <div class="seg" id="reachSeg"><button data-r="45">Short</button><button data-r="32">Medium</button><button data-r="22">Long</button><button data-r="15">Extra</button></div></div>
+    <p class="hint" style="text-align:left;margin:0">A longer brush travels further with small movements. Slow movements always stay precise.</p>
+    <div class="setting"><span>Draw over the camera</span>
+      <div class="seg"><button id="camOff" aria-pressed="true">Off</button><button id="camOn" aria-pressed="false">On</button></div></div>
+    <p class="hint" id="camMsg" style="text-align:left;margin:0" hidden></p>
     <div class="setting"><span>Sticky pen (tap once instead of holding)</span>
       <div class="seg"><button id="lockOff" aria-pressed="true">Off</button><button id="lockOn" aria-pressed="false">On</button></div></div>
     <button class="linkbtn" id="devMode">Test on a computer without a gyroscope (mouse)</button>
   </div>
 
-  <div class="panel host-only">
+  <div class="panel host-only" id="timePanel">
+    <span class="label">Time limits</span>
     <div class="setting"><span>Seconds per turn</span>
       <div class="stepper" id="timeStep"><button data-d="-5" aria-label="Less time">−</button><output id="time">15</output><button data-d="5" aria-label="More time">+</button></div></div>
     <div class="setting" id="roundsRow"><span>Rounds</span>
       <div class="stepper" id="roundStep"><button data-d="-1" aria-label="Fewer rounds">−</button><output id="rounds">3</output><button data-d="1" aria-label="More rounds">+</button></div></div>
+    <div class="setting" id="discRow"><span>Discussion before voting</span>
+      <div class="stepper" id="discStep"><button data-d="-10" aria-label="Shorter discussion">−</button><output id="disc">30 s</output><button data-d="10" aria-label="Longer discussion">+</button></div></div>
+    <div class="setting" id="voteRow"><span>Time to vote</span>
+      <div class="stepper" id="voteStep"><button data-d="-5" aria-label="Less voting time">−</button><output id="vote">30 s</output><button data-d="5" aria-label="More voting time">+</button></div></div>
     <div class="status" id="aiStatus"><span class="dot wait"></span><span>Loading the AI that guesses drawings…</span></div>
   </div>
 
@@ -234,6 +244,7 @@ h2{font-size:22px;line-height:1.1}
   </div>
   <div class="bar"><i id="dBar"></i></div>
   <div class="stage" id="stage">
+    <video id="camv" playsinline muted autoplay hidden></video>
     <canvas id="cv" width="300" height="300" aria-label="Drawing plane"></canvas>
     <div class="overlay" id="dOver"></div>
     <div class="aimhint" id="aimHint" hidden>Hold the phone up like a camera</div>
@@ -279,7 +290,7 @@ h2{font-size:22px;line-height:1.1}
     <div class="clock" id="gClock">0:00</div>
   </div>
   <div class="gallery" id="gGrid"></div>
-  <div class="foot"><button class="btn primary big" id="gVote" disabled>Voting in 30 s</button></div>
+  <div class="foot"><button class="btn primary big" id="gVote" disabled>Voting soon</button></div>
 </section>
 
 <!-- IMPOSTOR: SECRET VOTE -->
@@ -310,10 +321,12 @@ h2{font-size:22px;line-height:1.1}
   </div>
   <div class="panel">
     <div class="setting"><span class="label" id="lCount">Players</span><span class="tag" id="lMode">Solo</span></div>
+    <p class="hint" id="lRules" style="text-align:left;margin:0"></p>
     <div class="seg" id="lModes" hidden><button data-m="solo">Solo</button><button data-m="teams">Teams</button><button data-m="impostor">Impostor</button></div>
     <div class="plist" id="lPlayers"></div>
     <p class="hint" id="lMin" style="text-align:left"></p>
   </div>
+  <div id="lSettings"></div>
   <div class="foot">
     <button class="btn primary big" id="lStart">Start game</button>
     <p class="hint" id="lWait" hidden>Waiting for the host to start…</p>
@@ -2697,8 +2710,9 @@ const COLORS=["#13213C","#E63946","#F4A261","#2A9D8F","#3A86FF","#8338EC","#6B42
 const SIZES=[.004,.008,.015];
 const MIN={solo:2,teams:4,impostor:4};
 const DEF_T={solo:15,teams:10,impostor:10};
+const FOV_W=50;
 
-const S={mode:"solo",players:["Alex","Sam","Maya","Leo"],time:{...DEF_T},rounds:3,input:"gyro",gyro:"untested",lock:false,sens:50,ctrl:"look"};
+const S={mode:"solo",players:["Alex","Sam","Maya","Leo"],time:{...DEF_T},rounds:3,input:"gyro",gyro:"untested",lock:false,sens:22,ctrl:"look",disc:30,vote:30,cam:false};
 const ZOOM=2.4;
 let G=null;
 
@@ -2723,16 +2737,30 @@ $("#players").addEventListener("click",e=>{const i=e.target.dataset.rm;if(i!=nul
 $("#add").onclick=()=>{if(S.players.length<12){S.players.push("Player "+(S.players.length+1));renderPlayers()}};
 $("#shuffle").onclick=()=>{S.players=shuffle(S.players);renderPlayers()};
 $("#modes").onclick=e=>{const b=e.target.closest(".mode");if(!b)return;S.mode=b.dataset.mode;document.querySelectorAll(".mode").forEach(m=>m.setAttribute("aria-pressed",m===b));syncSettings();renderPlayers()};
-function syncSettings(){$("#time").value=S.time[S.mode];$("#rounds").value=S.rounds;$("#roundsRow").hidden=S.mode==="impostor";
-  $("#sens").value=S.sens+"°";$("#lockOn").setAttribute("aria-pressed",S.lock);$("#lockOff").setAttribute("aria-pressed",!S.lock);
+function syncSettings(){$("#time").value=S.time[S.mode]+" s";$("#rounds").value=S.rounds;$("#roundsRow").hidden=S.mode==="impostor";
+  $("#discRow").hidden=$("#voteRow").hidden=S.mode!=="impostor";$("#disc").value=S.disc+" s";$("#vote").value=S.vote+" s";
+  document.querySelectorAll("#reachSeg button").forEach(b=>b.setAttribute("aria-pressed",+b.dataset.r===S.sens));
+  $("#camOn").setAttribute("aria-pressed",S.cam);$("#camOff").setAttribute("aria-pressed",!S.cam);$("#lockOn").setAttribute("aria-pressed",S.lock);$("#lockOff").setAttribute("aria-pressed",!S.lock);
   document.querySelectorAll("#ctrlSeg button").forEach(b=>b.setAttribute("aria-pressed",b.dataset.ctrl===S.ctrl));
   $("#ctrlHint").textContent=S.ctrl==="look"?"Hold the phone up like a camera and turn or tilt your body to aim. The brush stays in the center and the sheet moves around it.":"Hold the phone comfortably and tilt it to slide the sheet under the brush."}
-$("#ctrlSeg").onclick=e=>{const c=e.target.dataset.ctrl;if(!c)return;S.ctrl=c;S.sens=c==="look"?50:35;syncSettings()};
-$("#timeStep").onclick=e=>{const d=+e.target.dataset.d;if(!d)return;S.time[S.mode]=Math.min(60,Math.max(5,S.time[S.mode]+d));syncSettings()};
-$("#roundStep").onclick=e=>{const d=+e.target.dataset.d;if(!d)return;S.rounds=Math.min(6,Math.max(1,S.rounds+d));syncSettings()};
-$("#sensRow").onclick=e=>{const d=+e.target.dataset.d;if(!d)return;S.sens=Math.min(120,Math.max(15,S.sens+d));syncSettings()};
+$("#ctrlSeg").onclick=e=>{const c=e.target.dataset.ctrl;if(!c)return;S.ctrl=c;syncSettings()};
+$("#reachSeg").onclick=e=>{const r=+e.target.dataset.r;if(!r)return;S.sens=r;syncSettings()};
+function settingsChanged(){syncSettings();if(typeof NET!=="undefined"&&NET.isHost&&NET.code&&!H)hostLobby()}
+$("#discStep").onclick=e=>{const d=+e.target.dataset.d;if(!d)return;S.disc=Math.min(180,Math.max(0,S.disc+d));settingsChanged()};
+$("#voteStep").onclick=e=>{const d=+e.target.dataset.d;if(!d)return;S.vote=Math.min(120,Math.max(10,S.vote+d));settingsChanged()};
+$("#timeStep").onclick=e=>{const d=+e.target.dataset.d;if(!d)return;S.time[S.mode]=Math.min(120,Math.max(5,S.time[S.mode]+d));settingsChanged()};
+$("#roundStep").onclick=e=>{const d=+e.target.dataset.d;if(!d)return;S.rounds=Math.min(10,Math.max(1,S.rounds+d));settingsChanged()};
 $("#lockOn").onclick=()=>{S.lock=true;syncSettings()};$("#lockOff").onclick=()=>{S.lock=false;syncSettings()};
 $("#testGyro").onclick=()=>testGyro();
+let camStream=null;
+function camMsg(t){$("#camMsg").hidden=!t;$("#camMsg").textContent=t}
+async function startCam(){
+  if(camStream&&camStream.active)return true;
+  try{camStream=await navigator.mediaDevices.getUserMedia({video:{facingMode:{ideal:"environment"},width:{ideal:1280},height:{ideal:720}},audio:false});$("#camv").srcObject=camStream;return true}
+  catch(e){camStream=null;camMsg(e&&e.name==="NotAllowedError"?"Camera access was denied. Allow it in your browser settings to use this option.":"The camera is not available on this device or browser.");return false}
+}
+$("#camOn").onclick=async()=>{if(await startCam()){S.cam=true;camMsg("Camera on. You will draw over what your camera sees; the sheet stays fixed in the room as you aim.")}else S.cam=false;syncSettings()};
+$("#camOff").onclick=()=>{S.cam=false;camMsg("");if(camStream){camStream.getTracks().forEach(t=>t.stop());camStream=null}syncSettings()};
 $("#devMode").onclick=()=>{S.input=S.input==="finger"?"gyro":"finger";$("#devMode").textContent=S.input==="finger"?"Mouse test mode on · switch back to gyroscope":"Test on a computer without a gyroscope (mouse)";refreshStart()};
 function refreshStart(){const ok=S.players.length>=MIN[S.mode];$("#start").disabled=!ok;$("#start").textContent=S.input==="gyro"&&S.gyro!=="ok"?"Enable gyroscope and start":"Start"}
 
@@ -2760,14 +2788,24 @@ function aim(){
     return{x:Math.atan2(fx,fy)/RAD,y:-pitch,pitch}}
   const a=(screen.orientation&&screen.orientation.angle)||window.orientation||0;
   if(a===90)return{x:ori.b,y:-ori.g};if(a===-90||a===270)return{x:-ori.b,y:ori.g};if(a===180)return{x:-ori.g,y:-ori.b};return{x:ori.g,y:ori.b}}
-const cal={x0:0,y0:0,ax:.5,ay:.5};
-function calibrate(ax,ay){const t=aim();cal.x0=t.x;cal.y0=t.y;cal.ax=ax;cal.ay=ay;D.pos={x:ax,y:ay};D.tgt={x:ax,y:ay}}
-function gyroTarget(){
-  const t=aim(),R=S.sens;let x=cal.ax+wrap(t.x-cal.x0)/R,y=cal.ay+wrap(t.y-cal.y0)/R;
-  if(x>1){cal.x0=t.x-(1-cal.ax)*R;x=1}else if(x<0){cal.x0=t.x+cal.ax*R;x=0}
-  if(y>1){cal.y0=t.y-(1-cal.ay)*R;y=1}else if(y<0){cal.y0=t.y+cal.ay*R;y=0}
+function OneEuro(minCut=1.2,beta=.03,dCut=1){let x=null,dx=0,t=0;const a=(c,dt)=>1/(1+1/(2*Math.PI*c*dt));
+  return{reset(v){x=v;dx=0;t=0},f(v,now,isAngle){if(x==null){x=v;t=now;return v}const dt=Math.max(1e-3,(now-t)/1000);t=now;
+    let d=isAngle?wrap(v-x):v-x;const ed=d/dt;dx+=(ed-dx)*a(dCut,dt);const c=minCut+beta*Math.abs(dx);x=x+d*a(c,dt);if(isAngle)x=wrap(x);return x}}}
+const fx=OneEuro(),fy=OneEuro(),cal={px:null,py:null};
+function arMode(){return S.cam&&S.ctrl==="look"&&camStream}
+function degPerSheet(){return arMode()?Math.max(S.sens,36):S.sens}
+function calibrate(ax,ay){const t=aim();fx.reset(t.x);fy.reset(t.y);cal.px=t.x;cal.py=t.y;D.pos={x:ax,y:ay};D.tgt={x:ax,y:ay}}
+function gyroTarget(now){
+  const t=aim(),x=fx.f(t.x,now,true),y=fy.f(t.y,now,false);
+  if(cal.px==null){cal.px=x;cal.py=y}
+  const dx=wrap(x-cal.px),dy=y-cal.py,dt=Math.max(.001,(now-(cal.t||now))/1000);cal.px=x;cal.py=y;cal.t=now;
+  const speed=Math.hypot(dx,dy)/dt,u=Math.min(1,Math.max(0,(speed-8)/110)),boost=arMode()?1:.6+1.1*u*u*(3-2*u);
+  const g=boost/degPerSheet();
   $("#aimHint").hidden=!(S.ctrl==="look"&&t.pitch!=null&&t.pitch<-60);
-  return{x,y}}
+  return{x:Math.min(1,Math.max(0,D.tgt.x+dx*g)),y:Math.min(1,Math.max(0,D.tgt.y+dy*g))}}
+function smoothStroke(s){if(!s||s.pts.length<3)return;let p=s.pts;
+  for(let k=0;k<2;k++){const q=[p[0]];for(let i=0;i<p.length-1;i++){const a=p[i],b=p[i+1];q.push([a[0]*.75+b[0]*.25,a[1]*.75+b[1]*.25],[a[0]*.25+b[0]*.75,a[1]*.25+b[1]*.75])}q.push(p[p.length-1]);p=q}
+  const out=[p[0]];for(const pt of p){const l=out[out.length-1];if(Math.hypot(pt[0]-l[0],pt[1]-l[1])>.003)out.push(pt)}if(out[out.length-1]!==p[p.length-1])out.push(p[p.length-1]);s.pts=out}
 
 /* ---------- Drawing engine ---------- */
 const cv=$("#cv"),ctx=cv.getContext("2d");
@@ -2781,9 +2819,9 @@ function drawStroke(c,s,n){if(!s.pts.length)return;c.strokeStyle=s.c;c.lineWidth
   if(p.length>1){const l=p[p.length-1];c.lineTo(l[0]*n,l[1]*n)}c.stroke()}
 function render(){
   const k=devicePixelRatio,w=cv.width,h=cv.height,W=D.sheet*k,ox=Math.round(w/2-D.pos.x*W),oy=Math.round(h/2-D.pos.y*W);
-  ctx.fillStyle="#C9D6E0";ctx.fillRect(0,0,w,h);
-  ctx.fillStyle="rgba(19,33,60,.16)";ctx.fillRect(ox+4*k,oy+6*k,W,W);
-  ctx.save();ctx.translate(ox,oy);paintPaper(ctx,W,true,k);
+  const cam=!$("#camv").hidden;
+  if(cam){ctx.clearRect(0,0,w,h);ctx.save();ctx.translate(ox,oy);ctx.fillStyle="rgba(255,255,255,.5)";ctx.fillRect(0,0,W,W);ctx.strokeStyle="rgba(255,255,255,.95)";ctx.lineWidth=2*k;ctx.strokeRect(0,0,W,W)}
+  else{ctx.fillStyle="#C9D6E0";ctx.fillRect(0,0,w,h);ctx.fillStyle="rgba(19,33,60,.16)";ctx.fillRect(ox+4*k,oy+6*k,W,W);ctx.save();ctx.translate(ox,oy);paintPaper(ctx,W,true,k)}
   for(const s of D.strokes||[])drawStroke(ctx,s,W);
   if(D.mark){ctx.strokeStyle="#FF5A36";ctx.lineWidth=2.5*k;ctx.setLineDash([6*k,5*k]);ctx.beginPath();ctx.arc(D.mark[0]*W,D.mark[1]*W,16*k,0,7);ctx.stroke();ctx.setLineDash([])}
   ctx.restore();
@@ -2801,15 +2839,15 @@ function render(){
 }
 function addPoint(x,y){const s=D.cur;if(!s)return;const l=s.pts[s.pts.length-1];if(!l||Math.hypot(l[0]-x,l[1]-y)>.0025)s.pts.push([x,y])}
 function penDown(x,y){if(D.state!=="run")return;D.pen=true;D.cur={c:D.color==="eraser"?"#FFFFFF":D.color,w:D.color==="eraser"?D.size*2.2:D.size,pts:[]};D.strokes.push(D.cur);addPoint(x,y);$("#pen").classList.add("on");$("#pen").textContent=S.lock?"DRAWING · TAP TO LIFT":"DRAWING…"}
-function penUp(){if(D.cur&&!D.cur.pts.length)D.strokes.pop();D.pen=false;D.cur=null;$("#pen").classList.remove("on");$("#pen").textContent=S.lock?"TAP TO DRAW":"HOLD TO DRAW"}
+function penUp(){if(D.cur&&!D.cur.pts.length)D.strokes.pop();else smoothStroke(D.cur);D.pen=false;D.cur=null;$("#pen").classList.remove("on");$("#pen").textContent=S.lock?"TAP TO DRAW":"HOLD TO DRAW"}
 function loop(now){
   if(S.input==="gyro"&&ori.b!=null){
-    if(D.state==="count")calibrate(cal.ax,cal.ay);
-    else{D.tgt=gyroTarget();D.pos.x+=(D.tgt.x-D.pos.x)*.35;D.pos.y+=(D.tgt.y-D.pos.y)*.35;if(D.pen)addPoint(D.pos.x,D.pos.y)}}
+    if(D.state==="count")calibrate(D.pos.x,D.pos.y);
+    else{D.tgt=gyroTarget(now);D.pos.x+=(D.tgt.x-D.pos.x)*.6;D.pos.y+=(D.tgt.y-D.pos.y)*.6;if(D.pen)addPoint(D.pos.x,D.pos.y)}}
   if(D.state==="run"){const left=Math.max(0,D.dur-(now-D.t0)/1000);$("#dClock").textContent=Math.ceil(left);$("#dClock").classList.toggle("low",left<=3);
     const bar=$("#dBar");bar.style.transform=`scaleX(${left/D.dur})`;bar.style.background=left<=3?"var(--accent)":"var(--go)";if(left<=0)endTurn()}
   render();D.raf=requestAnimationFrame(loop)}
-function fit(){const st=$("#stage").getBoundingClientRect();const w=Math.max(120,st.width),h=Math.max(120,st.height);cv.width=Math.round(w*devicePixelRatio);cv.height=Math.round(h*devicePixelRatio);D.sheet=ZOOM*Math.min(w,h)}
+function fit(){const st=$("#stage").getBoundingClientRect();const w=Math.max(120,st.width),h=Math.max(120,st.height);cv.width=Math.round(w*devicePixelRatio);cv.height=Math.round(h*devicePixelRatio);D.sheet=arMode()?w*degPerSheet()/FOV_W:ZOOM*Math.min(w,h)}
 new ResizeObserver(()=>{if(!$("#s-draw").hidden)fit()}).observe($("#stage"));
 
 $("#swatches").innerHTML=COLORS.map((c,i)=>`<button class="sw" style="background:${c}" data-c="${c}" aria-label="Color ${i+1}" aria-pressed="${i===0}"></button>`).join("")+`<button class="sw eraser" data-c="eraser" aria-label="Eraser" aria-pressed="false"></button>`;
@@ -2817,7 +2855,7 @@ $("#sizes").innerHTML=SIZES.map((s,i)=>`<button class="sz" data-s="${i}" aria-la
 $("#swatches").onclick=e=>{const c=e.target.dataset.c;if(!c)return;D.color=c;document.querySelectorAll(".sw").forEach(b=>b.setAttribute("aria-pressed",b===e.target));if(D.cur){const w=D.pen;penUp();if(w)penDown(D.pos.x,D.pos.y)}};
 $("#sizes").onclick=e=>{const b=e.target.closest(".sz");if(!b)return;D.size=SIZES[+b.dataset.s];document.querySelectorAll(".sz").forEach(x=>x.setAttribute("aria-pressed",x===b))};
 $("#undo").onclick=()=>{if(D.strokes&&D.strokes.length>D.base){if(D.cur)penUp();D.strokes.pop()}};
-$("#recal").onclick=()=>{if(S.input==="gyro")calibrate(D.pos.x,D.pos.y);else{}};
+$("#recal").onclick=()=>{if(S.input==="gyro")calibrate(D.pos.x,D.pos.y)};
 $("#finish").onclick=()=>{if(D.state==="run")endTurn()};
 const pen=$("#pen");
 pen.addEventListener("pointerdown",e=>{e.preventDefault();if(S.lock){D.pen?penUp():penDown(D.pos.x,D.pos.y)}else{pen.setPointerCapture(e.pointerId);penDown(D.pos.x,D.pos.y)}});
@@ -2834,6 +2872,7 @@ function startDraw({who,word,strokes,dur,mark,onEnd}){
   D.strokes=strokes;D.base=strokes.length;D.dur=dur;D.mark=mark||null;D.onEnd=onEnd;D.cur=null;D.pen=false;
   $("#dWho").textContent=who;$("#dWord").textContent=up(word);$("#dClock").textContent=dur;$("#dClock").classList.remove("low");$("#dBar").style.transform="scaleX(1)";
   const g=S.input==="gyro";pen.hidden=!g;$("#recal").hidden=!g;penUp();
+  const cv2=$("#camv"),useCam=S.cam&&camStream&&camStream.active;cv2.hidden=!useCam;if(useCam){cv2.srcObject=camStream;cv2.play().catch(()=>{})}
   show("s-draw");fit();
   const a=mark||[.5,.5];D.pos={x:a[0],y:a[1]};calibrate(a[0],a[1]);
   D.state="count";cancelAnimationFrame(D.raf);D.raf=requestAnimationFrame(loop);
@@ -2842,7 +2881,8 @@ function startDraw({who,word,strokes,dur,mark,onEnd}){
 }
 function endTurn(){if(D.state!=="run")return;penUp();D.state="done";$("#dOver").innerHTML="<small>Time's up!</small>";
   const last=[...D.strokes].reverse().find(s=>s.pts.length&&s.c!=="#FFFFFF");const lp=last?last.pts[last.pts.length-1]:(D.mark||null);
-  setTimeout(()=>{$("#dOver").innerHTML="";cancelAnimationFrame(D.raf);D.state="idle";D.onEnd&&D.onEnd(lp)},900)}
+  setTimeout(()=>{$("#dOver").innerHTML="";cancelAnimationFrame(D.raf);D.state="idle";try{$("#camv").pause()}catch(_){}D.onEnd&&D.onEnd(lp)},900)}
+function abortDraw(){clearInterval(autoGo);if(D.state==="idle")return;penUp();cancelAnimationFrame(D.raf);D.state="idle";$("#dOver").innerHTML="";try{$("#camv").pause()}catch(_){}}
 
 function snapshot(strokes,n=512,type="dataURL"){const c=document.createElement("canvas");c.width=c.height=n;const x=c.getContext("2d");paintPaper(x,n,false);strokes.forEach(s=>drawStroke(x,s,n));
   return type==="blob"?new Promise(r=>c.toBlob(r,"image/png")):c.toDataURL("image/png")}
@@ -2981,7 +3021,7 @@ function gallery(){
   $("#gGrid").innerHTML=G.order.map(p=>`<figure><img alt="${esc(G.names[p])}'s drawing" src="${snapshot(G.draws[p],300)}"><figcaption>${esc(G.names[p])}</figcaption></figure>`).join("");
   const t0=performance.now(),btn=$("#gVote");btn.disabled=true;
   clearInterval(galTimer);galTimer=setInterval(()=>{const s=Math.floor((performance.now()-t0)/1000);$("#gClock").textContent=`${Math.floor(s/60)}:${String(s%60).padStart(2,"0")}`;
-    if(s<30){btn.disabled=true;btn.textContent=`Voting in ${30-s} s`}else{btn.disabled=false;btn.textContent="Start voting"}},250);
+    if(s<S.disc){btn.disabled=true;btn.textContent=`Voting in ${S.disc-s} s`}else{btn.disabled=false;btn.textContent="Start voting"}},250);
   btn.onclick=()=>{clearInterval(galTimer);G.votes=[];voteTurn(0)};
   show("s-gal");
 }
@@ -3058,6 +3098,7 @@ function leaveRoom(msg){
   try{if(NET.isHost)broadcast({t:"closed"})}catch(_){}
   setTimeout(()=>{try{p&&p.destroy()}catch(_){}},200);
   NET.conns.clear();NET.hostConn=null;NET.players=[];NET.code="";
+  const tp=$("#timePanel");if(tp.parentNode===$("#lSettings"))$("#s-home").insertBefore(tp,$("#multiBox"));
   show("s-home");setInvite("");setPlay("multi");netMsg(msg||"");
 }
 $("#lLeave").onclick=()=>leaveRoom("");
@@ -3087,7 +3128,8 @@ function dropPlayer(id){
 function modeName(m){return{solo:"Solo",teams:"Teams",impostor:"Impostor"}[m]}
 function hostLobby(){
   const teams=S.mode==="teams"?teamsOf(NET.players):null;
-  broadcast({t:"lobby",code:NET.code,mode:S.mode,players:NET.players.map((p,i)=>({id:p.id,name:p.name,team:teams?teams.findIndex(t=>t.includes(i))+1:0}))});
+  const rules=S.mode==="impostor"?`${S.time.impostor} s to draw · ${S.disc} s discussion · ${S.vote} s to vote`:`${S.time[S.mode]} s per turn · ${S.rounds} round${S.rounds===1?"":"s"}`;
+  broadcast({t:"lobby",code:NET.code,mode:S.mode,rules,players:NET.players.map((p,i)=>({id:p.id,name:p.name,team:teams?teams.findIndex(t=>t.includes(i))+1:0}))});
 }
 function clientRecv(d){
   if(!d)return;
@@ -3097,6 +3139,7 @@ function clientRecv(d){
     case"wait":showWait(d);break;
     case"board":showBoard(d);break;
     case"gallery":showGalleryM(d);break;
+    case"abort":abortDraw();showWait({title:"Time's up",sub:d.sub||"The game moved on.",chips:[]});break;
     case"busy":leaveRoom("That room is in the middle of a game. Wait for it to end and join again.");break;
     case"full":leaveRoom("That room is full (12 players).");break;
     case"closed":if(!NET.isHost)leaveRoom("The host closed the room.");break;
@@ -3107,6 +3150,8 @@ function showLobby(){
   $("#lCode").textContent=v.code||NET.code;
   if(NET.isHost&&$("#lQr").dataset.code!==NET.code&&typeof qrcode!=="undefined"){const q=qrcode(0,"M");q.addData(inviteLink());q.make();$("#lQr").innerHTML=q.createSvgTag({cellSize:6,margin:0,scalable:true});$("#lQr").dataset.code=NET.code}
   $("#lQr").hidden=!NET.isHost;$("#lScan").hidden=!NET.isHost;$("#lCopy").hidden=!NET.isHost;$("#lHow").textContent=NET.isHost?"Friends scan the QR, or open the game, choose Multiple phones and enter this code.":"You're in. Keep this screen open.";
+  $("#lRules").textContent=v.rules||"";
+  const tp=$("#timePanel");if(NET.isHost){if(tp.parentNode!==$("#lSettings"))$("#lSettings").append(tp)}else if(tp.parentNode===$("#lSettings"))$("#s-home").insertBefore(tp,$("#multiBox"));
   $("#lMode").textContent=modeName(v.mode);$("#lMode").hidden=NET.isHost;$("#lModes").hidden=!NET.isHost;
   document.querySelectorAll("#lModes button").forEach(b=>b.setAttribute("aria-pressed",b.dataset.m===v.mode));
   $("#lCount").textContent=`Players · ${v.players.length}`;
@@ -3120,10 +3165,14 @@ $("#lStart").onclick=()=>{if(NET.isHost)hostStart()};
 $("#lModes").onclick=e=>{const m=e.target.dataset.m;if(!m||!NET.isHost||H)return;S.mode=m;document.querySelectorAll(".mode").forEach(b=>b.setAttribute("aria-pressed",b.dataset.mode===m));syncSettings();renderPlayers();hostLobby()};
 function showWait(d){$("#wTitle").textContent=d.title||"Waiting for the others";$("#wSub").textContent=d.sub||"";
   $("#wChips").innerHTML=(d.chips||[]).map(c=>`<span class="chip${c.done?" done":""}">${esc(c.name)}${c.done?" ✓":""}</span>`).join("");show("s-wait")}
+let autoGo=0;
 function remoteDraw(d){
+  clearInterval(autoGo);
   handoff({label:d.label||"Your object",who:up(d.word),info:d.info||"",hint:d.hint||"",thumb:d.strokes&&d.strokes.length?thumbWithMark(d.strokes,d.mark):null,go:"Start drawing",
     onGo:()=>startDraw({who:d.who,word:d.word,strokes:d.strokes||[],dur:d.dur,mark:d.mark||null,
       onEnd:lp=>{toHost({t:"done",turn:d.turn,strokes:D.strokes,last:lp});showWait({title:"Nice! Waiting for the others",sub:"",chips:[]})}})});
+  let left=d.prep||10;const btn=$("#hGo"),tick=()=>{if($("#s-hand").hidden){clearInterval(autoGo);return}if(left<=0){clearInterval(autoGo);btn.click();return}btn.textContent=`Start drawing · auto in ${left}`;left--};
+  tick();autoGo=setInterval(tick,1000);
 }
 function cardHTML(c){return`<div class="card${c.win?" win":""}"${c.img?"":' style="grid-template-columns:1fr auto"'}>${c.img?`<img alt="${esc(c.name)}'s drawing" src="${c.img}">`:""}<div style="min-width:0"><div class="nm">${esc(c.name)}</div>${c.sub?`<div class="gs">${esc(c.sub)}</div>`:""}${c.meter!=null?`<div class="meter"><i style="width:${c.meter}%"></i></div>`:""}</div><div class="pc">${esc(c.pc)}</div></div>`}
 function showBoard(d){
@@ -3151,6 +3200,10 @@ function hostStart(){
 }
 const nameOf=id=>{const p=(H&&H.players.find(x=>x.id===id))||NET.players.find(x=>x.id===id);return p?p.name:"Someone"};
 function startRoundM(){H.items=H.units.map(u=>({u,strokes:[],last:null}));H.stage=0;runStage()}
+const PREP=10;
+function armDeadline(extra){clearTimeout(H.timer);const turn=H.turn;H.timer=setTimeout(()=>{if(!H||H.turn!==turn||!H.pending.size)return;
+  for(const id of[...H.pending.keys()])sendTo(id,{t:"abort",sub:"Your drawing time ran out, so the game continued."});
+  H.pending.clear();nextStage()},(extra+PREP+6)*1000)}
 function runStage(){
   const k=H.stage,w=H.words[H.round],team=H.mode==="teams",rl=`Round ${H.round+1} of ${H.words.length}`;
   H.turn++;H.pending=new Map();
@@ -3160,8 +3213,8 @@ function runStage(){
     sendTo(id,{t:"draw",turn:H.turn,word:w,dur:S.time[H.mode],strokes:cont?it.strokes:[],mark:cont?it.last:null,
       who:`${nameOf(id)}${team?" · "+it.u.name:""} · ${rl}`,label:cont?`You continue ${prev}'s drawing of`:team?`${it.u.name} · you start drawing`:rl+" · draw",
       info:cont?`The orange circle marks where ${prev} stopped. Your brush starts there.`:team?"When your time is up, the drawing jumps to your teammate's phone.":"Everyone draws at the same time. The AI judges after the timer.",
-      hint:S.ctrl==="look"?"Hold the phone up like a camera before you tap.":"Hold the phone comfortably before you tap."})}
-  stageStatus();
+      hint:S.ctrl==="look"?"Hold the phone up like a camera before you tap.":"Hold the phone comfortably before you tap.",prep:PREP})}
+  armDeadline(S.time[H.mode]);stageStatus();
 }
 function stageStatus(){
   if(!H||!H.pending)return;
@@ -3169,7 +3222,7 @@ function stageStatus(){
   const drawing=[...H.pending.keys()].map(nameOf);
   H.players.forEach(p=>{if(!H.pending.has(p.id))sendTo(p.id,{t:"wait",title:drawing.length?"Waiting for the others":"Everyone is done",sub:drawing.length?`Still drawing: ${drawing.join(", ")}`:"",chips})});
 }
-function nextStage(){if(H.mode==="impostor")return galleryM();H.stage++;if(H.items.some(it=>it.u.members.length>H.stage))runStage();else judgeM()}
+function nextStage(){clearTimeout(H.timer);if(H.mode==="impostor")return galleryM();H.stage++;if(H.items.some(it=>it.u.members.length>H.stage))runStage();else judgeM()}
 async function judgeM(){
   const w=H.words[H.round];
   broadcast({t:"wait",title:"The AI is looking at the drawings",sub:`Which one looks most like "${w}"?`,chips:[]});
@@ -3200,21 +3253,23 @@ function impStartM(players){
   players.forEach(p=>H.pending.set(p.id,true));
   players.forEach(p=>{const w=p.id===H.imp?H.decoy:H.main;
     sendTo(p.id,{t:"draw",turn:1,word:w,dur:S.time.impostor,strokes:[],mark:null,who:`${p.name} · Impostor`,label:"Your secret object",
-      info:"Don't say it out loud. One player got a slightly different object.",hint:S.ctrl==="look"?"Hold the phone up like a camera before you tap.":"Hold the phone comfortably before you tap."})});
-  stageStatus();
+      info:"Don't say it out loud. One player got a slightly different object.",hint:S.ctrl==="look"?"Hold the phone up like a camera before you tap.":"Hold the phone comfortably before you tap.",prep:PREP})});
+  armDeadline(S.time.impostor);stageStatus();
 }
 function galleryM(){
-  if(H.phase)return;H.phase="vote";H.votes={};
-  broadcast({t:"gallery",items:H.players.map(p=>({id:p.id,name:p.name,img:snapshot(H.draws[p.id]||[],240)}))});
+  if(H.phase)return;clearTimeout(H.timer);H.phase="vote";H.votes={};
+  broadcast({t:"gallery",disc:S.disc,vote:S.vote,items:H.players.map(p=>({id:p.id,name:p.name,img:snapshot(H.draws[p.id]||[],240)}))});
+  H.voteTimer=setTimeout(()=>{if(H&&H.phase==="vote")voteStatus(true)},(S.disc+S.vote+3)*1000);
 }
-function voteStatus(){
+function voteStatus(force){
   const left=H.players.filter(p=>H.votes[p.id]==null);
-  if(left.length)return H.players.forEach(p=>{if(H.votes[p.id]!=null)sendTo(p.id,{t:"wait",title:"Vote sent",sub:`Waiting for: ${left.map(x=>x.name).join(", ")}`,chips:H.players.map(x=>({name:x.name,done:H.votes[x.id]!=null}))})});
+  if(left.length&&!force)return H.players.forEach(p=>{if(H.votes[p.id]!=null)sendTo(p.id,{t:"wait",title:"Vote sent",sub:`Waiting for: ${left.map(x=>x.name).join(", ")}`,chips:H.players.map(x=>({name:x.name,done:H.votes[x.id]!=null}))})});
   const count={};Object.values(H.votes).forEach(v=>count[v]=(count[v]||0)+1);
-  const max=Math.max(0,...Object.values(count)),top=Object.keys(count).filter(k=>count[k]===max);
+  clearTimeout(H.voteTimer);
+  const max=Math.max(0,...Object.values(count)),top=max?Object.keys(count).filter(k=>count[k]===max):[];
   const caught=top.length===1&&top[0]===H.imp,out=top.length===1?nameOf(top[0]):null;
   H.phase="done";
-  broadcast({t:"board",banner:true,label:out?`Eliminated: ${out}`:"The vote is tied",title:caught?"You caught the impostor!":"The impostor wins",
+  broadcast({t:"board",banner:true,label:out?`Eliminated: ${out}`:max?"The vote is tied":"Nobody voted in time",title:caught?"You caught the impostor!":"The impostor wins",
     info:`The impostor was ${nameOf(H.imp)}. The object was "${H.main}" and the impostor drew "${H.decoy}".`,
     cards:H.players.map(p=>({img:snapshot(H.draws[p.id]||[],200),name:p.name+(p.id===H.imp?" · impostor":""),sub:"Drew: "+(p.id===H.imp?H.decoy:H.main),pc:`${count[p.id]||0} vote${count[p.id]===1?"":"s"}`,win:p.id===H.imp})),
     actions:[{id:"again",text:"Play again"},{id:"lobby",text:"Back to lobby"}],waitText:"Waiting for the host…"});
@@ -3225,10 +3280,10 @@ function showGalleryM(d){
   const others=d.items.filter(it=>it.id!==myId);
   $("#mgVotes").innerHTML=others.map(it=>`<button class="btn" data-v="${esc(it.id)}" disabled>${esc(it.name)}</button>`).join("");
   $("#mgVotes").onclick=e=>{const v=e.target.dataset.v;if(!v||e.target.disabled)return;toHost({t:"vote",v});showWait({title:"Vote sent",sub:"Waiting for the others…",chips:[]})};
-  const t0=performance.now();clearInterval(mgTimer);
+  const t0=performance.now(),disc=d.disc??30,vt=d.vote??30;clearInterval(mgTimer);
   mgTimer=setInterval(()=>{const s=Math.floor((performance.now()-t0)/1000);$("#mgClock").textContent=`${Math.floor(s/60)}:${String(s%60).padStart(2,"0")}`;
-    const open=s>=30;$("#mgVoteLabel").textContent=open?"Vote: who is the impostor?":`Voting opens in ${30-s} s`;
-    document.querySelectorAll("#mgVotes button").forEach(b=>b.disabled=!open)},250);
+    const open=s>=disc,closeIn=disc+vt-s;$("#mgVoteLabel").textContent=!open?`Voting opens in ${disc-s} s`:closeIn>0?`Vote: who is the impostor? Closes in ${closeIn} s`:"Voting closed";
+    document.querySelectorAll("#mgVotes button").forEach(b=>b.disabled=!open||closeIn<=0)},250);
   show("s-mgal");
 }
 $("#modes").addEventListener("click",()=>{if(NET.isHost&&NET.code&&!H)hostLobby()});
