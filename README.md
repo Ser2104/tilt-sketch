@@ -5,8 +5,8 @@ A drawing party game for one phone (pass and play) or several phones at once. Yo
 **Play:** https://ser2104.github.io/tilt-sketch/ (open it on a phone)
 
 ## Playing on several phones
-1. One player chooses **Multiple phones**, enters a name and taps **Create room**. The phone shows a 4-letter code and a QR.
-2. Everyone else scans the QR (or opens the game, chooses **Multiple phones** and types the code), enters a name and taps **Join**.
+1. One player chooses **Multiple phones**, enters a name and taps **Create room**. Every room gets its own QR code and 4-letter code.
+2. Everyone else scans the QR with the phone camera. The game opens straight on a "Join room" screen: enter a name, enable the gyroscope and tap Join. Typing the code also works.
 3. The host picks the mode in the lobby and taps **Start game**. Up to 12 players.
 
 Phones connect directly to each other with WebRTC (PeerJS). The host's phone runs the game and the AI judge, so keep the host's screen open until the game ends.

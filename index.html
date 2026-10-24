@@ -66,9 +66,12 @@ h2{font-size:22px;line-height:1.1}
 .field{width:100%;box-sizing:border-box;border:1px solid var(--line);background:var(--bg);color:var(--ink);border-radius:10px;padding:12px;font:inherit;-webkit-user-select:text;user-select:text}
 .code{font-family:var(--f-mono);font-size:clamp(40px,14vw,64px);letter-spacing:.12em;line-height:1}
 .code-in{text-transform:uppercase;font-family:var(--f-mono);letter-spacing:.2em;font-size:22px;text-align:center}
-.qr{background:#fff;border-radius:14px;padding:8px;width:min(190px,48vw);aspect-ratio:1;display:grid;place-items:center}
+.qr{background:#fff;border-radius:18px;padding:14px;width:min(260px,70vw);aspect-ratio:1;display:grid;place-items:center;box-shadow:0 0 0 1px var(--line),0 8px 24px rgb(10 30 60 / .12);box-sizing:border-box}
 .qr svg{width:100%;height:100%}
-.lobbytop{display:flex;gap:14px;align-items:center;justify-content:space-between;flex-wrap:wrap}
+.lobbytop{display:flex;flex-direction:column;gap:12px;align-items:center;text-align:center;padding-top:6px}
+.invite .host-only{display:none!important}
+.invite>*{order:2}.invite>header{order:0}.invite #multiBox{order:1;border:2px solid var(--go)}
+.invite-title{font-family:var(--f-display);font-size:28px;line-height:1.05;margin:0}
 .plist{display:flex;flex-direction:column;gap:6px}
 .prow{display:flex;justify-content:space-between;align-items:center;gap:8px;background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:10px 12px;font-weight:700}
 .chips{display:flex;flex-wrap:wrap;gap:6px;justify-content:center}
@@ -144,12 +147,12 @@ h2{font-size:22px;line-height:1.1}
     <p class="lede">Draw by aiming your phone: the brush stays in the center and the sheet moves around it. An AI tries to guess what it is, and the most recognizable drawing wins.</p>
   </header>
 
-  <div class="seg" id="playSeg">
+  <div class="seg host-only" id="playSeg">
     <button data-play="one" aria-pressed="true">One phone</button>
     <button data-play="multi" aria-pressed="false">Multiple phones</button>
   </div>
 
-  <div class="stack">
+  <div class="stack host-only">
     <span class="label">Game mode</span>
     <div class="modes" id="modes">
       <button class="mode" data-mode="solo" aria-pressed="true"><b>Solo</b><span>Everyone draws the same object. 3 rounds, best average wins.</span></button>
@@ -178,7 +181,7 @@ h2{font-size:22px;line-height:1.1}
     <button class="linkbtn" id="devMode">Test on a computer without a gyroscope (mouse)</button>
   </div>
 
-  <div class="panel">
+  <div class="panel host-only">
     <div class="setting"><span>Seconds per turn</span>
       <div class="stepper" id="timeStep"><button data-d="-5" aria-label="Less time">−</button><output id="time">15</output><button data-d="5" aria-label="More time">+</button></div></div>
     <div class="setting" id="roundsRow"><span>Rounds</span>
@@ -187,15 +190,17 @@ h2{font-size:22px;line-height:1.1}
   </div>
 
   <div class="panel" id="multiBox" hidden>
+    <h2 class="invite-title" id="inviteTitle" hidden></h2>
     <span class="label">Your name</span>
     <input class="field" id="myName" maxlength="14" placeholder="Your name" autocomplete="nickname">
-    <button class="btn primary big" id="createRoom">Create room</button>
-    <div class="or">OR JOIN A ROOM</div>
-    <div class="row" style="flex-wrap:nowrap">
+    <button class="btn primary big host-only" id="createRoom">Create room</button>
+    <div class="or host-only">OR JOIN A ROOM</div>
+    <div class="row" id="joinRow" style="flex-wrap:nowrap">
       <input class="field code-in" id="joinCode" maxlength="4" placeholder="CODE" autocomplete="off" autocapitalize="characters" style="flex:1;min-width:0">
       <button class="btn go" id="joinRoom" style="padding:14px 22px">Join</button>
     </div>
     <p class="hint" id="netMsg" style="text-align:left"></p>
+    <button class="linkbtn" id="cancelInvite" hidden>Create my own room instead</button>
   </div>
 
   <div class="foot" id="oneFoot">
@@ -294,13 +299,14 @@ h2{font-size:22px;line-height:1.1}
 <!-- ROOM LOBBY -->
 <section id="s-lobby" class="screen scroll" hidden>
   <div class="lobbytop">
-    <div class="stack" style="gap:6px;min-width:0">
+    <span class="label" id="lScan">Scan to join</span>
+    <div class="qr" id="lQr" role="img" aria-label="QR code to join this room"></div>
+    <div class="stack" style="gap:4px;align-items:center">
       <span class="label">Room code</span>
       <div class="code" id="lCode">ABCD</div>
-      <p class="hint" style="text-align:left;margin:0" id="lHow">Scan the QR or open the game and enter this code.</p>
-      <button class="btn" id="lCopy" style="padding:9px 12px;align-self:flex-start">Copy invite link</button>
     </div>
-    <div class="qr" id="lQr" aria-label="QR code to join"></div>
+    <p class="hint" style="margin:0" id="lHow">Scan the QR with the phone camera, or open the game, choose Multiple phones and enter the code.</p>
+    <button class="btn" id="lCopy" style="padding:9px 14px">Copy invite link</button>
   </div>
   <div class="panel">
     <div class="setting"><span class="label" id="lCount">Players</span><span class="tag" id="lMode">Solo</span></div>
@@ -3039,15 +3045,20 @@ $("#joinRoom").onclick=async()=>{
     c.on("close",()=>{if(NET.peer===p)leaveRoom("The host left the room.")})});
   p.on("error",e=>{clearTimeout(fail);netMsg(e.type==="peer-unavailable"?"Room "+code+" was not found. Check the code.":"Could not join ("+e.type+"). Try again.")});
 };
-const qp=new URLSearchParams(location.search).get("room");
-if(qp){setPlay("multi");$("#joinCode").value=qp.toUpperCase().slice(0,4);netMsg("You're invited to room "+qp.toUpperCase()+". Enter your name, enable the gyroscope and tap Join.")}
+function setInvite(code){
+  const on=!!code;$("#s-home").classList.toggle("invite",on);$("#inviteTitle").hidden=!on;
+  if(on){setPlay("multi");$("#joinCode").value=code;$("#inviteTitle").textContent="Join room "+code;$("#joinCode").hidden=true;$("#joinRoom").textContent="Join room "+code;$("#joinRoom").className="btn go big";$("#joinRoom").style.cssText="flex:1";
+    netMsg("Enter your name, tap Enable gyroscope, then join.");$("#cancelInvite").hidden=false}
+  else{$("#joinCode").hidden=false;$("#joinRoom").textContent="Join";$("#joinRoom").className="btn go";$("#joinRoom").style.cssText="padding:14px 22px";$("#cancelInvite").hidden=true;netMsg("")}
+}
+const qp=(new URLSearchParams(location.search).get("room")||"").toUpperCase().replace(/[^A-Z]/g,"").slice(0,4);
 
 function leaveRoom(msg){
   const p=NET.peer;NET.peer=null;H=null;clearInterval(mgTimer);
   try{if(NET.isHost)broadcast({t:"closed"})}catch(_){}
   setTimeout(()=>{try{p&&p.destroy()}catch(_){}},200);
   NET.conns.clear();NET.hostConn=null;NET.players=[];NET.code="";
-  show("s-home");setPlay("multi");netMsg(msg||"");
+  show("s-home");setInvite("");setPlay("multi");netMsg(msg||"");
 }
 $("#lLeave").onclick=()=>leaveRoom("");
 $("#lCopy").onclick=async e=>{const t=inviteLink();try{await navigator.clipboard.writeText(t);e.target.textContent="Link copied"}catch(_){e.target.textContent=t}setTimeout(()=>e.target.textContent="Copy invite link",2500)};
@@ -3094,8 +3105,8 @@ function clientRecv(d){
 function showLobby(){
   const v=NET.view||{code:NET.code,mode:S.mode,players:NET.players};
   $("#lCode").textContent=v.code||NET.code;
-  if(NET.isHost&&$("#lQr").dataset.code!==NET.code&&typeof qrcode!=="undefined"){const q=qrcode(0,"M");q.addData(inviteLink());q.make();$("#lQr").innerHTML=q.createSvgTag({cellSize:4,margin:0,scalable:true});$("#lQr").dataset.code=NET.code}
-  $("#lQr").hidden=!NET.isHost;$("#lCopy").hidden=!NET.isHost;$("#lHow").textContent=NET.isHost?"Friends scan the QR, or open the game, choose Multiple phones and enter this code.":"You're in. Keep this screen open.";
+  if(NET.isHost&&$("#lQr").dataset.code!==NET.code&&typeof qrcode!=="undefined"){const q=qrcode(0,"M");q.addData(inviteLink());q.make();$("#lQr").innerHTML=q.createSvgTag({cellSize:6,margin:0,scalable:true});$("#lQr").dataset.code=NET.code}
+  $("#lQr").hidden=!NET.isHost;$("#lScan").hidden=!NET.isHost;$("#lCopy").hidden=!NET.isHost;$("#lHow").textContent=NET.isHost?"Friends scan the QR, or open the game, choose Multiple phones and enter this code.":"You're in. Keep this screen open.";
   $("#lMode").textContent=modeName(v.mode);$("#lMode").hidden=NET.isHost;$("#lModes").hidden=!NET.isHost;
   document.querySelectorAll("#lModes button").forEach(b=>b.setAttribute("aria-pressed",b.dataset.m===v.mode));
   $("#lCount").textContent=`Players · ${v.players.length}`;
@@ -3224,7 +3235,8 @@ $("#modes").addEventListener("click",()=>{if(NET.isHost&&NET.code&&!H)hostLobby(
 
 $("#start").onclick=async()=>{if(S.input==="gyro"&&S.gyro!=="ok"&&!(await testGyro())){$("#gyroStatus").scrollIntoView({behavior:"smooth",block:"center"});return}
   try{screen.orientation.lock("portrait").catch(()=>{})}catch(_){}newMatch()};
-syncSettings();renderPlayers();if(!S.play)setPlay(qp?"multi":"one");
+syncSettings();renderPlayers();if(!S.play)setPlay(qp?"multi":"one");if(qp.length===4)setInvite(qp);
+$("#cancelInvite").onclick=()=>{setInvite("");history.replaceState(null,"",location.pathname+location.search.replace(/([?&])room=[^&]*&?/,"$1").replace(/[?&]$/,""))};
 </script>
 
 </body></html>
