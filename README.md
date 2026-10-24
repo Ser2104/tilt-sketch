@@ -1,8 +1,19 @@
 # Tilt Sketch
 
-A pass-and-play drawing party game for one phone. You draw by tilting the phone (gyroscope), and an AI that runs in the browser guesses each drawing and scores how recognizable it is.
+A drawing party game for one phone (pass and play) or several phones at once. You draw by tilting the phone (gyroscope), and an AI that runs in the browser guesses each drawing and scores how recognizable it is.
 
 **Play:** https://ser2104.github.io/tilt-sketch/ (open it on a phone)
+
+## Playing on several phones
+1. One player chooses **Multiple phones**, enters a name and taps **Create room**. The phone shows a 4-letter code and a QR.
+2. Everyone else scans the QR (or opens the game, chooses **Multiple phones** and types the code), enters a name and taps **Join**.
+3. The host picks the mode in the lobby and taps **Start game**. Up to 12 players.
+
+Phones connect directly to each other with WebRTC (PeerJS). The host's phone runs the game and the AI judge, so keep the host's screen open until the game ends.
+
+- **Solo:** everyone draws at the same time on their own phone.
+- **Teams:** the first player of each team draws; when time runs out, the drawing jumps to the teammate's phone, who continues from the exact spot. Teams draw in parallel.
+- **Impostor:** each phone shows its own secret object, everyone draws at once, the gallery appears on every phone and each player votes from their own phone after 30 seconds.
 
 ## Modes
 - **Solo:** everyone draws the same object. Best average accuracy after 3 rounds wins.
