@@ -2923,16 +2923,20 @@ function inkTensor(strokes,pad){
   for(let y=0;y<28;y++)for(let x=0;x<28;x++){let v=0;for(let dy=0;dy<2;dy++)for(let dx=0;dx<2;dx++)v+=1-d[((y*2+dy)*N+x*2+dx)*4]/255;out[y*28+x]=v/4>.2?1:0}
   return tf.tensor4d(out,[1,28,28,1]);
 }
+const GAME_IDX=Object.fromEntries(Object.entries(TARGETS).map(([w,cls])=>[w,cls.map(c=>DOODLE_CLASSES.indexOf(c)).filter(k=>k>=0)]));
+const IN_GAME=new Set(Object.values(GAME_IDX).flat());
 async function aiJudge(word,items){
-  const want=TARGETS[word]||[];
   return Promise.all(items.map(async it=>{
     const probs=new Float32Array(DOODLE_CLASSES.length);let n=0;
-    for(const pad of[3,4,6]){const t=inkTensor(it.strokes,pad);if(!t)break;const p=await tf.tidy(()=>AI.model.predict(t)).data();t.dispose();p.forEach((v,i)=>probs[i]+=v);n++}
+    for(const pad of[3,4,6]){const t=inkTensor(it.strokes,pad);if(!t)break;const p=await tf.tidy(()=>AI.model.predict(t)).data();t.dispose();p.forEach((v,i)=>probs[i]+=v/3);n++}
     if(!n)return{guess:"nothing (blank sheet)",acc:0};
-    let best=0;probs.forEach((v,i)=>{if(v>probs[best])best=i});
-    const p=want.reduce((s,k)=>s+(probs[DOODLE_CLASSES.indexOf(k)]||0),0)/n;
-    let acc=Math.round(100*Math.sqrt(p));if(want.includes(DOODLE_CLASSES[best]))acc=Math.max(acc,75);
-    return{guess:DOODLE_CLASSES[best].replace(/_/g," "),acc:Math.min(100,acc)};
+    let other=0,otherBest=-1;probs.forEach((v,i)=>{if(!IN_GAME.has(i)){other+=v;if(otherBest<0||v>probs[otherBest])otherBest=i}});
+    const score={};for(const[w,ix]of Object.entries(GAME_IDX))score[w]=ix.reduce((a,k)=>a+probs[k],0);
+    const z=Object.values(score).reduce((a,b)=>a+b,0)+.1*other;
+    const best=Object.keys(score).reduce((a,b)=>score[b]>score[a]?b:a);
+    const acc=Math.round(100*(score[word]||0)/Math.max(z,1e-6));
+    const guess=score[best]>=probs[otherBest]*.35?best:DOODLE_CLASSES[otherBest].replace(/_/g," ");
+    return{guess,acc:Math.min(100,acc)};
   }));
 }
 
