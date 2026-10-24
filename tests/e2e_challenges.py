@@ -3,7 +3,7 @@ from playwright.async_api import async_playwright
 BASE = os.environ.get("BASE", "http://localhost:8766")
 MOCK = os.environ.get("MOCK", "http://127.0.0.1:8790")
 ORI = """(()=>{window.__o=(px,py)=>{const e=new Event('deviceorientation');Object.assign(e,{alpha:-px,beta:90-py,gamma:0});dispatchEvent(e)};__o(0,0)})()"""
-CONNECT = f"TS_CONFIG.supabaseUrl='{MOCK}';TS_CONFIG.supabaseKey='test-anon-key'"
+CONNECT = f"TS_CONFIG.supabaseUrl='{MOCK}';TS_CONFIG.supabaseKey='sb_publishable_test'"
 
 
 async def draw_sun(pg, scribble=False):

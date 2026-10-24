@@ -1,6 +1,8 @@
 # Shared rankings
 
-The daily challenge and Levels rankings are stored in a free Supabase project. Until it is connected, each phone shows only its own results.
+The daily challenge and Levels rankings are stored in a free Supabase project (`tilt-sketch`, connected in `js/config.js`). If the project is unreachable, each phone shows only its own results.
+
+The connection uses the new publishable key (`sb_publishable_…`), sent only in the `apikey` header as Supabase requires. Every push runs a CI check against the live database: the leaderboard is readable, device IDs are not, direct writes are refused and invalid submissions are rejected.
 
 ## Connect (about 5 minutes)
 
@@ -9,7 +11,7 @@ The daily challenge and Levels rankings are stored in a free Supabase project. U
 3. Open **Project Settings → API** and copy the **Project URL** and the **anon public** key.
 4. Put both values in [`js/config.js`](../js/config.js) and publish.
 
-The anon key is designed to be public. Players cannot read or edit the table directly: they can only read the `leaderboard` view (no device IDs) and call `submit_score`, which checks the board name and value ranges.
+The anon key is designed to be public. Players cannot write to the table directly: they can only read leaderboard columns (never device IDs) through the `leaderboard` view and call `submit_score`, which checks the board name and value ranges. `submit_score` is intentionally callable without signing in; Supabase's advisor lists it as a warning for that reason.
 
 ## Rules enforced by the database
 

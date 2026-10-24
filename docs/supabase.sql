@@ -48,3 +48,10 @@ $$;
 
 revoke all on function public.submit_score(text, uuid, text, int, int, int) from public;
 grant execute on function public.submit_score(text, uuid, text, int, int, int) to anon, authenticated;
+
+-- Hardening: the view respects table permissions; players can read every column except device.
+alter view public.leaderboard set (security_invoker = true);
+grant select (board, player, score, level, stars, updated_at) on public.scores to anon;
+drop policy if exists "Leaderboard is public" on public.scores;
+create policy "Leaderboard is public" on public.scores for select to anon using (true);
+revoke execute on function public.submit_score(text, uuid, text, int, int, int) from authenticated;

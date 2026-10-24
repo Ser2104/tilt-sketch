@@ -3,7 +3,7 @@ const Rank=(()=>{
   const on=()=>!!(TS_CONFIG.supabaseUrl&&TS_CONFIG.supabaseKey);
   let device=null;try{device=localStorage.getItem("ts-device")}catch(_){}
   if(!device){device=crypto.randomUUID?crypto.randomUUID():"10000000-1000-4000-8000-100000000000".replace(/[018]/g,c=>(c^crypto.getRandomValues(new Uint8Array(1))[0]&15>>c/4).toString(16));try{localStorage.setItem("ts-device",device)}catch(_){}}
-  const headers=()=>({apikey:TS_CONFIG.supabaseKey,Authorization:"Bearer "+TS_CONFIG.supabaseKey,"Content-Type":"application/json"});
+  const headers=()=>TS_CONFIG.supabaseKey.startsWith("sb_")?{apikey:TS_CONFIG.supabaseKey,"Content-Type":"application/json"}:{apikey:TS_CONFIG.supabaseKey,Authorization:"Bearer "+TS_CONFIG.supabaseKey,"Content-Type":"application/json"};
   async function submit(board,player,score,level=0,stars=0){
     if(!on())return false;
     try{const r=await fetch(TS_CONFIG.supabaseUrl.replace(/\/$/,"")+"/rest/v1/rpc/submit_score",{method:"POST",headers:headers(),

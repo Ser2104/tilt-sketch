@@ -39,3 +39,11 @@ jobs:
         run: python tests/e2e_scoring.py
       - name: Daily challenge, levels and rankings
         run: python tests/e2e_challenges.py
+      - name: Live ranking database is reachable and protected
+        run: |
+          URL=$(grep -o 'https://[a-z0-9]*\.supabase\.co' js/config.js)
+          KEY=$(grep -o 'sb_publishable_[A-Za-z0-9_-]*' js/config.js)
+          curl -fsS "$URL/rest/v1/leaderboard?select=player,score&limit=1" -H "apikey: $KEY"; echo
+          code=$(curl -s -o /dev/null -w "%{http_code}" "$URL/rest/v1/scores?select=device&limit=1" -H "apikey: $KEY"); echo "read device ids -> $code"; test "$code" != "200"
+          code=$(curl -s -o /dev/null -w "%{http_code}" -X POST "$URL/rest/v1/scores" -H "apikey: $KEY" -H "Content-Type: application/json" -d '{"board":"levels","device":"00000000-0000-4000-8000-000000000000","player":"x","score":100}'); echo "direct insert -> $code"; test "$code" != "201"
+          code=$(curl -s -o /dev/null -w "%{http_code}" -X POST "$URL/rest/v1/rpc/submit_score" -H "apikey: $KEY" -H "Content-Type: application/json" -d '{"p_board":"levels","p_device":"00000000-0000-4000-8000-000000000000","p_player":" ","p_score":0}'); echo "invalid submit -> $code"; test "$code" = "400"
