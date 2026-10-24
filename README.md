@@ -1,39 +1,90 @@
 # Tilt Sketch
 
-A drawing party game for one phone (pass and play) or several phones at once. You draw by tilting the phone (gyroscope), and an AI that runs in the browser guesses each drawing and scores how recognizable it is.
+Tilt Sketch turns a phone into a brush you control by moving your wrist. It has two sides:
 
-**Play:** https://ser2104.github.io/tilt-sketch/ (open it on a phone)
+- **Practice:** guided wrist exercises (trace lines, circles, spirals…) that adapt to the person, measure movement quality with on-device AI and track progress over weeks, with a report a therapist can read.
+- **Games:** drawing party games for one phone or many phones at once (Solo, Teams relay, Impostor), where an AI guesses each drawing. The games keep people coming back to the same wrist movements.
 
-## Playing on several phones
-1. One player chooses **Multiple phones**, enters a name and taps **Create room**. Every room gets its own QR code and 4-letter code.
-2. Everyone else scans the QR with the phone camera. The game opens straight on a "Join room" screen: enter a name and tap Join (the gyroscope permission is requested right there). Typing the code also works.
-3. The host picks the mode in the lobby and taps **Start game**. Up to 12 players.
+**Try it:** https://ser2104.github.io/tilt-sketch/ (open on a phone)
 
-Phones connect directly to each other with WebRTC (PeerJS). The host's phone runs the game and the AI judge, so keep the host's screen open until the game ends.
+> Tilt Sketch is a game and wellness exercise tool. It is not a medical device and does not diagnose or treat any condition.
 
-- **Solo:** everyone draws at the same time on their own phone.
-- **Teams:** the first player of each team draws; when time runs out, the drawing jumps to the teammate's phone, who continues from the exact spot. Teams draw in parallel.
-- **Impostor:** each phone shows its own secret object, everyone draws at once, the gallery appears on every phone and each player votes from their own phone after 30 seconds.
+## Why
 
-## Modes
-- **Solo:** everyone draws the same object. Best average accuracy after 3 rounds wins.
-- **Teams:** one player draws for 10 seconds, then passes the phone and a teammate continues the same drawing from where it stopped.
-- **Impostor:** everyone sees the same object except one player, who gets a similar one. After everyone draws, voting opens at 30 seconds to eliminate the impostor.
+More than 795,000 people in the US have a stroke each year, and stroke reduces mobility in more than half of survivors aged 65 and older ([CDC](https://www.cdc.gov/stroke/data-research/facts-stats)). Recovery depends on repetitive home exercise, yet in a 2026 survey only 24% of people completed all their assigned at-home physical therapy exercises ([Medical Economics, on an Ohio State Wexner Medical Center survey](https://www.medicaleconomics.com/view/patients-aren-t-doing-their-physical-therapy-homework)). Therapists also see little of what happens between visits. Tilt Sketch makes the exercises engaging and turns each session into objective measurements, using only the phone people already own.
 
-## How drawing works
-- The brush stays fixed in the center of the screen and the sheet moves around it.
-- **Look around** (default): hold the phone up like a camera and turn or tilt your body to aim. **Tilt**: hold the phone comfortably and tilt it.
-- **Brush reach** (Short, Medium, Long, Extra): like holding a longer brush, small phone movements travel further on the sheet. Movement is relative with acceleration, like a computer mouse: slow movements stay precise, fast ones cover distance.
-- A One Euro filter removes hand tremor, and each stroke is smoothed when you lift the pen.
-- **Draw over the camera**: optional. The rear camera becomes the background and the sheet floats in the room, staying in place as you aim.
-- A mini-map shows the whole sheet. In Teams mode the next player starts exactly where the previous one stopped.
+## Features
 
-## Time limits
-Seconds per turn, rounds, impostor discussion time and voting time are all adjustable, from the home screen or by the host in the lobby. Nobody can stall a game: on multiple phones, drawing starts automatically 10 seconds after the object appears, a player who still has not finished is cut off a few seconds after their time runs out, and voting closes on time even if someone never votes.
+**Practice**
+- Range calibration: the person moves their wrist as far as is comfortable; the brush is scaled so the whole sheet fits inside that range.
+- Guided tracing across 9 shapes and 5 difficulty levels, with a tolerance band, start and end markers and direction arrows.
+- Adaptive difficulty: score ≥ 80 raises the level, < 50 lowers it.
+- Motion metrics per exercise: path covered, tracing accuracy, steadiness (tremor), smoothness (log dimensionless jerk), angular speed and range used. See [docs/MOTION_METRICS.md](docs/MOTION_METRICS.md).
+- Local profiles, progress charts, CSV export, share sheet and a printable report.
 
-## AI judge
-The judge is DoodleNet, a small convolutional network trained on Google's Quick Draw dataset (345 categories), loaded with TensorFlow.js. The model weights are embedded in `index.html`, so the game needs no server, API key or account.
+**Games**
+- Solo, Teams (the drawing jumps to the teammate's phone) and Impostor (secret object, gallery, timed vote).
+- One phone (pass and play) or up to 12 phones in a room joined by QR code, peer to peer with WebRTC.
+- Custom time limits; nobody can stall a game (auto start, cut-off and vote deadlines).
 
-## Requirements
-- A phone with a gyroscope and a modern browser.
-- The page must be served over HTTPS (GitHub Pages does this). On iPhone, tap "Allow" when Safari asks for motion access.
+**Drawing**
+- The brush stays in the center and the sheet moves around it. Aim by "looking around" (full 3D orientation) or by tilting.
+- Brush reach with mouse-style acceleration, One Euro tremor filter and stroke smoothing.
+- Optional camera background: the sheet floats in the room.
+
+**Accessibility**
+- Larger text, high contrast, voice guidance and a bigger draw button.
+
+## AI
+
+| Part | What it does | Where |
+|---|---|---|
+| Drawing recognizer | CNN trained for the game's 65 objects plus an "other" class, on Quick, Draw! drawings deformed to look like gyroscope drawings. Runs in the browser with TensorFlow.js. | [training/](training/), [docs/MODEL_CARD.md](docs/MODEL_CARD.md), [docs/EVALUATION.md](docs/EVALUATION.md) |
+| Fallback recognizer | DoodleNet (ml5.js), restricted to the game's objects, used until the custom model is published. | `models/doodlenet/` |
+| Motion analysis | Signal processing on the phone's orientation stream: tremor band energy, jerk-based smoothness, range of motion. | [js/motor.js](js/motor.js) |
+| Adaptive difficulty | Adjusts level after each exercise from the tracing score. | [js/practice.js](js/practice.js) |
+
+Everything runs on the phone. No drawing or measurement leaves the device unless the user exports it.
+
+## Project layout
+
+```
+index.html          screens
+css/app.css         styles and themes
+js/                 core, gyro, drawing engine, motion metrics, AI, practice, progress, games, multiplayer
+models/             doodlenet (fallback) and tiltsketch (custom, after training)
+training/           data download, rendering + augmentation, training, evaluation, Colab notebook
+tests/              browser tests with simulated phones (Playwright)
+docs/               architecture, model card, metrics, validation protocol, challenge materials
+vendor/             TensorFlow.js, PeerJS, QR generator
+```
+
+See [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md).
+
+## Run locally
+
+```bash
+python3 -m http.server 8766        # then open http://localhost:8766 (gyroscope needs https on a phone)
+```
+
+## Tests
+
+```bash
+pip install playwright && python -m playwright install chromium
+npm install peer@1.0.2 && node -e "require('peer').PeerServer({port:9000,path:'/',host:'127.0.0.1'})" &
+python3 -m http.server 8766 &
+python tests/e2e.py            # one phone, AI judging
+python tests/e2e_practice.py   # calibration, 5 guided exercises, metrics, report
+python tests/e2e_multi.py      # 4 phones: Solo, Teams relay, Impostor
+python tests/e2e_time.py       # custom times, auto-start, deadlines, vote timeout
+```
+
+They also run on every push with GitHub Actions.
+
+## Train the AI
+
+Open [training/train_colab.ipynb](training/train_colab.ipynb) in Google Colab with a GPU and run all cells, or see [training/README.md](training/README.md).
+
+## License
+
+MIT. See [LICENSE](LICENSE). Quick, Draw! data is © Google, released under CC BY 4.0.
