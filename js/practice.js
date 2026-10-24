@@ -102,7 +102,7 @@ function nextExercise(){
   P.recent.push(key);
   handoff({label:`Exercise ${P.i+1} of ${SESSION_LEN} · Level ${p.level}`,who:sh.label,info:"Trace the dotted blue path from the green dot to the orange ring. Stay inside the light band.",
     hint:S.ctrl==="look"?"Hold the phone up like a camera. Move slowly and smoothly; accuracy matters more than speed.":"Hold the phone comfortably. Move slowly and smoothly; accuracy matters more than speed.",go:"Start exercise",
-    onGo:()=>startDraw({who:`${p.name} · Practice`,word:sh.label,strokes:[],dur:lv.time,mark:tpl.pts[0],template:tpl,steady:true,onEnd:()=>scoreExercise(key,tpl)})});
+    onGo:()=>startDraw({who:`${p.name} · Practice`,word:sh.label,strokes:[],dur:lv.time,mark:tpl.pts[0],template:tpl,steady:true,onEnd:()=>scoreExercise(key,tpl),onError:()=>{P.i++;nextExercise()}})});
   say(`Exercise ${P.i+1}. ${sh.label}`);
 }
 function scoreExercise(key,tpl){
@@ -112,7 +112,7 @@ function scoreExercise(key,tpl){
   const before=p.level;if(tr.score>=80&&p.level<5)p.level++;else if(tr.score<50&&p.level>1)p.level--;
   const change=p.level>before?"Great control. The next exercise will be a bit harder.":p.level<before?"Let's make the next one a bit easier.":"Same level for the next exercise.";
   $("#exTitle").textContent=ex.label;$("#exScore").textContent=ex.score;
-  $("#exChips").innerHTML=[["Path covered",ex.coverage+"%"],["Accuracy",ex.accuracy+"%"],["Steadiness",steadiness(ex.tremorAmp)],["Smoothness",ex.smooth==null?"–":ex.smooth]].map(([a,b])=>`<div class="kpi"><b>${b}</b><span>${a}</span></div>`).join("");
+  $("#exChips").innerHTML=[["Path covered",ex.coverage+"%"],["Ink on the path",ex.accuracy+"%"],["Steadiness",steadiness(ex.tremorAmp)],["Smoothness",ex.smooth==null?"–":ex.smooth]].map(([a,b])=>`<div class="kpi"><b>${b}</b><span>${a}</span></div>`).join("");
   $("#exImg").src=ex.img;$("#exNext").textContent=P.i>=SESSION_LEN?"See session summary":"Next exercise";$("#exAdapt").textContent=change;
   show("s-ex");say(`Score ${ex.score}. ${change}`);
 }
@@ -130,7 +130,7 @@ function finishSession(){
   const prev=p.sessions[p.sessions.length-2];
   $("#psTitle").textContent=`Session score ${Math.round(s.avg.score)}`;
   $("#psInfo").textContent=prev?`Last session: ${Math.round(prev.avg.score)}. Level ${s.level0} → ${s.level1}.`:`First session saved. Level ${s.level0} → ${s.level1}.`;
-  $("#psCards").innerHTML=P.exercises.map(e=>cardHTML({img:e.img,name:`${e.label} · level ${e.level}`,sub:`Covered ${e.coverage}% · accuracy ${e.accuracy}% · steadiness ${steadiness(e.tremorAmp)}`,meter:e.score,pc:String(e.score),win:e.score>=80})).join("");
+  $("#psCards").innerHTML=P.exercises.map(e=>cardHTML({img:e.img,name:`${e.label} · level ${e.level}`,sub:`Covered ${e.coverage}% · on path ${e.accuracy}% · steadiness ${steadiness(e.tremorAmp)}`,meter:e.score,pc:String(e.score),win:e.score>=80})).join("");
   say(`Session complete. Score ${Math.round(s.avg.score)}`);
   P=null;show("s-psum");
 }

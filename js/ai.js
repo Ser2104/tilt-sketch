@@ -53,21 +53,27 @@ function inkTensor(strokes,pad){
 }
 let DOODLE_CLASSES=[],GAME_IDX={},IN_GAME=new Set();
 function buildGameIndex(){GAME_IDX=Object.fromEntries(Object.entries(TARGETS).map(([w,cls])=>[w,cls.map(c=>DOODLE_CLASSES.indexOf(c)).filter(k=>k>=0)]));IN_GAME=new Set(Object.values(GAME_IDX).flat())}
+const NOISE=new Set(["squiggle","line","zigzag","circle","square","triangle","hexagon","octagon","camouflage"]);
+function scribblePenalty(strokes){
+  const ink=strokes.filter(s=>s.c!=="#FFFFFF"&&s.pts.length),pts=ink.flatMap(s=>s.pts);if(pts.length<2)return 1;
+  let x0=1,x1=0,y0=1,y1=0,L=0;for(const[x,y]of pts){x0=Math.min(x0,x);x1=Math.max(x1,x);y0=Math.min(y0,y);y1=Math.max(y1,y)}
+  for(const s of ink)for(let i=1;i<s.pts.length;i++)L+=Math.hypot(s.pts[i][0]-s.pts[i-1][0],s.pts[i][1]-s.pts[i-1][1]);
+  const density=L/Math.max(.02,Math.max(x1-x0,y1-y0));return density<=14?1:Math.max(.05,(14/density)**1.5)}
 async function aiJudge(word,items){
   if(AI.kind==="custom")return Promise.all(items.map(async it=>{
     const p=await customProbs(it.strokes);if(!p)return{guess:"nothing (blank sheet)",acc:0};
     const cls=AI.spec.classes;let best=0;p.forEach((v,i)=>{if(v>p[best])best=i});
-    const k=cls.indexOf(word);return{guess:cls[best]==="other"?"something else":cls[best],acc:k<0?0:Math.round(100*p[k])}}));
+    const k=cls.indexOf(word),pen=scribblePenalty(it.strokes);return{guess:pen<.8?"a scribble":cls[best]==="other"?"something else":cls[best],acc:k<0?0:Math.round(100*p[k]*pen)}}));
   return Promise.all(items.map(async it=>{
     const probs=new Float32Array(DOODLE_CLASSES.length);let n=0;
     for(const pad of[3,4,6]){const t=inkTensor(it.strokes,pad);if(!t)break;const p=await tf.tidy(()=>AI.model.predict(t)).data();t.dispose();p.forEach((v,i)=>probs[i]+=v/3);n++}
     if(!n)return{guess:"nothing (blank sheet)",acc:0};
-    let other=0,otherBest=-1;probs.forEach((v,i)=>{if(!IN_GAME.has(i)){other+=v;if(otherBest<0||v>probs[otherBest])otherBest=i}});
+    let other=0,noise=0,otherBest=-1;probs.forEach((v,i)=>{if(!IN_GAME.has(i)){if(NOISE.has(DOODLE_CLASSES[i]))noise+=v;else other+=v;if(otherBest<0||v>probs[otherBest])otherBest=i}});
     const score={};for(const[w,ix]of Object.entries(GAME_IDX))score[w]=ix.reduce((a,k)=>a+probs[k],0);
-    const z=Object.values(score).reduce((a,b)=>a+b,0)+.1*other;
+    const z=Object.values(score).reduce((a,b)=>a+b,0)+.1*other+noise,pen=scribblePenalty(it.strokes);
     const best=Object.keys(score).reduce((a,b)=>score[b]>score[a]?b:a);
-    const acc=Math.round(100*(score[word]||0)/Math.max(z,1e-6));
-    const guess=score[best]>=probs[otherBest]*.35?best:DOODLE_CLASSES[otherBest].replace(/_/g," ");
+    const acc=Math.round(100*pen*(score[word]||0)/Math.max(z,1e-6));
+    const guess=pen<.8||NOISE.has(DOODLE_CLASSES[otherBest])&&probs[otherBest]>score[best]?"a scribble":score[best]>=probs[otherBest]*.35?best:DOODLE_CLASSES[otherBest].replace(/_/g," ");
     return{guess,acc:Math.min(100,acc)};
   }));
 }

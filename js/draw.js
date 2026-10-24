@@ -56,7 +56,8 @@ $("#sizes").innerHTML=SIZES.map((s,i)=>`<button class="sz" data-s="${i}" aria-la
 $("#swatches").onclick=e=>{const c=e.target.dataset.c;if(!c)return;D.color=c;document.querySelectorAll(".sw").forEach(b=>b.setAttribute("aria-pressed",b===e.target));if(D.cur){const w=D.pen;penUp();if(w)penDown(D.pos.x,D.pos.y)}};
 $("#sizes").onclick=e=>{const b=e.target.closest(".sz");if(!b)return;D.size=SIZES[+b.dataset.s];document.querySelectorAll(".sz").forEach(x=>x.setAttribute("aria-pressed",x===b))};
 $("#undo").onclick=()=>{if(D.strokes&&D.strokes.length>D.base){if(D.cur)penUp();D.strokes.pop()}};
-$("#recal").onclick=()=>{if(S.input==="gyro")calibrate(D.pos.x,D.pos.y)};
+function recenter(){const p=D.template?D.template.pts[0]:D.mark||[.5,.5];if(D.pen)penUp();calibrate(p[0],p[1]);const b=$("#recal");b.textContent="Centered";setTimeout(()=>b.textContent=D.template?"Back to start":"Recenter",900)}
+$("#recal").onclick=recenter;
 $("#finish").onclick=()=>{if(D.state==="run")endTurn()};
 const pen=$("#pen");
 pen.addEventListener("pointerdown",e=>{e.preventDefault();if(S.lock){D.pen?penUp():penDown(D.pos.x,D.pos.y)}else{pen.setPointerCapture(e.pointerId);penDown(D.pos.x,D.pos.y)}});
@@ -69,11 +70,12 @@ cv.addEventListener("pointermove",e=>{if(S.input!=="finger"||!drag)return;D.pos.
 
 let wake=null;async function keepAwake(){try{wake=await navigator.wakeLock.request("screen")}catch(_){}}
 
-function startDraw({who,word,strokes,dur,mark,onEnd,template=null,steady=false}){
+function startDraw({who,word,strokes,dur,mark,onEnd,onError=null,template=null,steady=false}){
+  D.onError=onError;
   D.strokes=strokes;D.base=strokes.length;D.dur=dur;D.mark=mark||null;D.onEnd=onEnd;D.cur=null;D.pen=false;D.samples=[];D.template=template;D.steady=steady;
   $("#swatchRow").hidden=!!template;
   $("#dWho").textContent=who;$("#dWord").textContent=up(word);$("#dClock").textContent=dur;$("#dClock").classList.remove("low");$("#dBar").style.transform="scaleX(1)";
-  const g=S.input==="gyro";pen.hidden=!g;$("#recal").hidden=!g;penUp();
+  const g=S.input==="gyro";pen.hidden=!g;$("#recal").hidden=!g;$("#recal").textContent=template?"Back to start":"Recenter";penUp();
   const cv2=$("#camv"),useCam=S.cam&&camStream&&camStream.active;cv2.hidden=!useCam;if(useCam){cv2.srcObject=camStream;cv2.play().catch(()=>{})}
   show("s-draw");fit();
   const a=mark||[.5,.5];D.pos={x:a[0],y:a[1]};calibrate(a[0],a[1]);
@@ -83,7 +85,8 @@ function startDraw({who,word,strokes,dur,mark,onEnd,template=null,steady=false})
 }
 function endTurn(){if(D.state!=="run")return;penUp();D.state="done";$("#dOver").innerHTML="<small>Time's up!</small>";say("Time's up");
   const last=[...D.strokes].reverse().find(s=>s.pts.length&&s.c!=="#FFFFFF");const lp=last?last.pts[last.pts.length-1]:(D.mark||null);
-  setTimeout(()=>{$("#dOver").innerHTML="";cancelAnimationFrame(D.raf);D.state="idle";try{$("#camv").pause()}catch(_){}D.onEnd&&D.onEnd(lp)},900)}
+  setTimeout(()=>{$("#dOver").innerHTML="";cancelAnimationFrame(D.raf);D.state="idle";try{$("#camv").pause()}catch(_){}
+    try{D.onEnd&&D.onEnd(lp)}catch(e){console.error(e);D.onError?D.onError(e):show("s-home")}},900)}
 function abortDraw(){clearInterval(autoGo);if(D.state==="idle")return;penUp();cancelAnimationFrame(D.raf);D.state="idle";$("#dOver").innerHTML="";try{$("#camv").pause()}catch(_){}}
 
 function snapshot(strokes,n=512,type="dataURL"){const c=document.createElement("canvas");c.width=c.height=n;const x=c.getContext("2d");paintPaper(x,n,false);strokes.forEach(s=>drawStroke(x,s,n));

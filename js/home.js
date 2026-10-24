@@ -19,7 +19,7 @@ function syncSettings(){$("#time").value=S.time[S.mode]+" s";$("#rounds").value=
   document.querySelectorAll("#reachSeg button").forEach(b=>b.setAttribute("aria-pressed",+b.dataset.r===S.sens));
   $("#camOn").setAttribute("aria-pressed",S.cam);$("#camOff").setAttribute("aria-pressed",!S.cam);$("#lockOn").setAttribute("aria-pressed",S.lock);$("#lockOff").setAttribute("aria-pressed",!S.lock);
   document.querySelectorAll("#ctrlSeg button").forEach(b=>b.setAttribute("aria-pressed",b.dataset.ctrl===S.ctrl));
-  $("#ctrlHint").textContent=S.ctrl==="look"?"Hold the phone up like a camera and turn or tilt your body to aim. The brush stays in the center and the sheet moves around it.":"Hold the phone comfortably and tilt it to slide the sheet under the brush."}
+  $("#ctrlHint").textContent=S.ctrl==="look"?"Like a laser pointer: hold the phone up like a camera and point it. Where you point is where the brush goes. Best for precise drawing.":"Like a joystick or a rolling marble: tilt the phone and the brush keeps moving that way; hold it level to stop. Easier on the wrist, less precise."}
 $("#ctrlSeg").onclick=e=>{const c=e.target.dataset.ctrl;if(!c)return;S.ctrl=c;syncSettings()};
 $("#reachSeg").onclick=e=>{const r=+e.target.dataset.r;if(!r)return;S.sens=r;syncSettings()};
 function settingsChanged(){syncSettings();if(typeof NET!=="undefined"&&NET.isHost&&NET.code&&!H)hostLobby()}

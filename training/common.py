@@ -33,6 +33,9 @@ GAME = {
     "smiley face": ["smiley face"], "hot air balloon": ["hot air balloon"], "watermelon": ["watermelon"],
     "octopus": ["octopus"], "whale": ["whale"], "owl": ["owl"], "shark": ["shark"], "helicopter": ["helicopter"],
     "hourglass": ["hourglass"], "skull": ["skull"], "lightning": ["lightning"], "snowflake": ["snowflake"],
+    "sword": ["sword"], "helmet": ["helmet"], "dragon": ["dragon"], "flying saucer": ["flying saucer"],
+    "mermaid": ["mermaid"], "angel": ["angel"], "diamond": ["diamond"], "bee": ["bee"], "rabbit": ["rabbit"],
+    "frog": ["frog"], "camera": ["camera"], "headphones": ["headphones"], "Eiffel Tower": ["The Eiffel Tower"],
 }
 OTHER = "other"
 CLASSES = list(GAME) + [OTHER]

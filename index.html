@@ -17,6 +17,12 @@
     <p class="lede">Draw by aiming your phone: the brush stays in the center and the sheet moves around it. An AI tries to guess what it is, and the most recognizable drawing wins.</p>
   </header>
 
+  <div class="challenges host-only">
+    <button class="ccard" id="cDaily"></button>
+    <button class="ccard" id="cLevels"></button>
+  </div>
+  <button class="linkbtn host-only" id="cRank" style="align-self:flex-start;margin-top:-4px">Rankings</button>
+
   <div class="seg host-only" id="playSeg">
     <button data-play="one" aria-pressed="true">One phone</button>
     <button data-play="multi" aria-pressed="false">Multiple phones</button>
@@ -136,7 +142,7 @@
   </div>
   <div class="mini">
     <button class="btn" id="undo">Undo</button>
-    <button class="btn" id="recal">Center here</button>
+    <button class="btn" id="recal">Recenter</button>
     <button class="btn" id="finish">Done</button>
   </div>
   <button class="pen" id="pen">HOLD TO DRAW</button>
@@ -325,10 +331,43 @@
   <div class="charts" id="rpCharts"></div>
   <div class="panel">
     <span class="label">How these measures are computed</span>
-    <p class="note"><b>Score</b>: share of the guide path covered within the tolerance band (60%) plus tracing accuracy (40%). <b>Steadiness</b>: derived from the RMS of high-frequency (above ~4 Hz) phone orientation changes; higher means less shake. <b>Smoothness</b>: log dimensionless jerk of each stroke, rescaled to 0–100. <b>Range used</b>: 5th–95th percentile span of phone orientation while tracing, in degrees.</p>
+    <p class="note"><b>Score</b>: balance (harmonic mean) of path covered and ink kept on the path, reduced when the drawn line is much longer than the guide. Scribbling everywhere scores near zero. <b>Steadiness</b>: derived from the RMS of high-frequency (above ~4 Hz) phone orientation changes; higher means less shake. <b>Smoothness</b>: log dimensionless jerk of each stroke, rescaled to 0–100. <b>Range used</b>: 5th–95th percentile span of phone orientation while tracing, in degrees.</p>
     <p class="note">These are exercise measures from consumer phone sensors. They have not been clinically validated and must not be used for diagnosis.</p>
   </div>
   <div class="foot noprint"><button class="btn primary" id="rpPrint">Print or save as PDF</button><button class="btn" id="rpBack">Back</button></div>
+</section>
+
+<!-- CHALLENGE RESULT -->
+<section id="s-cres" class="screen scroll" hidden>
+  <div class="center" style="gap:10px">
+    <span class="label" id="crLabel"></span>
+    <h2 id="crTitle"></h2>
+    <div class="bigscore" id="crScore">0%</div>
+    <div class="starsline" id="crStars"></div>
+    <img class="thumb" id="crImg" alt="Your drawing">
+    <p class="lede" id="crInfo" style="text-align:center"></p>
+  </div>
+  <div class="foot" id="crActions"></div>
+</section>
+
+<!-- LEVELS -->
+<section id="s-levels" class="screen scroll" hidden>
+  <header><span class="label">Levels</span><h2 class="h-big">Draw your way up</h2><p class="hint" id="lvStars" style="text-align:left;margin:0"></p></header>
+  <div class="stack" id="lvWorlds"></div>
+  <div class="foot"><button class="btn primary" id="lvRank">Levels ranking</button><button class="btn" id="lvBack">Back to home</button></div>
+</section>
+
+<!-- RANKINGS -->
+<section id="s-rank" class="screen scroll" hidden>
+  <header><span class="label">Rankings</span><h2 class="h-big" id="rkTitle"></h2></header>
+  <div class="seg" id="rkTabs"><button data-tab="daily" aria-pressed="true">Daily challenge</button><button data-tab="levels" aria-pressed="false">Levels</button></div>
+  <p class="hint" id="rkStatus" style="text-align:left;margin:0"></p>
+  <ol class="ranklist" id="rkList"></ol>
+  <div class="panel">
+    <span class="label">Your name on the ranking</span>
+    <div class="row" style="flex-wrap:nowrap"><input class="field" id="rkName" maxlength="24" placeholder="Your name" style="flex:1;min-width:0"><button class="btn" id="rkSave">Save</button></div>
+  </div>
+  <div class="foot"><button class="btn" id="rkBack">Back to home</button></div>
 </section>
 
 <!-- FINAL -->
@@ -350,6 +389,9 @@
 <script src="js/a11y.js"></script>
 <script src="js/practice.js"></script>
 <script src="js/progress.js"></script>
+<script src="js/config.js"></script>
+<script src="js/rank.js"></script>
+<script src="js/challenges.js"></script>
 <script src="js/local-game.js"></script>
 <script src="js/multi.js"></script>
 <script src="js/app.js"></script>

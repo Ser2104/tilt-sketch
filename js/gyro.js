@@ -28,9 +28,16 @@ function OneEuro(minCut=1.2,beta=.03,dCut=1){let x=null,dx=0,t=0;const a=(c,dt)=
 const fx=OneEuro(),fy=OneEuro(),cal={px:null,py:null};
 function arMode(){return S.cam&&S.ctrl==="look"&&camStream}
 function degPerSheet(){return arMode()?Math.max(S.sens,36):S.sens}
-function calibrate(ax,ay){const t=aim();fx.reset(t.x);fy.reset(t.y);cal.px=t.x;cal.py=t.y;D.pos={x:ax,y:ay};D.tgt={x:ax,y:ay}}
+function calibrate(ax,ay){const t=aim();fx.reset(t.x);fy.reset(t.y);cal.px=t.x;cal.py=t.y;cal.nx=t.x;cal.ny=t.y;cal.t=null;D.pos={x:ax,y:ay};D.tgt={x:ax,y:ay}}
+const TILT={dead:2.5,full:18,speed:.55};
 function gyroTarget(now){
   const t=aim();cal.raw=t;const x=fx.f(t.x,now,true),y=fy.f(t.y,now,false);
+  if(S.ctrl==="tilt"){
+    if(cal.nx==null){cal.nx=x;cal.ny=y}
+    const dt=Math.min(.05,Math.max(.001,(now-(cal.t||now))/1000));cal.t=now;cal.px=x;cal.py=y;
+    const ax=v=>{const m=Math.abs(v);if(m<TILT.dead)return 0;const u=Math.min(1,(m-TILT.dead)/(TILT.full-TILT.dead));return Math.sign(v)*u*u*TILT.speed*(22/degPerSheet())};
+    const vx=ax(wrap(x-cal.nx)),vy=ax(y-cal.ny);
+    return{x:Math.min(1,Math.max(0,D.tgt.x+vx*dt)),y:Math.min(1,Math.max(0,D.tgt.y+vy*dt))}}
   if(cal.px==null){cal.px=x;cal.py=y}
   const dx=wrap(x-cal.px),dy=y-cal.py,dt=Math.max(.001,(now-(cal.t||now))/1000);cal.px=x;cal.py=y;cal.t=now;
   const speed=Math.hypot(dx,dy)/dt,u=Math.min(1,Math.max(0,(speed-8)/110)),boost=arMode()||D.steady?1:.6+1.1*u*u*(3-2*u);

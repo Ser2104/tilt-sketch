@@ -43,15 +43,20 @@ const Motor=(()=>{
     const vals=segs.filter(s=>s[0].length>=12).map(s=>ldlj(s[0],s[1])).filter(v=>v!=null&&isFinite(v));
     const L=vals.length?vals.reduce((a,b)=>a+b,0)/vals.length:null;
     return{active:active/HZ,speed:active?dist/(active/HZ):0,romX,romY,tremorAmp:tr.amp,tremorHz:tr.freq,tremorRatio:tr.ratio,ldlj:L,smooth:L==null?null:Math.round(Math.min(100,Math.max(0,(L+14)/10*100)))}}
-  function densify(pts,step=.005){const out=[];for(let i=0;i<pts.length-1;i++){const[a,b]=[pts[i],pts[i+1]],d=Math.hypot(b[0]-a[0],b[1]-a[1]),n=Math.max(1,Math.ceil(d/step));for(let k=0;k<n;k++)out.push([a[0]+(b[0]-a[0])*k/n,a[1]+(b[1]-a[1])*k/n])}out.push(pts[pts.length-1]);return out}
+  function densify(pts,step=.005){if(!pts||!pts.length)return[];if(pts.length===1)return[pts[0]];const out=[];for(let i=0;i<pts.length-1;i++){const[a,b]=[pts[i],pts[i+1]],d=Math.hypot(b[0]-a[0],b[1]-a[1]),n=Math.max(1,Math.ceil(d/step));for(let k=0;k<n;k++)out.push([a[0]+(b[0]-a[0])*k/n,a[1]+(b[1]-a[1])*k/n])}out.push(pts[pts.length-1]);return out}
+  const pathLen=p=>{let L=0;for(let i=1;i<p.length;i++)L+=Math.hypot(p[i][0]-p[i-1][0],p[i][1]-p[i-1][1]);return L};
   function trace(strokes,template){
     const T=densify(template.pts),tol=template.tol;
-    const P=densify(strokes.filter(s=>s.c!=="#FFFFFF"&&s.pts.length).flatMap(s=>s.pts.length>1?densify(s.pts):s.pts),.008);
-    if(!P.length)return{coverage:0,accuracy:0,score:0,meanDev:1};
+    const ink=strokes.filter(s=>s.c!=="#FFFFFF"&&s.pts.length);
+    const P=ink.flatMap(s=>densify(s.pts,.004));
+    if(!P.length||!T.length)return{coverage:0,accuracy:0,score:0,meanDev:1,lengthRatio:0};
     const near=(p,set)=>{let m=1e9;for(const q of set){const d=(p[0]-q[0])**2+(p[1]-q[1])**2;if(d<m)m=d}return Math.sqrt(m)};
     const meanDev=P.reduce((s,p)=>s+near(p,T),0)/P.length;
-    const covered=T.filter(q=>near(q,P)<=tol).length/T.length;
-    const accuracy=Math.max(0,1-meanDev/(2*tol));
-    return{coverage:Math.round(covered*100),accuracy:Math.round(accuracy*100),score:Math.round(60*covered+40*accuracy),meanDev}}
+    const coverage=T.filter(q=>near(q,P)<=tol).length/T.length;
+    const onPath=P.filter(p=>near(p,T)<=tol*1.25).length/P.length;
+    const ratio=ink.reduce((s,k)=>s+pathLen(k.pts),0)/Math.max(1e-6,pathLen(template.pts));
+    const f1=coverage+onPath?2*coverage*onPath/(coverage+onPath):0;
+    const lengthFactor=ratio<=1.6?1:Math.max(0,1.6/ratio)**1.5;
+    return{coverage:Math.round(coverage*100),accuracy:Math.round(onPath*100),score:Math.round(100*f1*lengthFactor),meanDev,lengthRatio:+ratio.toFixed(2)}}
   return{metrics,trace,densify,HZ}
 })();

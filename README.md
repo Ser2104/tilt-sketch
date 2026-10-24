@@ -3,7 +3,7 @@
 Tilt Sketch turns a phone into a brush you control by moving your wrist. It has two sides:
 
 - **Practice:** guided wrist exercises (trace lines, circles, spirals…) that adapt to the person, measure movement quality with on-device AI and track progress over weeks, with a report a therapist can read.
-- **Games:** drawing party games for one phone or many phones at once (Solo, Teams relay, Impostor), where an AI guesses each drawing. The games keep people coming back to the same wrist movements.
+- **Games:** drawing party games for one phone or many phones at once (Solo, Teams relay, Impostor), a daily challenge with a shared ranking, and 40 levels in 5 worlds with stars and a ranking, all judged by an AI that guesses each drawing. The games keep people coming back to the same wrist movements.
 
 **Try it:** https://ser2104.github.io/tilt-sketch/ (open on a phone)
 
@@ -27,8 +27,13 @@ More than 795,000 people in the US have a stroke each year, and stroke reduces m
 - One phone (pass and play) or up to 12 phones in a room joined by QR code, peer to peer with WebRTC.
 - Custom time limits; nobody can stall a game (auto start, cut-off and vote deadlines).
 
+**Challenges**
+- Daily challenge: the same object for everyone each day (UTC), one official try, shareable result, daily ranking.
+- Levels: 40 objects in 5 worlds (First lines, Around the house, Animals, Heroes and legends, Masters) with rising pass marks and 1–3 stars; ranking by highest level and stars.
+- Shared rankings use a free Supabase project; see [docs/RANKINGS.md](docs/RANKINGS.md). Without it, results stay on the phone.
+
 **Drawing**
-- The brush stays in the center and the sheet moves around it. Aim by "looking around" (full 3D orientation) or by tilting.
+- The brush stays in the center and the sheet moves around it. **Look around** works like a laser pointer (where you point is where the brush goes); **Tilt** works like a joystick (tilt to keep the brush rolling, level the phone to stop). **Recenter** brings the brush back to the center or to the exercise start.
 - Brush reach with mouse-style acceleration, One Euro tremor filter and stroke smoothing.
 - Optional camera background: the sheet floats in the room.
 
@@ -39,7 +44,7 @@ More than 795,000 people in the US have a stroke each year, and stroke reduces m
 
 | Part | What it does | Where |
 |---|---|---|
-| Drawing recognizer | CNN trained for the game's 65 objects plus an "other" class, on Quick, Draw! drawings deformed to look like gyroscope drawings. Runs in the browser with TensorFlow.js. | [training/](training/), [docs/MODEL_CARD.md](docs/MODEL_CARD.md), [docs/EVALUATION.md](docs/EVALUATION.md) |
+| Drawing recognizer | CNN trained for the game's 78 objects plus an "other" class, on Quick, Draw! drawings deformed to look like gyroscope drawings. Runs in the browser with TensorFlow.js. | [training/](training/), [docs/MODEL_CARD.md](docs/MODEL_CARD.md), [docs/EVALUATION.md](docs/EVALUATION.md) |
 | Fallback recognizer | DoodleNet (ml5.js), restricted to the game's objects, used until the custom model is published. | `models/doodlenet/` |
 | Motion analysis | Signal processing on the phone's orientation stream: tremor band energy, jerk-based smoothness, range of motion. | [js/motor.js](js/motor.js) |
 | Adaptive difficulty | Adjusts level after each exercise from the tracing score. | [js/practice.js](js/practice.js) |
@@ -77,6 +82,9 @@ python tests/e2e.py            # one phone, AI judging
 python tests/e2e_practice.py   # calibration, 5 guided exercises, metrics, report
 python tests/e2e_multi.py      # 4 phones: Solo, Teams relay, Impostor
 python tests/e2e_time.py       # custom times, auto-start, deadlines, vote timeout
+python tests/e2e_fuzz.py       # Practice never freezes; bad play scores near zero
+python tests/e2e_scoring.py    # real drawings score high, scribbles score zero
+python tests/mock_supabase.py 8790 & python tests/e2e_challenges.py   # daily, levels, rankings
 ```
 
 They also run on every push with GitHub Actions.

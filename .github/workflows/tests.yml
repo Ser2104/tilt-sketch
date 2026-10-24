@@ -23,6 +23,7 @@ jobs:
         run: |
           node -e "require('peer').PeerServer({port:9000,path:'/',host:'127.0.0.1'})" &
           python -m http.server 8766 &
+          python tests/mock_supabase.py 8790 &
           sleep 3
       - name: One phone game
         run: python tests/e2e.py
@@ -32,3 +33,9 @@ jobs:
         run: python tests/e2e_multi.py
       - name: Time limits and deadlines
         run: python tests/e2e_time.py
+      - name: Practice never freezes
+        run: python tests/e2e_fuzz.py
+      - name: Scribbles score zero
+        run: python tests/e2e_scoring.py
+      - name: Daily challenge, levels and rankings
+        run: python tests/e2e_challenges.py
