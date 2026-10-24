@@ -6,7 +6,7 @@ A drawing party game for one phone (pass and play) or several phones at once. Yo
 
 ## Playing on several phones
 1. One player chooses **Multiple phones**, enters a name and taps **Create room**. Every room gets its own QR code and 4-letter code.
-2. Everyone else scans the QR with the phone camera. The game opens straight on a "Join room" screen: enter a name, enable the gyroscope and tap Join. Typing the code also works.
+2. Everyone else scans the QR with the phone camera. The game opens straight on a "Join room" screen: enter a name and tap Join (the gyroscope permission is requested right there). Typing the code also works.
 3. The host picks the mode in the lobby and taps **Start game**. Up to 12 players.
 
 Phones connect directly to each other with WebRTC (PeerJS). The host's phone runs the game and the AI judge, so keep the host's screen open until the game ends.

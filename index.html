@@ -3048,7 +3048,7 @@ $("#joinRoom").onclick=async()=>{
 function setInvite(code){
   const on=!!code;$("#s-home").classList.toggle("invite",on);$("#inviteTitle").hidden=!on;
   if(on){setPlay("multi");$("#joinCode").value=code;$("#inviteTitle").textContent="Join room "+code;$("#joinCode").hidden=true;$("#joinRoom").textContent="Join room "+code;$("#joinRoom").className="btn go big";$("#joinRoom").style.cssText="flex:1";
-    netMsg("Enter your name, tap Enable gyroscope, then join.");$("#cancelInvite").hidden=false}
+    netMsg("Enter your name and tap Join. If your phone asks for motion access, tap Allow.");$("#cancelInvite").hidden=false}
   else{$("#joinCode").hidden=false;$("#joinRoom").textContent="Join";$("#joinRoom").className="btn go";$("#joinRoom").style.cssText="padding:14px 22px";$("#cancelInvite").hidden=true;netMsg("")}
 }
 const qp=(new URLSearchParams(location.search).get("room")||"").toUpperCase().replace(/[^A-Z]/g,"").slice(0,4);
