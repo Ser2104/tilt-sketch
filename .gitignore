@@ -1,0 +1,5 @@
+__pycache__/
+*.png
+.DS_Store
+training/data/
+training/out/
