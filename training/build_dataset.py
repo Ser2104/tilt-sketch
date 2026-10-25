@@ -61,6 +61,9 @@ def main():
     if real.exists():
         with gzip.open(real, "rt") as f:
             don = [json.loads(line) for line in f]
+        real_test = 1.0 if len(don) < 300 else a.real_test
+        if real_test == 1.0:
+            print("fewer than 300 donated drawings: all of them are used as the real-world test set, none for training")
         by = {}
         for d in don:
             by.setdefault(d["word"], []).append(d["drawing"])
@@ -68,7 +71,7 @@ def main():
         for word, ds in by.items():
             i = CLASSES.index(word)
             random.Random(50_000 + i).shuffle(ds)
-            nt = max(1, round(len(ds) * a.real_test)) if len(ds) > 1 else 0
+            nt = len(ds) if real_test == 1.0 else max(1, round(len(ds) * real_test)) if len(ds) > 1 else 0
             if nt:
                 jobs["test_real"].append((i, ds[:nt], 1, False, 50_000 + i))
             if ds[nt:]:

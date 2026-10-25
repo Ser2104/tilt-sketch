@@ -19,7 +19,7 @@ DN = ROOT.parent / "models" / "doodlenet"
 
 def load_custom():
     spec = json.loads((MODEL_DIR / "spec.json").read_text())
-    model = build()
+    model = build(spec["arch"])
     raw = np.frombuffer((MODEL_DIR / "weights.bin").read_bytes(), np.float32)
     i, off = 0, 0
     for layer in model.layers:
