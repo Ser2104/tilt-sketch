@@ -123,6 +123,24 @@ def main():
     game = y != CLASSES.index(OTHER)
     ours_game_top1 = float((p[game][:, :len(words)].argmax(1) == y[game]).mean())
 
+    real_lines, real_eval = [], {}
+    if (OUT / "test_real.npz").exists():
+        d = np.load(OUT / "test_real.npz")
+        xr, yr = (d["x"].astype(np.float32) / 255)[..., None], d["y"].astype(int)
+        pr = softmax(model.predict(xr, batch_size=1024, verbose=0) / T)
+        ours_real = float((pr[:, :len(words)].argmax(1) == yr).mean())
+        with gzip.open(OUT / "test_real_strokes.json.gz", "rt") as f:
+            rs = [(lbl, to_points(dr)) for lbl, dr in json.load(f)]
+        rx = np.asarray([doodlenet_input(s, 4) for _, s in rs])
+        rd = dn.predict(rx, batch_size=1024, verbose=0)
+        dn_real = float((np.stack([rd[:, idx[w]].sum(1) for w in words], 1).argmax(1) == np.asarray([l for l, _ in rs])).mean())
+        real_eval = {"real_n": int(len(yr)), "real_ours_top1": round(ours_real, 4), "real_doodlenet_top1": round(dn_real, 4)}
+        real_lines = [
+            "## Real gyroscope drawings shared by players", "",
+            f"{len(yr)} drawings that players chose to share, held out from training (`training/fetch_donations.py`). This is the closest measure of accuracy in real play.", "",
+            "| Model | Top-1 accuracy |", "|---|---|",
+            f"| DoodleNet | {dn_real:.1%} |", f"| Tilt Sketch model | {ours_real:.1%} |", ""]
+
     g1, g3, ge = summarize(*res["test_gyro"])
     c1, c3, ce = summarize(*res["test_clean"])
     spec = json.loads((MODEL_DIR / "spec.json").read_text())
@@ -138,6 +156,7 @@ def main():
         "| Model | Top-1 accuracy |", "|---|---|",
         f"| DoodleNet (ml5.js, 28×28 input, 345 classes, restricted to ours) | {dn_top1:.1%} |",
         f"| Tilt Sketch model (64×64 input, trained for our objects) | {ours_game_top1:.1%} |", "",
+        *real_lines,
         "## Accuracy per object (gyro-style test)", "",
         "| Object | Accuracy |", "|---|---|",
         *[f"| {c} | {v:.0%} |" for c, v in sorted(per.items(), key=lambda kv: kv[1])], "",
@@ -148,7 +167,7 @@ def main():
     DOCS.mkdir(exist_ok=True)
     (DOCS / "EVALUATION.md").write_text("\n".join(lines))
     spec["evaluation"] = {"gyro_top1": round(g1, 4), "gyro_top3": round(g3, 4), "clean_top1": round(c1, 4),
-                          "doodlenet_game_top1": round(dn_top1, 4), "ours_game_top1": round(ours_game_top1, 4)}
+                          "doodlenet_game_top1": round(dn_top1, 4), "ours_game_top1": round(ours_game_top1, 4), **real_eval}
     (MODEL_DIR / "spec.json").write_text(json.dumps(spec, indent=1))
     print("\n".join(lines[:14]))
 

@@ -21,6 +21,7 @@ More than 795,000 people in the US have a stroke each year, and stroke reduces m
 - Adaptive difficulty: score ≥ 80 raises the level, < 50 lowers it.
 - Motion metrics per exercise: path covered, tracing accuracy, steadiness (tremor), smoothness (log dimensionless jerk), angular speed and range used. See [docs/MOTION_METRICS.md](docs/MOTION_METRICS.md).
 - Local profiles, progress charts, CSV export, share sheet and a printable report.
+- **Share with my clinician:** a therapist creates a clinic (code + private key) in **For clinicians**; patients connect with the code or a QR link and their session summaries are sent automatically. The clinician dashboard lists every patient with sessions, latest score and trend, and opens the same charts, CSV and printable report. Patients can stop sharing at any time, which deletes their shared data.
 
 **Games**
 - Solo, Teams (the drawing jumps to the teammate's phone) and Impostor (secret object, gallery, timed vote).
@@ -50,8 +51,9 @@ More than 795,000 people in the US have a stroke each year, and stroke reduces m
 | Fallback recognizer | DoodleNet (ml5.js), restricted to the game's objects, used until the custom model is published. | `models/doodlenet/` |
 | Motion analysis | Signal processing on the phone's orientation stream: tremor band energy, jerk-based smoothness, range of motion. | [js/motor.js](js/motor.js) |
 | Adaptive difficulty | Adjusts level after each exercise from the tracing score. | [js/practice.js](js/practice.js) |
+| Data flywheel | Players can choose to share their gyroscope drawings. They are added to training and a held-out part becomes a real-world test set, so the model is measured on real play, not only on simulated wobble. | [js/donate.js](js/donate.js), [training/fetch_donations.py](training/fetch_donations.py) |
 
-Everything runs on the phone. No drawing or measurement leaves the device unless the user exports it.
+Everything runs on the phone. Nothing leaves the device unless the person turns on drawing sharing or clinician sharing; see [docs/PRIVACY.md](docs/PRIVACY.md).
 
 ## Project layout
 
@@ -88,6 +90,7 @@ python tests/e2e_fuzz.py       # Practice never freezes; bad play scores near ze
 python tests/e2e_scoring.py    # real drawings score high, scribbles score zero
 python tests/mock_supabase.py 8790 & python tests/e2e_challenges.py   # daily, levels, rankings
 python tests/e2e_guided.py     # guided figures: line-by-line tracing, auto-complete, stars, ranking
+python tests/e2e_cloud.py      # drawing donations with consent and deletion; clinic, patient sharing, dashboard
 ```
 
 They also run on every push with GitHub Actions.

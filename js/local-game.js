@@ -29,7 +29,7 @@ async function judge(){
   $("#jTitle").textContent="The AI is looking at the drawings";$("#jMsg").textContent=`Which one looks most like "${w}"?`;
   while(AI.state==="wait")await new Promise(r=>setTimeout(r,200));
   if(AI.state!=="ok")return humanJudge();
-  try{const[r]=await Promise.all([aiJudge(w,G.items),new Promise(r=>setTimeout(r,1200))]);G.items.forEach((it,i)=>{it.guess=r[i].guess;it.acc=r[i].acc});showRound()}
+  try{const[r]=await Promise.all([aiJudge(w,G.items),new Promise(r=>setTimeout(r,1200))]);G.items.forEach((it,i)=>{it.guess=r[i].guess;it.acc=r[i].acc;if(G.mode==="solo"&&typeof Donate!=="undefined")Donate.send(w,it.strokes,r[i])});showRound()}
   catch(e){
     $("#jAnim").hidden=true;$("#jTitle").textContent="The AI could not analyze the drawings";
     $("#jErr").textContent="Try again, or score them yourselves.";$("#jErr").hidden=$("#jActions").hidden=false;

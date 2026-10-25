@@ -33,6 +33,9 @@ flowchart LR
 | `js/progress.js` | Progress charts, CSV export, share, printable report |
 | `js/local-game.js` | One-phone games with handoff |
 | `js/multi.js` | Rooms, QR, lobby, host-authoritative game flow, deadlines, voting |
+| `js/rank.js` | Supabase calls: rankings and a generic RPC helper |
+| `js/donate.js` | Opt-in drawing sharing, consent prompt, deletion |
+| `js/clinic.js` | Patient connection to a clinic, automatic session sync, clinician dashboard |
 
 ## Multiplayer protocol
 
@@ -50,4 +53,4 @@ The host phone owns the game state and runs the AI. Messages over WebRTC:
 
 ## Data and privacy
 
-Profiles, sessions and settings live in the browser's localStorage. Nothing is uploaded. Exports (CSV, report) happen only when the user taps them. The signaling server only sees random peer IDs, never drawings.
+Profiles, sessions and settings live in the browser's localStorage. Exports (CSV, report) happen only when the user taps them. The signaling server only sees random peer IDs, never drawings. Rankings, opt-in drawing sharing and opt-in clinician sharing go through checked database functions; see [PRIVACY.md](PRIVACY.md).

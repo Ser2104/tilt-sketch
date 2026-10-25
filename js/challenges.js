@@ -31,12 +31,14 @@ async function judgeOne(word,strokes){
 function playChallenge({word,time,label,onScore}){
   handoff({label,who:up(word),ref:refFor(word),info:`You have ${time} seconds. Draw it so the AI can recognize it. Scribbles score zero.`,hint:S.ctrl==="look"?"Hold the phone up like a camera before you tap.":"Hold the phone comfortably before you tap.",go:"Start drawing",
     onGo:()=>startDraw({who:label,word,strokes:[],dur:time,ref:refFor(word)?.emoji,onEnd:async()=>{const strokes=D.strokes.slice();showWait({title:"The AI is looking at your drawing",sub:"",chips:[]});
-      const r=await judgeOne(word,strokes);onScore(r,snapshot(strokes,240))},onError:()=>show("s-home")})});
+      const r=await judgeOne(word,strokes);CR_OFFER={word,strokes,r};onScore(r,snapshot(strokes,240))},onError:()=>show("s-home")})});
 }
+let CR_OFFER=null;
 function showChallengeResult({label,title,score,img,info,starsN,actions}){
   $("#crLabel").textContent=label;$("#crTitle").textContent=title;$("#crScore").textContent=score+"%";$("#crImg").src=img;$("#crInfo").textContent=info;
   $("#crStars").textContent=starsN==null?"":stars(starsN);$("#crStars").hidden=starsN==null;
   const f=$("#crActions");f.innerHTML="";actions.forEach((a,i)=>{const b=document.createElement("button");b.className="btn"+(i===0?" primary big":"");b.textContent=a.text;b.onclick=a.fn;f.append(b)});
+  const o=CR_OFFER;CR_OFFER=null;$("#crDonate").hidden=true;if(o&&typeof Donate!=="undefined")Donate.offer(o.word,o.strokes,o.r);
   show("s-cres");say(`${score} percent`)}
 
 async function startDaily(){

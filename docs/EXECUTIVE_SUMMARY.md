@@ -17,7 +17,9 @@ Tilt Sketch turns the phone people already own into a wrist-controlled brush. In
 2. **Motion analysis** of the phone's orientation stream: tremor band energy, jerk-based smoothness and range of motion.
 3. **Adaptive difficulty** that adjusts shape size, tolerance and time to each person.
 
-All AI runs on the phone: no accounts, no data leaves the device unless the user exports it.
+4. **Data flywheel:** players can share their gyroscope drawings with consent; they retrain the recognizer and form a real-world test set.
+
+All AI runs on the phone. Data leaves the device only when the person opts in: drawing sharing for training, or sharing practice results with their clinician.
 
 ## Status
 
@@ -25,6 +27,6 @@ Working prototype online, with multiplayer rooms by QR code, Practice mode, prog
 
 ## Impact and next steps
 
-Success means more completed home sessions and therapist-readable progress between visits. After the MVP: a therapist dashboard (opt-in cloud sync), exercise plans assigned by clinicians, and a clinical partnership to validate the metrics.
+Success means more completed home sessions and therapist-readable progress between visits. The prototype already includes a clinician dashboard: therapists create a clinic, patients connect with a code and their progress arrives automatically. After the MVP: exercise plans assigned by clinicians, clinician accounts on a HIPAA-ready host, and a clinical partnership to validate the metrics.
 
 *Tilt Sketch is a wellness and exercise tool, not a medical device.*

@@ -10,6 +10,7 @@ Out of scope: recognizing arbitrary objects, judging artistic quality, any medic
 
 - **Source:** Google Quick, Draw! simplified strokes (CC BY 4.0), drawings flagged as recognized by the original game.
 - **Classes:** the 78 game objects (some merge related Quick, Draw! categories: cup = cup + coffee cup + mug, clock = clock + alarm clock + wristwatch, ladder = ladder + stairs) plus **other**, built from about 50 unrelated categories including scribbles, lines and simple shapes. The "other" class stops the model from forcing a random drawing into a game object.
+- **Real gyroscope drawings (optional):** drawings players chose to share from the game (`training/fetch_donations.py`). 70% are added to training (with extra weight), 30% are held out as a real-world test set reported in `docs/EVALUATION.md`. Drawings the AI scored below 10 are skipped as likely scribbles. Consent and deletion: [PRIVACY.md](PRIVACY.md).
 - **Size:** up to 4,000 drawings per class. Split per class: 80% training, 10% validation, 10% test, with no drawing shared across splits.
 
 ## Rendering and augmentation

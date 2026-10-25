@@ -55,3 +55,147 @@ grant select (board, player, score, level, stars, updated_at) on public.scores t
 drop policy if exists "Leaderboard is public" on public.scores;
 create policy "Leaderboard is public" on public.scores for select to anon using (true);
 revoke execute on function public.submit_score(text, uuid, text, int, int, int) from authenticated;
+
+-- ---------- Drawing donations and clinician sharing (see docs/PRIVACY.md) ----------
+create extension if not exists pgcrypto with schema extensions;
+
+-- Donated drawings: opt-in, anonymous, deletable. Used to retrain the AI on real gyroscope drawings.
+create table if not exists public.drawings (
+  id         bigint generated always as identity primary key,
+  device     uuid        not null,
+  word       text        not null,
+  strokes    jsonb       not null check (jsonb_typeof(strokes) = 'array' and pg_column_size(strokes) < 60000),
+  ctrl       text        check (ctrl in ('look', 'tilt')),
+  ai_guess   text        check (char_length(ai_guess) <= 40),
+  ai_score   int         check (ai_score between 0 and 100),
+  created_at timestamptz not null default now()
+);
+create index if not exists drawings_device on public.drawings (device);
+alter table public.drawings enable row level security;
+revoke all on public.drawings from anon, authenticated;
+
+create or replace function public.donate_drawing(p_device uuid, p_word text, p_strokes jsonb, p_ctrl text, p_guess text, p_score int)
+returns void language plpgsql security definer set search_path = public as $$
+begin
+  if p_word not in ('cat','dog','house','tree','bicycle','airplane','guitar','umbrella','cup','flower','key','clock','shoe','mountain','sailboat','ice cream','scissors','eyeglasses','fish','hat','snail','light bulb','sea turtle','ladder','cloud','hammer','hamburger','crown','pizza','sun','moon','star','butterfly','spider','castle','train','car','pineapple','strawberry','mushroom','cactus','penguin','giraffe','elephant','snake','fork','lighthouse','tent','rainbow','snowman','television','pencil','candle','smiley face','hot air balloon','watermelon','octopus','whale','owl','shark','helicopter','hourglass','skull','lightning','snowflake','sword','helmet','dragon','flying saucer','mermaid','angel','diamond','bee','rabbit','frog','camera','headphones','Eiffel Tower') then raise exception 'unknown object'; end if;
+  if jsonb_typeof(p_strokes) <> 'array' or jsonb_array_length(p_strokes) not between 1 and 80 then raise exception 'bad drawing'; end if;
+  if (select count(*) from drawings where device = p_device and created_at > now() - interval '1 day') >= 300 then raise exception 'daily limit'; end if;
+  insert into drawings (device, word, strokes, ctrl, ai_guess, ai_score)
+  values (p_device, p_word, p_strokes, case when p_ctrl in ('look', 'tilt') then p_ctrl end, left(p_guess, 40), least(greatest(p_score, 0), 100));
+end; $$;
+
+create or replace function public.delete_my_drawings(p_device uuid)
+returns int language plpgsql security definer set search_path = public as $$
+declare n int;
+begin
+  delete from drawings where device = p_device;
+  get diagnostics n = row_count;
+  return n;
+end; $$;
+
+create or replace function public.donation_stats()
+returns json language sql stable security definer set search_path = public as $$
+  select json_build_object('drawings', count(*), 'objects', count(distinct word), 'players', count(distinct device)) from drawings;
+$$;
+
+-- Clinician sharing: a clinician creates a clinic (public join code + private key); patients choose to share practice summaries.
+create table if not exists public.clinics (
+  id          uuid        primary key default gen_random_uuid(),
+  code        text        not null unique,
+  key_hash    bytea       not null,
+  name        text        not null check (char_length(name) between 1 and 60),
+  created_at  timestamptz not null default now()
+);
+create table if not exists public.clinic_patients (
+  id         bigint generated always as identity primary key,
+  clinic_id  uuid        not null references public.clinics on delete cascade,
+  device     uuid        not null,
+  alias      text        not null check (char_length(alias) between 1 and 24),
+  joined_at  timestamptz not null default now(),
+  unique (clinic_id, device)
+);
+create table if not exists public.clinic_sessions (
+  id          bigint generated always as identity primary key,
+  patient_id  bigint      not null references public.clinic_patients on delete cascade,
+  session     jsonb       not null check (jsonb_typeof(session) = 'object' and pg_column_size(session) < 20000),
+  created_at  timestamptz not null default now()
+);
+create index if not exists clinic_sessions_patient on public.clinic_sessions (patient_id);
+alter table public.clinics enable row level security;
+alter table public.clinic_patients enable row level security;
+alter table public.clinic_sessions enable row level security;
+revoke all on public.clinics, public.clinic_patients, public.clinic_sessions from anon, authenticated;
+
+create or replace function public.create_clinic(p_name text)
+returns json language plpgsql security definer set search_path = public, extensions as $$
+declare c text; k text; abc text := 'ABCDEFGHJKMNPQRSTUVWXYZ23456789';
+begin
+  if char_length(trim(coalesce(p_name, ''))) = 0 then raise exception 'empty name'; end if;
+  if (select count(*) from clinics where created_at > now() - interval '1 hour') >= 100 then raise exception 'try again later'; end if;
+  loop
+    c := (select string_agg(substr(abc, 1 + (get_byte(b, i) % 31), 1), '') from (select gen_random_bytes(6) b) r, generate_series(0, 5) i);
+    exit when not exists (select 1 from clinics where code = c);
+  end loop;
+  k := encode(gen_random_bytes(18), 'hex');
+  insert into clinics (code, key_hash, name) values (c, digest(k, 'sha256'), left(trim(p_name), 60));
+  return json_build_object('code', c, 'key', k, 'name', left(trim(p_name), 60));
+end; $$;
+
+create or replace function public.join_clinic(p_code text, p_device uuid, p_alias text)
+returns text language plpgsql security definer set search_path = public as $$
+declare cl clinics;
+begin
+  select * into cl from clinics where code = upper(trim(p_code));
+  if not found then raise exception 'unknown clinic code'; end if;
+  if char_length(trim(coalesce(p_alias, ''))) = 0 then raise exception 'empty name'; end if;
+  insert into clinic_patients (clinic_id, device, alias) values (cl.id, p_device, left(trim(p_alias), 24))
+  on conflict (clinic_id, device) do update set alias = excluded.alias;
+  return cl.name;
+end; $$;
+
+create or replace function public.share_session(p_code text, p_device uuid, p_session jsonb)
+returns void language plpgsql security definer set search_path = public as $$
+declare pid bigint;
+begin
+  select p.id into pid from clinic_patients p join clinics c on c.id = p.clinic_id where c.code = upper(trim(p_code)) and p.device = p_device;
+  if pid is null then raise exception 'not connected'; end if;
+  if (select count(*) from clinic_sessions where patient_id = pid and created_at > now() - interval '1 day') >= 60 then raise exception 'daily limit'; end if;
+  insert into clinic_sessions (patient_id, session) values (pid, p_session);
+end; $$;
+
+create or replace function public.leave_clinic(p_code text, p_device uuid)
+returns void language sql security definer set search_path = public as $$
+  delete from clinic_patients p using clinics c where c.id = p.clinic_id and c.code = upper(trim(p_code)) and p.device = p_device;
+$$;
+
+create or replace function public.clinic_report(p_code text, p_key text)
+returns json language plpgsql stable security definer set search_path = public, extensions as $$
+declare cl clinics;
+begin
+  select * into cl from clinics where code = upper(trim(p_code)) and key_hash = digest(coalesce(p_key, ''), 'sha256');
+  if not found then raise exception 'wrong clinic code or key'; end if;
+  return json_build_object('name', cl.name, 'code', cl.code, 'patients', coalesce((
+    select json_agg(json_build_object('id', p.id, 'alias', p.alias, 'joined_at', p.joined_at, 'sessions', coalesce((
+      select json_agg(s.session order by s.session->>'date') from clinic_sessions s where s.patient_id = p.id), '[]'::json)) order by p.joined_at)
+    from clinic_patients p where p.clinic_id = cl.id), '[]'::json));
+end; $$;
+
+create or replace function public.clinic_remove_patient(p_code text, p_key text, p_patient bigint)
+returns void language plpgsql security definer set search_path = public, extensions as $$
+declare cl clinics;
+begin
+  select * into cl from clinics where code = upper(trim(p_code)) and key_hash = digest(coalesce(p_key, ''), 'sha256');
+  if not found then raise exception 'wrong clinic code or key'; end if;
+  delete from clinic_patients where id = p_patient and clinic_id = cl.id;
+end; $$;
+
+do $$
+declare f text;
+begin
+  foreach f in array array['donate_drawing(uuid, text, jsonb, text, text, int)', 'delete_my_drawings(uuid)', 'donation_stats()',
+    'create_clinic(text)', 'join_clinic(text, uuid, text)', 'share_session(text, uuid, jsonb)', 'leave_clinic(text, uuid)',
+    'clinic_report(text, text)', 'clinic_remove_patient(text, text, bigint)'] loop
+    execute format('revoke all on function public.%s from public, authenticated', f);
+    execute format('grant execute on function public.%s to anon', f);
+  end loop;
+end $$;

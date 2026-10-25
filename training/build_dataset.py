@@ -40,6 +40,8 @@ def main():
     ap.add_argument("--val", type=float, default=0.1)
     ap.add_argument("--test", type=float, default=0.1)
     ap.add_argument("--workers", type=int, default=2)
+    ap.add_argument("--real-test", type=float, default=0.3, help="share of donated drawings held out as the real-world test set")
+    ap.add_argument("--real-weight", type=int, default=4, help="copies of each donated training drawing")
     a = ap.parse_args()
     OUT.mkdir(parents=True, exist_ok=True)
     jobs = {"train": [], "val": [], "test_gyro": [], "test_clean": []}
@@ -54,10 +56,34 @@ def main():
         jobs["test_gyro"].append((i, test, 1, True, 30_000 + i))
         jobs["test_clean"].append((i, test, 1, False, 40_000 + i))
         test_strokes += [(i, d) for d in test]
+    test_real_strokes = []
+    real = DATA / "donated.ndjson.gz"
+    if real.exists():
+        with gzip.open(real, "rt") as f:
+            don = [json.loads(line) for line in f]
+        by = {}
+        for d in don:
+            by.setdefault(d["word"], []).append(d["drawing"])
+        jobs["test_real"] = []
+        for word, ds in by.items():
+            i = CLASSES.index(word)
+            random.Random(50_000 + i).shuffle(ds)
+            nt = max(1, round(len(ds) * a.real_test)) if len(ds) > 1 else 0
+            if nt:
+                jobs["test_real"].append((i, ds[:nt], 1, False, 50_000 + i))
+            if ds[nt:]:
+                jobs["train"].append((i, ds[nt:], a.real_weight, True, 60_000 + i))
+                jobs["train"].append((i, ds[nt:], 1, False, 70_000 + i))
+            test_real_strokes += [(i, d) for d in ds[:nt]]
+        if not jobs["test_real"]:
+            del jobs["test_real"]
+        print(f"donated: {len(don)} real gyroscope drawings for {len(by)} objects")
     with Pool(a.workers) as pool:
         for split, js in jobs.items():
             xs, ys = [], []
             for label, arr in pool.imap_unordered(work, js):
+                if not len(arr):
+                    continue
                 xs.append(arr)
                 ys.append(np.full(len(arr), label, np.int16))
             X, Y = np.concatenate(xs), np.concatenate(ys)
@@ -65,6 +91,9 @@ def main():
             print(split, X.shape)
     with gzip.open(OUT / "test_strokes.json.gz", "wt") as f:
         json.dump(test_strokes, f)
+    if "test_real" in jobs:
+        with gzip.open(OUT / "test_real_strokes.json.gz", "wt") as f:
+            json.dump(test_real_strokes, f)
 
 
 if __name__ == "__main__":

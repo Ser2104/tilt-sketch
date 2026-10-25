@@ -95,4 +95,5 @@ async def main():
         print("offline ranking note:", await a.inner_text("#rkStatus"))
         await b.close()
 
-asyncio.run(main())
+if __name__ == "__main__":
+    asyncio.run(main())

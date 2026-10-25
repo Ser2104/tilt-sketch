@@ -197,3 +197,7 @@ html.high-contrast{--bg:#FFFFFF;--surface:#FFFFFF;--ink:#000000;--muted:#1F2A3A;
 .lvgrid.gd img{width:64px;height:64px;border-radius:8px}
 #cGuided{border-color:var(--go)}
 .lv.locked img{opacity:.35;filter:grayscale(1)}
+.ranklist li.patient{grid-template-columns:1fr auto}
+.ptopen{border:0;background:none;text-align:left;display:flex;flex-direction:column;gap:2px;padding:0;color:inherit;min-width:0}
+.ptopen span{color:var(--muted);font-size:13px}
+.keybox{font-family:var(--f-mono);font-size:15px;word-break:break-all;background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:10px 12px}

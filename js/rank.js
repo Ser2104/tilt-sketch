@@ -13,5 +13,10 @@ const Rank=(()=>{
     const order=board==="levels"||board==="guided"?"level.desc,stars.desc,updated_at.asc":"score.desc,updated_at.asc";
     try{const r=await fetch(`${TS_CONFIG.supabaseUrl.replace(/\/$/,"")}/rest/v1/leaderboard?board=eq.${encodeURIComponent(board)}&order=${order}&limit=${limit}&select=player,score,level,stars`,{headers:headers()});
       return r.ok?await r.json():null}catch(_){return null}}
-  return{on,submit,top,device}
+  async function rpc(name,body){
+    if(!on())return{ok:false,data:null,error:"offline"};
+    try{const r=await fetch(TS_CONFIG.supabaseUrl.replace(/\/$/,"")+"/rest/v1/rpc/"+name,{method:"POST",headers:headers(),body:JSON.stringify(body)});
+      const t=await r.text();let d=null;try{d=t?JSON.parse(t):null}catch(_){d=t}
+      return{ok:r.ok,data:r.ok?d:null,error:r.ok?null:(d&&d.message)||"error "+r.status}}catch(_){return{ok:false,data:null,error:"offline"}}}
+  return{on,submit,top,rpc,device}
 })();

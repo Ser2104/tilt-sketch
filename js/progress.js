@@ -27,8 +27,9 @@ function lineChart(canvas,vals,{color,unit}){
 }
 function trendText(vals){const v=vals.filter(x=>x!=null);if(v.length<2)return"";const a=v.slice(0,Math.ceil(v.length/2)),b=v.slice(Math.floor(v.length/2));
   const m=x=>x.reduce((s,y)=>s+y,0)/x.length,d=m(b)-m(a);return Math.abs(d)<1?"Stable":d>0?`Up ${Math.round(d)}`:`Down ${Math.round(-d)}`}
-function openProgress(){
-  const p=Profiles.cur();if(!p)return openPractice();
+let PV=null,PBACK=null;
+function openProgress(p=Profiles.cur(),back=openPractice){
+  if(!p)return openPractice();PV=p;PBACK=back;$("#prBack").textContent=back===openPractice?"Back to practice":"Back to patients";
   $("#prName").textContent=p.name;
   const ss=p.sessions;
   $("#prKpis").innerHTML=[[ss.length,"Sessions"],[p.level,"Current level"],[ss.length?Math.round(Math.max(...ss.map(s=>s.avg.score||0))):"–","Best score"],[p.rom?`${fmt(p.rom.x)}° × ${fmt(p.rom.y)}°`:"Not set","Comfortable range"]].map(([a,b])=>`<div class="kpi"><b>${a}</b><span>${b}</span></div>`).join("");
@@ -43,13 +44,13 @@ function toCSV(p){
   p.sessions.forEach(s=>s.exercises.forEach(e=>rows.push([s.date,`"${e.label}"`,e.level,e.score,e.coverage,e.accuracy,e.tremorAmp,e.tremorHz,e.smooth??"",e.ldlj??"",e.speed,e.romX,e.romY,e.active].join(","))));
   return rows.join("\n")}
 function download(name,text,type){const b=new Blob([text],{type}),a=document.createElement("a");a.href=URL.createObjectURL(b);a.download=name;document.body.append(a);a.click();setTimeout(()=>{URL.revokeObjectURL(a.href);a.remove()},1000)}
-$("#prCsv").onclick=()=>{const p=Profiles.cur();if(p)download(`tilt-sketch-${p.name.replace(/\W+/g,"-")}.csv`,toCSV(p),"text/csv")};
-$("#prShare").onclick=async()=>{const p=Profiles.cur();if(!p)return;const f=new File([toCSV(p)],`tilt-sketch-${p.name.replace(/\W+/g,"-")}.csv`,{type:"text/csv"});
+$("#prCsv").onclick=()=>{const p=PV;if(p)download(`tilt-sketch-${p.name.replace(/\W+/g,"-")}.csv`,toCSV(p),"text/csv")};
+$("#prShare").onclick=async()=>{const p=PV;if(!p)return;const f=new File([toCSV(p)],`tilt-sketch-${p.name.replace(/\W+/g,"-")}.csv`,{type:"text/csv"});
   try{if(navigator.canShare&&navigator.canShare({files:[f]}))await navigator.share({files:[f],title:"Tilt Sketch progress"});else $("#prCsv").click()}catch(_){}};
 $("#prReport").onclick=()=>openReport();
-$("#prBack").onclick=()=>openPractice();
+$("#prBack").onclick=()=>(PBACK||openPractice)();
 function openReport(){
-  const p=Profiles.cur();if(!p)return;const ss=p.sessions;
+  const p=PV;if(!p)return;const ss=p.sessions;
   const first=ss[0],last=ss[ss.length-1];
   $("#rpMeta").textContent=`${p.name} · ${ss.length} session${ss.length===1?"":"s"}${first?` · ${new Date(first.date).toLocaleDateString()} to ${new Date(last.date).toLocaleDateString()}`:""} · generated ${new Date().toLocaleDateString()}`;
   const rows=CHARTS.map(c=>{const v=ss.map(s=>sessionValue(s,c.key)).filter(x=>x!=null);return`<tr><td>${c.title}</td><td>${v.length?fmt(v[0]):"–"}${c.unit}</td><td>${v.length?fmt(v[v.length-1]):"–"}${c.unit}</td><td>${trendText(ss.map(s=>sessionValue(s,c.key)))||"–"}</td></tr>`}).join("");
@@ -60,4 +61,4 @@ function openReport(){
   CHARTS.forEach(c=>lineChart($("#rc-"+c.key),ss.map(s=>sessionValue(s,c.key)),c));
 }
 $("#rpPrint").onclick=()=>window.print();
-$("#rpBack").onclick=()=>openProgress();
+$("#rpBack").onclick=()=>openProgress(PV,PBACK);
