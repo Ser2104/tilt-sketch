@@ -53,9 +53,9 @@ More than 795,000 people in the US have a stroke each year, and stroke reduces m
 
 | Part | What it does | Where |
 |---|---|---|
-| Drawing recognizer | CNN trained for the game's 78 objects plus an "other" class, on Quick, Draw! drawings deformed to look like gyroscope drawings. Runs in the browser with TensorFlow.js. | [training/](training/), [docs/MODEL_CARD.md](docs/MODEL_CARD.md), [docs/EVALUATION.md](docs/EVALUATION.md) |
+| Drawing recognizer | **82.3% top-1 on gyroscope-style drawings vs 38.7% for DoodleNet** (91.9% top-3, calibration error 0.004). CNN trained for the game's 78 objects plus an "other" class, on Quick, Draw! drawings deformed to look like gyroscope drawings. Runs in the browser with TensorFlow.js. | [training/](training/), [docs/MODEL_CARD.md](docs/MODEL_CARD.md), [docs/EVALUATION.md](docs/EVALUATION.md) |
 | Explanations | Every result shows the AI's top three guesses with their confidence, and says when it is not sure, so players and judges can see why a drawing scored what it did. | [js/ai.js](js/ai.js) |
-| Fallback recognizer | DoodleNet (ml5.js), restricted to the game's objects, used until the custom model is published. | `models/doodlenet/` |
+| Fallback recognizer | DoodleNet (ml5.js), restricted to the game's objects, used only if the custom model cannot load. | `models/doodlenet/` |
 | Motion analysis | Signal processing on the phone's orientation stream: tremor band energy, jerk-based smoothness, range of motion. | [js/motor.js](js/motor.js) |
 | Adaptive difficulty | Adjusts level after each exercise from the tracing score. | [js/practice.js](js/practice.js) |
 | Data flywheel | Players can choose to share their gyroscope drawings. They are added to training and a held-out part becomes a real-world test set, so the model is measured on real play, not only on simulated wobble. | [js/donate.js](js/donate.js), [training/fetch_donations.py](training/fetch_donations.py) |

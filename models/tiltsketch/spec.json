@@ -1,0 +1,529 @@
+{
+ "version": 1,
+ "input": {
+  "size": 64,
+  "pad": 4,
+  "line": 2.4,
+  "clean": {
+   "win": 0.1,
+   "eps": 0.015
+  }
+ },
+ "classes": [
+  "cat",
+  "dog",
+  "house",
+  "tree",
+  "bicycle",
+  "airplane",
+  "guitar",
+  "umbrella",
+  "cup",
+  "flower",
+  "key",
+  "clock",
+  "shoe",
+  "mountain",
+  "sailboat",
+  "ice cream",
+  "scissors",
+  "eyeglasses",
+  "fish",
+  "hat",
+  "snail",
+  "light bulb",
+  "sea turtle",
+  "ladder",
+  "cloud",
+  "hammer",
+  "hamburger",
+  "crown",
+  "pizza",
+  "sun",
+  "moon",
+  "star",
+  "butterfly",
+  "spider",
+  "castle",
+  "train",
+  "car",
+  "pineapple",
+  "strawberry",
+  "mushroom",
+  "cactus",
+  "penguin",
+  "giraffe",
+  "elephant",
+  "snake",
+  "fork",
+  "lighthouse",
+  "tent",
+  "rainbow",
+  "snowman",
+  "television",
+  "pencil",
+  "candle",
+  "smiley face",
+  "hot air balloon",
+  "watermelon",
+  "octopus",
+  "whale",
+  "owl",
+  "shark",
+  "helicopter",
+  "hourglass",
+  "skull",
+  "lightning",
+  "snowflake",
+  "sword",
+  "helmet",
+  "dragon",
+  "flying saucer",
+  "mermaid",
+  "angel",
+  "diamond",
+  "bee",
+  "rabbit",
+  "frog",
+  "camera",
+  "headphones",
+  "Eiffel Tower",
+  "other"
+ ],
+ "arch": [
+  {
+   "type": "conv",
+   "filters": 48
+  },
+  {
+   "type": "bn"
+  },
+  {
+   "type": "relu"
+  },
+  {
+   "type": "conv",
+   "filters": 48
+  },
+  {
+   "type": "bn"
+  },
+  {
+   "type": "relu"
+  },
+  {
+   "type": "pool"
+  },
+  {
+   "type": "conv",
+   "filters": 96
+  },
+  {
+   "type": "bn"
+  },
+  {
+   "type": "relu"
+  },
+  {
+   "type": "conv",
+   "filters": 96
+  },
+  {
+   "type": "bn"
+  },
+  {
+   "type": "relu"
+  },
+  {
+   "type": "pool"
+  },
+  {
+   "type": "conv",
+   "filters": 192
+  },
+  {
+   "type": "bn"
+  },
+  {
+   "type": "relu"
+  },
+  {
+   "type": "conv",
+   "filters": 192
+  },
+  {
+   "type": "bn"
+  },
+  {
+   "type": "relu"
+  },
+  {
+   "type": "pool"
+  },
+  {
+   "type": "conv",
+   "filters": 256
+  },
+  {
+   "type": "bn"
+  },
+  {
+   "type": "relu"
+  },
+  {
+   "type": "gap"
+  },
+  {
+   "type": "dropout",
+   "rate": 0.35
+  },
+  {
+   "type": "dense",
+   "units": 79
+  }
+ ],
+ "weights": [
+  {
+   "layer": "conv2d",
+   "shape": [
+    3,
+    3,
+    1,
+    48
+   ]
+  },
+  {
+   "layer": "batch_normalization",
+   "shape": [
+    48
+   ]
+  },
+  {
+   "layer": "batch_normalization",
+   "shape": [
+    48
+   ]
+  },
+  {
+   "layer": "batch_normalization",
+   "shape": [
+    48
+   ]
+  },
+  {
+   "layer": "batch_normalization",
+   "shape": [
+    48
+   ]
+  },
+  {
+   "layer": "conv2d_1",
+   "shape": [
+    3,
+    3,
+    48,
+    48
+   ]
+  },
+  {
+   "layer": "batch_normalization_1",
+   "shape": [
+    48
+   ]
+  },
+  {
+   "layer": "batch_normalization_1",
+   "shape": [
+    48
+   ]
+  },
+  {
+   "layer": "batch_normalization_1",
+   "shape": [
+    48
+   ]
+  },
+  {
+   "layer": "batch_normalization_1",
+   "shape": [
+    48
+   ]
+  },
+  {
+   "layer": "conv2d_2",
+   "shape": [
+    3,
+    3,
+    48,
+    96
+   ]
+  },
+  {
+   "layer": "batch_normalization_2",
+   "shape": [
+    96
+   ]
+  },
+  {
+   "layer": "batch_normalization_2",
+   "shape": [
+    96
+   ]
+  },
+  {
+   "layer": "batch_normalization_2",
+   "shape": [
+    96
+   ]
+  },
+  {
+   "layer": "batch_normalization_2",
+   "shape": [
+    96
+   ]
+  },
+  {
+   "layer": "conv2d_3",
+   "shape": [
+    3,
+    3,
+    96,
+    96
+   ]
+  },
+  {
+   "layer": "batch_normalization_3",
+   "shape": [
+    96
+   ]
+  },
+  {
+   "layer": "batch_normalization_3",
+   "shape": [
+    96
+   ]
+  },
+  {
+   "layer": "batch_normalization_3",
+   "shape": [
+    96
+   ]
+  },
+  {
+   "layer": "batch_normalization_3",
+   "shape": [
+    96
+   ]
+  },
+  {
+   "layer": "conv2d_4",
+   "shape": [
+    3,
+    3,
+    96,
+    192
+   ]
+  },
+  {
+   "layer": "batch_normalization_4",
+   "shape": [
+    192
+   ]
+  },
+  {
+   "layer": "batch_normalization_4",
+   "shape": [
+    192
+   ]
+  },
+  {
+   "layer": "batch_normalization_4",
+   "shape": [
+    192
+   ]
+  },
+  {
+   "layer": "batch_normalization_4",
+   "shape": [
+    192
+   ]
+  },
+  {
+   "layer": "conv2d_5",
+   "shape": [
+    3,
+    3,
+    192,
+    192
+   ]
+  },
+  {
+   "layer": "batch_normalization_5",
+   "shape": [
+    192
+   ]
+  },
+  {
+   "layer": "batch_normalization_5",
+   "shape": [
+    192
+   ]
+  },
+  {
+   "layer": "batch_normalization_5",
+   "shape": [
+    192
+   ]
+  },
+  {
+   "layer": "batch_normalization_5",
+   "shape": [
+    192
+   ]
+  },
+  {
+   "layer": "conv2d_6",
+   "shape": [
+    3,
+    3,
+    192,
+    256
+   ]
+  },
+  {
+   "layer": "batch_normalization_6",
+   "shape": [
+    256
+   ]
+  },
+  {
+   "layer": "batch_normalization_6",
+   "shape": [
+    256
+   ]
+  },
+  {
+   "layer": "batch_normalization_6",
+   "shape": [
+    256
+   ]
+  },
+  {
+   "layer": "batch_normalization_6",
+   "shape": [
+    256
+   ]
+  },
+  {
+   "layer": "dense",
+   "shape": [
+    256,
+    79
+   ]
+  },
+  {
+   "layer": "dense",
+   "shape": [
+    79
+   ]
+  }
+ ],
+ "temperature": 1.0,
+ "trained": {
+  "date": "2026-10-25",
+  "train_images": 316000,
+  "val_images": 39500,
+  "epochs": 12,
+  "minutes": 21.8,
+  "val_accuracy": 0.8107,
+  "params": 1109631,
+  "arch": "wide"
+ },
+ "evaluation": {
+  "gyro_top1": 0.8127,
+  "gyro_top3": 0.9191,
+  "clean_top1": 0.9064,
+  "doodlenet_game_top1": 0.3868,
+  "ours_game_top1": 0.8228,
+  "per_object": {
+   "cat": 0.796,
+   "dog": 0.618,
+   "house": 0.878,
+   "tree": 0.842,
+   "bicycle": 0.896,
+   "airplane": 0.786,
+   "guitar": 0.89,
+   "umbrella": 0.832,
+   "cup": 0.796,
+   "flower": 0.866,
+   "key": 0.796,
+   "clock": 0.644,
+   "shoe": 0.814,
+   "mountain": 0.852,
+   "sailboat": 0.888,
+   "ice cream": 0.864,
+   "scissors": 0.836,
+   "eyeglasses": 0.844,
+   "fish": 0.8,
+   "hat": 0.73,
+   "snail": 0.866,
+   "light bulb": 0.766,
+   "sea turtle": 0.738,
+   "ladder": 0.896,
+   "cloud": 0.892,
+   "hammer": 0.83,
+   "hamburger": 0.858,
+   "crown": 0.886,
+   "pizza": 0.848,
+   "sun": 0.84,
+   "moon": 0.816,
+   "star": 0.908,
+   "butterfly": 0.864,
+   "spider": 0.806,
+   "castle": 0.85,
+   "train": 0.886,
+   "car": 0.842,
+   "pineapple": 0.834,
+   "strawberry": 0.78,
+   "mushroom": 0.778,
+   "cactus": 0.83,
+   "penguin": 0.82,
+   "giraffe": 0.886,
+   "elephant": 0.696,
+   "snake": 0.84,
+   "fork": 0.874,
+   "lighthouse": 0.832,
+   "tent": 0.812,
+   "rainbow": 0.912,
+   "snowman": 0.874,
+   "television": 0.888,
+   "pencil": 0.888,
+   "candle": 0.858,
+   "smiley face": 0.816,
+   "hot air balloon": 0.742,
+   "watermelon": 0.79,
+   "octopus": 0.866,
+   "whale": 0.706,
+   "owl": 0.764,
+   "shark": 0.742,
+   "helicopter": 0.864,
+   "hourglass": 0.894,
+   "skull": 0.828,
+   "lightning": 0.888,
+   "snowflake": 0.856,
+   "sword": 0.804,
+   "helmet": 0.764,
+   "dragon": 0.626,
+   "flying saucer": 0.736,
+   "mermaid": 0.824,
+   "angel": 0.872,
+   "diamond": 0.88,
+   "bee": 0.818,
+   "rabbit": 0.806,
+   "frog": 0.518,
+   "camera": 0.892,
+   "headphones": 0.886,
+   "Eiffel Tower": 0.838
+  }
+ }
+}
