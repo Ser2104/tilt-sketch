@@ -39,7 +39,7 @@ begin
   values (p_board, p_device, left(trim(p_player), 24), least(greatest(p_score, 0), 100), greatest(p_level, 0), greatest(p_stars, 0))
   on conflict (board, device) do update set
     player     = excluded.player,
-    score      = case when scores.board like 'daily-%' then scores.score else greatest(scores.score, excluded.score) end,
+    score      = greatest(scores.score, excluded.score),
     level      = greatest(scores.level, excluded.level),
     stars      = greatest(scores.stars, excluded.stars),
     updated_at = now();

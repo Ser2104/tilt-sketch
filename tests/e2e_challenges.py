@@ -35,7 +35,7 @@ async def phone(b, name):
     pg.on("pageerror", lambda e: print("PAGEERROR", name, e))
     await pg.goto(BASE + "/index.html")
     await pg.evaluate(ORI)
-    await pg.evaluate(CONNECT + ";S.sens=22;WORDS.splice(0,WORDS.length,'sun');LEVEL_LIST[0].time=8;LEVEL_LIST[1].word='sun';LEVEL_LIST[1].time=8")
+    await pg.evaluate(CONNECT + ";S.sens=22;WORDS.splice(0,WORDS.length,'sun');LEVEL_LIST[0].time=8;LEVEL_LIST[0].word='sun';LEVEL_LIST[1].word='sun';LEVEL_LIST[1].time=8")
     await pg.evaluate("renderChallengeCards()")
     return pg
 
@@ -66,12 +66,24 @@ async def main():
         await draw_sun(s, scribble=True)
         await s.wait_for_selector("#s-cres:not([hidden])", timeout=20000)
         print("Leo daily (scribble):", await s.inner_text("#crScore"), "|", await s.inner_text("#crTitle"))
-        await s.click("#crActions button:nth-child(1)")
+        await s.click("#crActions button:has-text('See today')")
         await s.wait_for_function("document.querySelector('#rkList li')", timeout=10000)
         print("today's ranking seen by Leo:", (await s.inner_text("#rkList")).replace("\n", " "))
         await s.screenshot(path="ch_rank.png")
 
-        await a.click("#crActions button:nth-child(3)")
+        await a.click("#crActions button:has-text('Try again')")
+        await a.wait_for_selector("#s-hand:not([hidden])")
+        await draw_sun(a)
+        await a.wait_for_selector("#s-cres:not([hidden])", timeout=20000)
+        print("Ana daily retry:", await a.inner_text("#crLabel"), "|", await a.inner_text("#crScore"), "|", await a.inner_text("#crInfo"))
+        await a.click("#crActions button:has-text('Back to home')")
+        card = await a.inner_text("#cDaily")
+        print("daily card after 2 tries:", card.replace("\n", " | "))
+        assert "2 tries" in card
+        rows = await a.evaluate("Rank.top('daily-'+todayUTC())")
+        best = max(r["score"] for r in rows if r["player"] == "Ana")
+        print("Ana's ranking score is her best try:", best)
+        assert f"{best}%" in card
         await a.click("#cLevels")
         await a.wait_for_selector("#s-levels:not([hidden])")
         await a.screenshot(path="ch_levels.png", full_page=True)

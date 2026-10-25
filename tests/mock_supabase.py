@@ -130,7 +130,7 @@ class H(BaseHTTPRequestHandler):
         new = {"board": d["p_board"], "player": d["p_player"][:24], "score": max(0, min(100, d["p_score"])), "level": d["p_level"], "stars": d["p_stars"], "t": now.timestamp()}
         old = ROWS.get(key)
         if old:
-            new["score"] = old["score"] if d["p_board"].startswith("daily-") else max(old["score"], new["score"])
+            new["score"] = max(old["score"], new["score"])
             new["level"] = max(old["level"], new["level"]); new["stars"] = max(old["stars"], new["stars"])
         ROWS[key] = new
         self.reply(204)

@@ -25,6 +25,8 @@ async function loadCustomModel(){
     try{AI.model=await loadCustomModel();AI.kind="custom"}
     catch(_){DOODLE_CLASSES=await (await fetch("models/doodlenet/classes.json")).json();AI.model=await tf.loadLayersModel("models/doodlenet/model.json");buildGameIndex();AI.kind="doodlenet"}
     const n=AI.kind==="custom"?AI.spec.input.size:28;tf.tidy(()=>AI.model.predict(tf.zeros([1,n,n,1])));
+    const per=AI.kind==="custom"&&AI.spec.evaluation&&AI.spec.evaluation.per_object;
+    if(per){const weak=WORDS.filter(w=>per[w]!=null&&per[w]<.6);if(weak.length<WORDS.length-20)weak.forEach(w=>WORDS.splice(WORDS.indexOf(w),1))}
     AI.state="ok";aiMsg("ok",AI.kind==="custom"?"Tilt Sketch AI ready, trained for this game's objects. It runs on the phone.":"AI ready. It runs on the phone, with no internet or account needed.");
   }catch(e){AI.state="off";aiMsg("bad","The AI could not load. Players will score each drawing.")}
 })();

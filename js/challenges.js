@@ -1,10 +1,10 @@
 /* ---------- Daily challenge and Levels ---------- */
 const WORLDS=[
-  {name:"First lines",time:25,pass:35,items:["sun","moon","star","cloud","tree","house","rainbow","lightning"]},
-  {name:"Around the house",time:22,pass:40,items:["cup","key","clock","umbrella","hat","shoe","light bulb","candle"]},
-  {name:"Animals",time:20,pass:45,items:["fish","snail","cat","owl","whale","spider","rabbit","frog"]},
-  {name:"Heroes and legends",time:20,pass:50,items:["crown","sword","helmet","diamond","skull","dragon","angel","mermaid"]},
-  {name:"Masters",time:18,pass:55,items:["bicycle","guitar","helicopter","elephant","giraffe","lighthouse","Eiffel Tower","castle"]}
+  {name:"First lines",time:25,pass:35,items:["house","smiley face","snowman","rainbow","umbrella","ice cream","sailboat","mushroom"]},
+  {name:"Around the house",time:22,pass:40,items:["clock","scissors","eyeglasses","hamburger","camera","headphones","guitar","cactus"]},
+  {name:"Animals",time:20,pass:45,items:["fish","snail","cat","spider","octopus","butterfly","giraffe","sea turtle"]},
+  {name:"Adventure",time:20,pass:50,items:["crown","castle","skull","lighthouse","hot air balloon","helicopter","airplane","train"]},
+  {name:"Masters",time:18,pass:55,items:["bicycle","elephant","Eiffel Tower","pineapple","strawberry","car","penguin","owl"]}
 ];
 const LEVEL_LIST=WORLDS.flatMap((w,wi)=>w.items.map((word,i)=>({word,world:wi,index:i,time:w.time,pass:w.pass})));
 let DAILY_TIME=25;
@@ -19,7 +19,7 @@ function stars(n){return"★".repeat(n)+"☆".repeat(3-n)}
 
 function renderChallengeCards(){
   const d=store.get("ts-daily-"+todayUTC(),null),st=levelState(),lv=Math.min(st.unlocked,LEVEL_LIST.length-1),L=LEVEL_LIST[lv];
-  $("#cDaily").innerHTML=`<b>Daily challenge</b><span>${d?`Today: ${d.score}% on ${esc(d.word)}`:`Today's object is the same for everyone. One try.`}</span>`;
+  $("#cDaily").innerHTML=`<b>Daily challenge</b><span>${d?`Best today: ${d.score}% on ${esc(d.word)} · ${d.tries||1} ${(d.tries||1)===1?"try":"tries"}`:`Today's object is the same for everyone. Your best try counts.`}</span>`;
   const gs=store.get("ts-guided",{unlocked:0,best:{}});
   $("#cGuided").innerHTML=`<b>Guided drawings</b><span>Trace heroes, rockets, animals… No time limit · ${GUIDED.reduce((s,_,i)=>s+gStars(gs.best[i]||0),0)} ★</span>`;
   $("#cLevels").innerHTML=`<b>Levels</b><span>${st.unlocked>=LEVEL_LIST.length?"All levels complete":`${esc(WORLDS[L.world].name)} · level ${L.world*8+L.index+1} of ${LEVEL_LIST.length}`} · ${totalStars(st)} ★</span>`;
@@ -44,15 +44,15 @@ function showChallengeResult({label,title,score,img,info,starsN,actions}){
 
 async function startDaily(){
   if(!(await readyToDraw()))return;
-  const date=todayUTC(),word=dailyWord(date),prev=store.get("ts-daily-"+date,null);
-  playChallenge({word,time:DAILY_TIME,label:prev?"Daily challenge · practice try":"Daily challenge · official try",onScore:async(r,img)=>{
-    let info;
-    if(!prev){store.set("ts-daily-"+date,{word,score:r.acc,date});const n=playerName();
-      if(Rank.on()&&n){const ok=await Rank.submit("daily-"+date,n,r.acc);info=ok?"Your score is on today's ranking.":"Could not reach the ranking. Your score is saved on this phone."}
-      else info=Rank.on()?"Add your name in the ranking screen to appear on it.":"Saved on this phone. Shared ranking is not connected yet.";}
-    else info=`Practice only. Your official score today is ${prev.score}%.`;
-    showChallengeResult({label:"Daily challenge · "+date,title:`The AI sees: ${r.guess}`,score:r.acc,img,info,starsN:null,actions:[
-      {text:"See today's ranking",fn:()=>openRanking("daily")},{text:"Share result",fn:()=>shareText(`Tilt Sketch daily ${date}: I drew "${word}" and scored ${prev?prev.score:r.acc}%. Can you beat it? ${location.origin+location.pathname}`)},{text:"Back to home",fn:()=>{renderChallengeCards();show("s-home")}}]})}});
+  const date=todayUTC(),word=dailyWord(date),prev=store.get("ts-daily-"+date,null),tries=(prev&&prev.tries||1)+(prev?1:0);
+  playChallenge({word,time:DAILY_TIME,label:`Daily challenge · try ${tries}`,onScore:async(r,img)=>{
+    const best=Math.max(prev?prev.score:0,r.acc),better=!prev||r.acc>prev.score;
+    store.set("ts-daily-"+date,{word,score:best,tries,date});
+    let info=prev?(better?`New best today: ${best}%.`:`Your best today is still ${best}%. Keep trying!`):"";const n=playerName();
+    if(better){if(Rank.on()&&n){const ok=await Rank.submit("daily-"+date,n,best);info+=ok?" Your best score is on today's ranking.":" Could not reach the ranking. Your score is saved on this phone."}
+      else info+=Rank.on()?" Add your name in the ranking screen to appear on it.":" Saved on this phone. Shared ranking is not connected yet."}
+    showChallengeResult({label:"Daily challenge · "+date,title:`The AI sees: ${r.guess}`,score:r.acc,img,info:info.trim(),starsN:null,actions:[
+      {text:"Try again",fn:()=>startDaily()},{text:"See today's ranking",fn:()=>openRanking("daily")},{text:"Share result",fn:()=>shareText(`Tilt Sketch daily ${date}: I drew "${word}" and scored ${best}%. Can you beat it? ${location.origin+location.pathname}`)},{text:"Back to home",fn:()=>{renderChallengeCards();show("s-home")}}]})}});
 }
 async function shareText(t){t=I18N.t(t);try{if(navigator.share){await navigator.share({text:t});return}}catch(_){return}try{await navigator.clipboard.writeText(t);alertMsg("Copied to clipboard")}catch(_){alertMsg(t)}}
 function alertMsg(t){$("#crInfo").textContent=t}

@@ -17,7 +17,7 @@ The anon key is designed to be public. Players cannot write to the table directl
 
 | Board | One row per | Kept value |
 |---|---|---|
-| `daily-YYYY-MM-DD` (UTC) | phone | the first score of the day; later tries do not change it |
+| `daily-YYYY-MM-DD` (UTC) | phone | the best score of the day; every try can raise it |
 | `levels` | phone | highest level and most stars reached |
 | `guided` | phone | most figures traced and most stars |
 

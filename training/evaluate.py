@@ -167,7 +167,8 @@ def main():
     DOCS.mkdir(exist_ok=True)
     (DOCS / "EVALUATION.md").write_text("\n".join(lines))
     spec["evaluation"] = {"gyro_top1": round(g1, 4), "gyro_top3": round(g3, 4), "clean_top1": round(c1, 4),
-                          "doodlenet_game_top1": round(dn_top1, 4), "ours_game_top1": round(ours_game_top1, 4), **real_eval}
+                          "doodlenet_game_top1": round(dn_top1, 4), "ours_game_top1": round(ours_game_top1, 4), **real_eval,
+                          "per_object": {c: round(v, 3) for c, v in per.items() if c != OTHER}}
     (MODEL_DIR / "spec.json").write_text(json.dumps(spec, indent=1))
     print("\n".join(lines[:14]))
 

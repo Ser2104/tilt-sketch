@@ -31,7 +31,8 @@ More than 795,000 people in the US have a stroke each year, and stroke reduces m
 **Challenges**
 - Every free drawing (games, daily challenge, levels) first shows a reference picture and a one-line tip on how to draw it in a few lines, and keeps the picture next to the name while drawing.
 - Guided drawings: 30 original line-art figures in 5 worlds (Warm-up, Sky and space, Heroes, Movie night, Animals) traced line by line with no time limit. The current line is highlighted with its start dot, direction arrow and end ring; finished lines turn green; the drawing completes itself when every line is covered. Stars, unlocks and a shared ranking. All figures are original designs, not copyrighted characters.
-- Daily challenge: the same object for everyone each day (UTC), one official try, shareable result, daily ranking.
+- Daily challenge: the same object for everyone each day (UTC); every try can raise your best score on the daily ranking; shareable result.
+- Levels and the daily challenge only use objects with a shape that is hard to confuse (no crescent moon, plain sun or star), so a good drawing is not mistaken for something else.
 - Levels: 40 objects in 5 worlds (First lines, Around the house, Animals, Heroes and legends, Masters) with rising pass marks and 1–3 stars; ranking by highest level and stars.
 - Shared rankings use a free Supabase project; see [docs/RANKINGS.md](docs/RANKINGS.md). Without it, results stay on the phone.
 
