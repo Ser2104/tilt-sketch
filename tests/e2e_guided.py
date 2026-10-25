@@ -61,7 +61,7 @@ async def main():
         await pg.click("#hGo")
         await pg.wait_for_function("D.state==='run'")
         await trace(pg, [0], wobble=1.6)
-        await pg.click("#finish")
+        if await pg.evaluate("D.state==='run'"): await pg.click("#finish")
         await pg.wait_for_selector("#s-cres:not([hidden])", timeout=8000)
         print("wobbly star:", await pg.inner_text("#crScore"), await pg.inner_text("#crStars"), "|", await pg.inner_text("#crTitle"))
         await pg.click("#crActions button:has-text('All guided')")

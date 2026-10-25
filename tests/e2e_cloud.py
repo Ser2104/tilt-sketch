@@ -32,7 +32,7 @@ async def trace_once(pg):
     for x, y in pts:
         await pg.evaluate(f"__o({(x - x0) * sens},{(y - y0) * sens})"); await pg.wait_for_timeout(16)
     await pg.wait_for_timeout(150); await pg.mouse.up()
-    await pg.click("#finish")
+    if await pg.evaluate("D.state==='run'"): await pg.click("#finish")
 
 
 async def donations(b):

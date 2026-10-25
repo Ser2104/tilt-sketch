@@ -27,7 +27,7 @@ async def draw_sun(pg, scribble=False):
         for k in range(8):
             a = k / 8 * 2 * math.pi
             await go([(r * math.cos(a), r * math.sin(a)) for r in (0.14, 0.16, 0.18, 0.2)])
-    await pg.click("#finish")
+    if await pg.evaluate("D.state==='run'"): await pg.click("#finish")
 
 
 async def phone(b, name):

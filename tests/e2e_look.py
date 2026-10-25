@@ -31,13 +31,13 @@ async def main():
             if turn%2==0:
                 await stroke([(4*math.cos(i/40*2*math.pi), 4*math.sin(i/40*2*math.pi)) for i in range(41)])
                 await pg.screenshot(path="look_draw.png")
-                await pg.click("#finish")
+                if await pg.evaluate("D.state==='run'"): await pg.click("#finish")
             else:
                 for k in range(8):
                     a=k/8*2*math.pi
                     await stroke([(5.2*math.cos(a)-4,5.2*math.sin(a)),(7.5*math.cos(a)-4,7.5*math.sin(a))])
                 await pg.screenshot(path="look_draw2.png")
-                await pg.click("#finish")
+                if await pg.evaluate("D.state==='run'"): await pg.click("#finish")
         await pg.wait_for_selector("#s-res:not([hidden])", timeout=20000)
         print(await pg.inner_text("#rCards")); print(logs)
         await b.close()

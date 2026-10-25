@@ -19,7 +19,7 @@ async def draw(pg, shape):
     for x, y in pts[1:]:
         await pg.evaluate(f"__o({x},{y})"); await pg.wait_for_timeout(30)
     await pg.wait_for_timeout(100); await pg.mouse.up()
-    await pg.click("#finish")
+    if await pg.evaluate("D.state==='run'"): await pg.click("#finish")
 
 async def main():
     async with async_playwright() as p:

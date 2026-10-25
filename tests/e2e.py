@@ -41,7 +41,7 @@ async def main():
                 await pg.mouse.up()
             if turn == 0:
                 await pg.screenshot(path="shot_draw.png")
-            await pg.click("#finish")
+            if await pg.evaluate("D.state==='run'"): await pg.click("#finish")
         await pg.wait_for_selector("#s-res:not([hidden])", timeout=20000)
         print(await pg.inner_text("#rCards"))
         await pg.screenshot(path="shot_res.png", full_page=True)

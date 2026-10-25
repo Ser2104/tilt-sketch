@@ -21,7 +21,7 @@ async def play(pg, style, rng):
             await pg.evaluate(f"__o({(x - x0) * sens},{(y - y0) * sens})")
             await pg.wait_for_timeout(16)
         await pg.mouse.up()
-        await pg.click("#finish")
+        if await pg.evaluate("D.state==='run'"): await pg.click("#finish")
         return
     if style in ("scribble", "hold_to_end"):
         await pg.mouse.down()

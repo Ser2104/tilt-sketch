@@ -24,7 +24,7 @@ async def trace(pg, tremor_deg, sloppy):
         await pg.wait_for_timeout(16)
     await pg.wait_for_timeout(150)
     await pg.mouse.up()
-    await pg.click("#finish")
+    if await pg.evaluate("D.state==='run'"): await pg.click("#finish")
 
 
 async def main():
