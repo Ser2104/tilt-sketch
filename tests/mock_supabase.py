@@ -11,6 +11,7 @@ from urllib.parse import parse_qs, urlparse
 
 ROWS = {}
 DRAWINGS = []
+FEEDBACK = []
 CLINICS = {}
 PATIENTS = []
 WORDS = set(json.loads(re.search(r"const TARGETS=(\{.*?\});", (Path(__file__).resolve().parent.parent / "js" / "core.js").read_text(), re.S).group(1)))
@@ -79,6 +80,16 @@ def rpc(name, d):
         c = clinic(d["p_code"], d["p_key"])
         PATIENTS[:] = [p for p in PATIENTS if not (p["clinic"] == c["code"] and p["id"] == d["p_patient"])]
         return None
+    if name == "submit_feedback":
+        if d["p_context"] not in ("practice", "game", "challenge", "guided", "general"):
+            raise Err("unknown context")
+        if d["p_ease"] is None and d["p_again"] is None and d["p_helped"] is None and not (d["p_comment"] or "").strip():
+            raise Err("empty feedback")
+        FEEDBACK.append({k[2:]: v for k, v in d.items()})
+        return None
+    if name == "feedback_summary":
+        avg = lambda k: round(sum(f[k] for f in FEEDBACK if f[k]) / max(1, sum(1 for f in FEEDBACK if f[k])), 2)
+        return {"answers": len(FEEDBACK), "people": len({f["device"] for f in FEEDBACK}), "ease": avg("ease"), "again": avg("again"), "helped": avg("helped")}
     raise KeyError(name)
 
 
@@ -102,7 +113,7 @@ class H(BaseHTTPRequestHandler):
         d = json.loads(self.rfile.read(int(self.headers["Content-Length"])) or b"{}")
         name = self.path.split("/rpc/")[1].split("?")[0]
         if name == "debug_state":
-            return self.reply(200, {"drawings": DRAWINGS, "patients": PATIENTS})
+            return self.reply(200, {"drawings": DRAWINGS, "patients": PATIENTS, "feedback": FEEDBACK})
         if name != "submit_score":
             try:
                 out = rpc(name, d)

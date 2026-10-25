@@ -43,6 +43,10 @@ jobs:
         run: python tests/e2e_guided.py
       - name: Drawing sharing and clinician dashboard
         run: python tests/e2e_cloud.py
+      - name: AI explanations, feedback and offline app
+        run: python tests/e2e_extras.py
+      - name: Spanish version
+        run: python tests/e2e_es.py
       - name: Live ranking database is reachable and protected
         run: |
           URL=$(grep -o 'https://[a-z0-9]*\.supabase\.co' js/config.js)

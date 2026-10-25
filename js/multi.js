@@ -182,10 +182,10 @@ async function judgeM(){
   broadcast({t:"wait",title:"The AI is looking at the drawings",sub:`Which one looks most like "${w}"?`,chips:[]});
   while(AI.state==="wait")await new Promise(r=>setTimeout(r,200));
   let r;try{r=AI.state==="ok"?await aiJudge(w,H.items):null}catch(_){r=null}
-  H.items.forEach((it,i)=>{it.acc=r?r[i].acc:0;it.guess=r?r[i].guess:"AI unavailable";it.u.total+=it.acc;it.u.hist.push(it.acc)});
+  H.items.forEach((it,i)=>{it.acc=r?r[i].acc:0;it.guess=r?r[i].guess:"AI unavailable";it.why=r?explainShort(r[i]):"";it.u.total+=it.acc;it.u.hist.push(it.acc)});
   const sorted=[...H.items].sort((a,b)=>b.acc-a.acc),last=H.round>=H.words.length-1,top=sorted[0].acc>0&&(!sorted[1]||sorted[0].acc>sorted[1].acc);
   broadcast({t:"board",label:`Round ${H.round+1} of ${H.words.length} · object`,title:up(w),
-    cards:sorted.map((it,i)=>({img:snapshot(it.strokes,200),name:it.u.name+(i===0&&top?" · wins the round":""),sub:`The AI sees: ${it.guess}`+(H.mode==="teams"?" · "+it.u.members.map(nameOf).join(" & "):""),meter:it.acc,pc:it.acc+"%",win:i===0&&top})),
+    cards:sorted.map((it,i)=>({img:snapshot(it.strokes,200),name:it.u.name+(i===0&&top?" · wins the round":""),sub:`The AI sees: ${it.guess}`+(it.why?` (${it.why})`:"")+(H.mode==="teams"?" · "+it.u.members.map(nameOf).join(" & "):""),meter:it.acc,pc:it.acc+"%",win:i===0&&top})),
     totals:[...H.units].sort((a,b)=>b.total/b.hist.length-a.total/a.hist.length).map(u=>({name:u.name,avg:Math.round(u.total/u.hist.length)})),
     actions:[last?{id:"final",text:"See final results"}:{id:"next",text:"Next round"}],waitText:"Waiting for the host to continue…"});
 }

@@ -5,6 +5,7 @@ Tilt Sketch works fully on the phone. Two optional features send data to the pro
 | Feature | What is sent | What is never sent | Who can read it | How to stop |
 |---|---|---|---|---|
 | **Help train the AI** (home screen, or the prompt after a challenge) | The lines of a free drawing (points scaled 0–1000), the object it was meant to be, Look/Tilt mode, the AI's guess and score, a random phone ID | Name, photos, camera images, location, practice results | Only the project's maintainers, through the secret key used for training | Turn sharing off; **Delete the drawings I shared** removes every drawing from that phone |
+| **Feedback** (survey after a session or result, or Send feedback) | Answers from 1 to 5, an optional comment, where it was asked (practice, game…), language, a random phone ID | Name, drawings, results | Only the project's maintainers | Tap Not now; nothing is sent unless the person taps Send |
 | **Share with my clinician** (Practice) | For one profile: the name the person types for their clinician, session summaries (scores, path coverage, steadiness, smoothness, speed, range of motion) and the calibrated range, plus a random profile ID | Drawings, other profiles, camera images, location | Only someone with the clinic code **and** its private key | **Stop sharing** deletes that profile's data from the clinic; the clinician can also remove a patient |
 
 ## How it is enforced

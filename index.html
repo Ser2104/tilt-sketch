@@ -5,6 +5,11 @@
 <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover">
 <meta name="theme-color" content="#E9F0F4">
 <title>Tilt Sketch</title>
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" href="icons/icon-192.png">
+<link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bungee&family=Figtree:wght@400;600;800&family=JetBrains+Mono:wght@600&display=swap">
 <link rel="stylesheet" href="css/app.css">
@@ -13,7 +18,8 @@
 <!-- HOME -->
 <section id="s-home" class="screen scroll">
   <header>
-    <h1>Tilt<br>Sketch</h1>
+    <div class="seg langseg" id="langSeg" role="group" aria-label="Language"><button data-lang="en" aria-pressed="true" lang="en" data-noi18n>English</button><button data-lang="es" aria-pressed="false" lang="es" data-noi18n>Español</button></div>
+    <h1 data-noi18n>Tilt<br>Sketch</h1>
     <p class="lede">Draw by aiming your phone: the brush stays in the center and the sheet moves around it. An AI tries to guess what it is, and the most recognizable drawing wins.</p>
   </header>
 
@@ -22,7 +28,8 @@
     <button class="ccard" id="cLevels"></button>
     <button class="ccard" id="cGuided"></button>
   </div>
-  <div class="row host-only" style="gap:18px;margin-top:-4px"><button class="linkbtn" id="cRank">Rankings</button><button class="linkbtn" id="cClinic">For clinicians</button></div>
+  <div class="row host-only" style="gap:18px;margin-top:-4px"><button class="linkbtn" id="cRank">Rankings</button><button class="linkbtn" id="cClinic">For clinicians</button><button class="linkbtn" id="cFeedback">Send feedback</button><button class="linkbtn" id="cInstall" hidden>Install app</button></div>
+  <p class="hint" id="installMsg" style="text-align:left;margin:-6px 0 0" hidden></p>
 
   <div class="seg host-only" id="playSeg">
     <button data-play="one" aria-pressed="true">One phone</button>
@@ -370,6 +377,7 @@
     <div class="bigscore" id="crScore">0%</div>
     <div class="starsline" id="crStars"></div>
     <img class="thumb" id="crImg" alt="Your drawing">
+    <div id="crTop" style="width:100%"></div>
     <p class="lede" id="crInfo" style="text-align:center"></p>
   </div>
   <div class="panel" id="crDonate" hidden>
@@ -405,6 +413,13 @@
     <div class="row" style="flex-wrap:nowrap"><input class="field" id="rkName" maxlength="24" placeholder="Your name" style="flex:1;min-width:0"><button class="btn" id="rkSave">Save</button></div>
   </div>
   <div class="foot"><button class="btn" id="rkBack">Back to home</button></div>
+</section>
+
+<!-- FEEDBACK -->
+<section id="s-fb" class="screen scroll" hidden>
+  <header><span class="label">Feedback</span><h2 class="h-big">Tell us how it went</h2>
+    <p class="lede">Anonymous: no name or account is sent. Your answers decide what we improve next.</p></header>
+  <div id="fbHost"></div>
 </section>
 
 <!-- CLINICIAN DASHBOARD -->
@@ -461,6 +476,7 @@
 <script src="vendor/peerjs.min.js"></script>
 <script src="vendor/qrcode.js"></script>
 <script src="js/core.js"></script>
+<script src="js/i18n.js"></script>
 <script src="js/figures.js"></script>
 <script src="js/home.js"></script>
 <script src="js/gyro.js"></script>
@@ -479,5 +495,7 @@
 <script src="js/app.js"></script>
 <script src="js/donate.js"></script>
 <script src="js/clinic.js"></script>
+<script src="js/feedback.js"></script>
+<script src="js/pwa.js"></script>
 </body>
 </html>

@@ -40,14 +40,20 @@ More than 795,000 people in the US have a stroke each year, and stroke reduces m
 - Brush reach with mouse-style acceleration, One Euro tremor filter and stroke smoothing.
 - Optional camera background: the sheet floats in the room.
 
-**Accessibility**
+**Accessibility and reach**
 - Larger text, high contrast, voice guidance and a bigger draw button.
+- English and Spanish (language switch on the home screen; voice guidance speaks the chosen language).
+- Installable app that works offline: Practice, guided drawings and one-phone games run without internet; rankings, sharing and feedback sync when the phone is back online.
+
+**Feedback and evidence**
+- A 10-second survey after practice sessions, challenges and games (ease of control, would use again, and for practice whether it feels like good exercise), plus a **Send feedback** screen. Answers are anonymous and give the project real usability numbers: run `select feedback_summary();` in the Supabase SQL editor.
 
 ## AI
 
 | Part | What it does | Where |
 |---|---|---|
 | Drawing recognizer | CNN trained for the game's 78 objects plus an "other" class, on Quick, Draw! drawings deformed to look like gyroscope drawings. Runs in the browser with TensorFlow.js. | [training/](training/), [docs/MODEL_CARD.md](docs/MODEL_CARD.md), [docs/EVALUATION.md](docs/EVALUATION.md) |
+| Explanations | Every result shows the AI's top three guesses with their confidence, and says when it is not sure, so players and judges can see why a drawing scored what it did. | [js/ai.js](js/ai.js) |
 | Fallback recognizer | DoodleNet (ml5.js), restricted to the game's objects, used until the custom model is published. | `models/doodlenet/` |
 | Motion analysis | Signal processing on the phone's orientation stream: tremor band energy, jerk-based smoothness, range of motion. | [js/motor.js](js/motor.js) |
 | Adaptive difficulty | Adjusts level after each exercise from the tracing score. | [js/practice.js](js/practice.js) |
@@ -91,6 +97,8 @@ python tests/e2e_scoring.py    # real drawings score high, scribbles score zero
 python tests/mock_supabase.py 8790 & python tests/e2e_challenges.py   # daily, levels, rankings
 python tests/e2e_guided.py     # guided figures: line-by-line tracing, auto-complete, stars, ranking
 python tests/e2e_cloud.py      # drawing donations with consent and deletion; clinic, patient sharing, dashboard
+python tests/e2e_extras.py     # AI explanations, feedback survey, offline reload with the service worker
+python tests/e2e_es.py         # Spanish interface: no English left on the main screens, switching back
 ```
 
 They also run on every push with GitHub Actions.

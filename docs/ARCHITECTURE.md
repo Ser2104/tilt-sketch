@@ -36,6 +36,9 @@ flowchart LR
 | `js/rank.js` | Supabase calls: rankings and a generic RPC helper |
 | `js/donate.js` | Opt-in drawing sharing, consent prompt, deletion |
 | `js/clinic.js` | Patient connection to a clinic, automatic session sync, clinician dashboard |
+| `js/feedback.js` | Survey after sessions and results, feedback screen, offline queue |
+| `js/i18n.js` | Spanish version: translates the interface as it is rendered, so game logic and the AI keep English object names |
+| `js/pwa.js`, `sw.js`, `manifest.webmanifest` | Installable app, offline cache (network first, cached copy when offline) |
 
 ## Multiplayer protocol
 

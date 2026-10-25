@@ -92,7 +92,7 @@ $("#ckOpen").onclick=async()=>{
   CK={code,key,name:r.data.name};store.set("ts-clinic",CK);$("#ckMsg").textContent="";$("#ckKey").value="";renderClinic();loadClinic()};
 $("#ckReveal").onclick=()=>{const hidden=$("#ckKeyShow").textContent!==CK.key;$("#ckKeyShow").textContent=hidden?CK.key:"•".repeat(12);$("#ckReveal").textContent=hidden?"Hide key":"Show key"};
 $("#ckCopy").onclick=async()=>{try{await navigator.clipboard.writeText(`Tilt Sketch clinic ${CK.code}, private key ${CK.key}`);$("#ckKeyNote").textContent="Copied. Keep it somewhere private."}catch(_){$("#ckKeyShow").textContent=CK.key}};
-$("#ckShareLink").onclick=async()=>{const t=`Join my Tilt Sketch practice group: open ${joinLink(CK.code)} (clinic code ${CK.code}).`;try{if(navigator.share){await navigator.share({text:t});return}}catch(_){return}try{await navigator.clipboard.writeText(t);$("#ckStatus").textContent="Join link copied."}catch(_){$("#ckStatus").textContent=t}};
+$("#ckShareLink").onclick=async()=>{const t=`Join my Tilt Sketch practice group: open ${joinLink(CK.code)} (clinic code ${CK.code}).`;const tt=I18N.t(t);try{if(navigator.share){await navigator.share({text:tt});return}}catch(_){return}try{await navigator.clipboard.writeText(tt);$("#ckStatus").textContent="Join link copied."}catch(_){$("#ckStatus").textContent=tt}};
 $("#ckRefresh").onclick=()=>loadClinic();
 $("#ckForget").onclick=()=>twoTap($("#ckForget"),"Remove this clinic from this device","Tap again: make sure you saved the key",()=>{store.set("ts-clinic",null);CK=null;renderClinic()});
 $("#ckBack").onclick=()=>show("s-home");

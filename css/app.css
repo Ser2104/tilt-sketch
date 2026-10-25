@@ -201,3 +201,19 @@ html.high-contrast{--bg:#FFFFFF;--surface:#FFFFFF;--ink:#000000;--muted:#1F2A3A;
 .ptopen{border:0;background:none;text-align:left;display:flex;flex-direction:column;gap:2px;padding:0;color:inherit;min-width:0}
 .ptopen span{color:var(--muted);font-size:13px}
 .keybox{font-family:var(--f-mono);font-size:15px;word-break:break-all;background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:10px 12px}
+.aitop{display:flex;flex-direction:column;gap:6px;background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:12px 14px;text-align:left}
+.aibar{display:grid;grid-template-columns:minmax(80px,38%) 1fr 44px;gap:8px;align-items:center;font-size:14px}
+.aibar span{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.aibar i{display:block;height:8px;border-radius:4px;background:var(--accent)}
+.aibar b{text-align:right;font-variant-numeric:tabular-nums}
+.gs.why{font-size:12px;opacity:.8}
+.fb{gap:12px}
+.fbq{display:flex;flex-direction:column;gap:6px}
+.fbq>span{font-weight:700}
+.fbscale{display:grid;grid-template-columns:repeat(5,1fr);gap:6px}
+.fbscale button{border:2px solid var(--line);background:var(--surface);border-radius:12px;min-height:44px;font-weight:800;font-size:17px;color:inherit}
+.fbscale button[aria-checked="true"]{border-color:var(--go);background:color-mix(in srgb,var(--go) 18%,var(--surface))}
+.fbends{display:flex;justify-content:space-between;font-size:12px;color:var(--muted)}
+.fbends em{font-style:normal}
+.langseg{align-self:flex-end;width:auto;margin-bottom:4px}
+.langseg button{padding:6px 12px;font-size:13px}

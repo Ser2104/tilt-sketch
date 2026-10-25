@@ -15,7 +15,7 @@ function lineChart(canvas,vals,{color,unit}){
   const g=canvas.getContext("2d"),pts=vals.map((v,i)=>[i,v]).filter(p=>p[1]!=null);
   g.clearRect(0,0,w,h);const pad={l:34*k,r:10*k,t:10*k,b:20*k},ink=cssVar("--muted"),line=cssVar("--line"),c=cssVar(color);
   g.font=`${11*k}px ${getComputedStyle(document.body).fontFamily}`;g.fillStyle=ink;
-  if(!pts.length){g.fillText("No sessions yet",pad.l,h/2);return}
+  if(!pts.length){g.fillText(I18N.t("No sessions yet"),pad.l,h/2);return}
   let lo=Math.min(...pts.map(p=>p[1])),hi=Math.max(...pts.map(p=>p[1]));if(hi-lo<10){const m=(hi+lo)/2;hi=m+5;lo=m-5}lo=Math.max(0,lo-(hi-lo)*.15);hi+= (hi-lo)*.15;
   const X=i=>pad.l+(vals.length<2?.5:i/(vals.length-1))*(w-pad.l-pad.r),Y=v=>h-pad.b-(v-lo)/(hi-lo)*(h-pad.t-pad.b);
   g.strokeStyle=line;g.lineWidth=k;for(let i=0;i<=3;i++){const v=lo+(hi-lo)*i/3,y=Y(v);g.beginPath();g.moveTo(pad.l,y);g.lineTo(w-pad.r,y);g.stroke();g.fillText(Math.round(v)+unit,2*k,y+4*k)}

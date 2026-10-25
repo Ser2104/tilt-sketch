@@ -29,7 +29,7 @@ async function judge(){
   $("#jTitle").textContent="The AI is looking at the drawings";$("#jMsg").textContent=`Which one looks most like "${w}"?`;
   while(AI.state==="wait")await new Promise(r=>setTimeout(r,200));
   if(AI.state!=="ok")return humanJudge();
-  try{const[r]=await Promise.all([aiJudge(w,G.items),new Promise(r=>setTimeout(r,1200))]);G.items.forEach((it,i)=>{it.guess=r[i].guess;it.acc=r[i].acc;if(G.mode==="solo"&&typeof Donate!=="undefined")Donate.send(w,it.strokes,r[i])});showRound()}
+  try{const[r]=await Promise.all([aiJudge(w,G.items),new Promise(r=>setTimeout(r,1200))]);G.items.forEach((it,i)=>{it.guess=r[i].guess;it.acc=r[i].acc;it.why=explainShort(r[i]);if(G.mode==="solo"&&typeof Donate!=="undefined")Donate.send(w,it.strokes,r[i])});showRound()}
   catch(e){
     $("#jAnim").hidden=true;$("#jTitle").textContent="The AI could not analyze the drawings";
     $("#jErr").textContent="Try again, or score them yourselves.";$("#jErr").hidden=$("#jActions").hidden=false;
@@ -42,14 +42,14 @@ function humanJudge(){
   $("#rCards").innerHTML=G.items.map((it,i)=>`<div class="card"><img alt="${esc(it.u.name)}'s drawing" src="${snapshot(it.strokes,256)}"><div style="min-width:0"><div class="nm">${esc(it.u.name)}</div><input type="range" id="hj${i}" min="0" max="100" step="5" value="50" aria-label="Score for ${esc(it.u.name)}"></div><div class="pc" id="hv${i}">50%</div></div>`).join("");
   G.items.forEach((_,i)=>$("#hj"+i).oninput=e=>$("#hv"+i).textContent=e.target.value+"%");
   $("#rTotals").hidden=true;$("#rNext").textContent="Confirm scores";
-  $("#rNext").onclick=()=>{G.items.forEach((it,i)=>{it.acc=+$("#hj"+i).value;it.guess=null});showRound()};
+  $("#rNext").onclick=()=>{G.items.forEach((it,i)=>{it.acc=+$("#hj"+i).value;it.guess=null;it.why=null});showRound()};
   show("s-res");
 }
 function showRound(){
   const w=G.words[G.round];G.items.forEach(it=>{it.u.total+=it.acc;it.u.hist.push(it.acc)});
   const sorted=[...G.items].sort((a,b)=>b.acc-a.acc);
   $("#rLabel").textContent=`Round ${G.round+1} of ${G.words.length} · object`;$("#rTitle").textContent=up(w);
-  $("#rCards").innerHTML=sorted.map((it,i)=>`<div class="card${i===0?" win":""}"><img alt="${esc(it.u.name)}'s drawing" src="${snapshot(it.strokes,256)}"><div style="min-width:0"><div class="nm">${esc(it.u.name)}${i===0?" · wins the round":""}</div>${it.guess?`<div class="gs">The AI sees: ${esc(it.guess)}</div>`:""}<div class="meter"><i style="width:${it.acc}%"></i></div></div><div class="pc">${it.acc}%</div></div>`).join("");
+  $("#rCards").innerHTML=sorted.map((it,i)=>`<div class="card${i===0?" win":""}"><img alt="${esc(it.u.name)}'s drawing" src="${snapshot(it.strokes,256)}"><div style="min-width:0"><div class="nm">${esc(it.u.name)}${i===0?" · wins the round":""}</div>${it.guess?`<div class="gs">The AI sees: ${esc(it.guess)}</div>`:""}${it.why?`<div class="gs why">${esc(it.why)}</div>`:""}<div class="meter"><i style="width:${it.acc}%"></i></div></div><div class="pc">${it.acc}%</div></div>`).join("");
   const tot=[...G.units].sort((a,b)=>b.total-a.total);
   $("#rTotals").hidden=false;$("#rTotals").innerHTML=`<span class="label">Running average</span>`+tot.map(u=>`<div class="setting"><span>${esc(u.name)}</span><span class="clock" style="font-size:18px">${Math.round(u.total/u.hist.length)}%</span></div>`).join("");
   const last=G.round>=G.words.length-1;$("#rNext").textContent=last?"See final results":"Next round";

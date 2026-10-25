@@ -18,12 +18,13 @@ Tilt Sketch turns the phone people already own into a wrist-controlled brush. In
 3. **Adaptive difficulty** that adjusts shape size, tolerance and time to each person.
 
 4. **Data flywheel:** players can share their gyroscope drawings with consent; they retrain the recognizer and form a real-world test set.
+5. **Explainable results:** every score shows the AI's top three guesses and confidence, and flags when it is unsure.
 
 All AI runs on the phone. Data leaves the device only when the person opts in: drawing sharing for training, or sharing practice results with their clinician.
 
 ## Status
 
-Working prototype online, with multiplayer rooms by QR code, Practice mode, progress reports, accessibility options and automated browser tests. Next: train and publish the custom model, interview 5–10 therapists, run a 10–15 person repeatability pilot.
+Working prototype online in English and Spanish, installable and usable offline, with an in-app feedback survey, with multiplayer rooms by QR code, Practice mode, progress reports, accessibility options and automated browser tests. Next: train and publish the custom model, interview 5–10 therapists, run a 10–15 person repeatability pilot.
 
 ## Impact and next steps
 

@@ -59,11 +59,18 @@ function scribblePenalty(strokes){
   let x0=1,x1=0,y0=1,y1=0,L=0;for(const[x,y]of pts){x0=Math.min(x0,x);x1=Math.max(x1,x);y0=Math.min(y0,y);y1=Math.max(y1,y)}
   for(const s of ink)for(let i=1;i<s.pts.length;i++)L+=Math.hypot(s.pts[i][0]-s.pts[i-1][0],s.pts[i][1]-s.pts[i-1][1]);
   const density=L/Math.max(.02,Math.max(x1-x0,y1-y0));return density<=14?1:Math.max(.05,(14/density)**1.5)}
+function topList(r){return(r&&r.top||[]).filter(t=>t.p>=.02)}
+function explainShort(r){const t=topList(r);if(!t.length)return"";
+  return(t[0].p<.45?"Not sure · ":"")+t.map(x=>`${x.w} ${Math.round(100*x.p)}%`).join(", ")}
+function explainHTML(r){const t=topList(r);if(!t.length)return"";
+  return`<div class="aitop" role="group" aria-label="The AI's top guesses"><span class="label">${r.scribble?"Looks like a scribble. ":""}${t[0].p<.45?"The AI is not sure. ":""}Its top guesses</span>${t.map(x=>`<div class="aibar"><span>${esc(x.w)}</span><i style="width:${Math.max(2,Math.round(100*x.p))}%"></i><b>${Math.round(100*x.p)}%</b></div>`).join("")}</div>`}
 async function aiJudge(word,items){
   if(AI.kind==="custom")return Promise.all(items.map(async it=>{
     const p=await customProbs(it.strokes);if(!p)return{guess:"nothing (blank sheet)",acc:0};
     const cls=AI.spec.classes;let best=0;p.forEach((v,i)=>{if(v>p[best])best=i});
-    const k=cls.indexOf(word),pen=scribblePenalty(it.strokes);return{guess:pen<.8?"a scribble":cls[best]==="other"?"something else":cls[best],acc:k<0?0:Math.round(100*p[k]*pen)}}));
+    const k=cls.indexOf(word),pen=scribblePenalty(it.strokes);
+    const top=[...p].map((v,i)=>({w:cls[i]==="other"?"something else":cls[i],p:v})).sort((a,b)=>b.p-a.p).slice(0,3);
+    return{guess:pen<.8?"a scribble":cls[best]==="other"?"something else":cls[best],acc:k<0?0:Math.round(100*p[k]*pen),top,scribble:pen<.8}}));
   return Promise.all(items.map(async it=>{
     const probs=new Float32Array(DOODLE_CLASSES.length);let n=0;
     for(const pad of[3,4,6]){const t=inkTensor(it.strokes,pad);if(!t)break;const p=await tf.tidy(()=>AI.model.predict(t)).data();t.dispose();p.forEach((v,i)=>probs[i]+=v/3);n++}
@@ -74,7 +81,8 @@ async function aiJudge(word,items){
     const best=Object.keys(score).reduce((a,b)=>score[b]>score[a]?b:a);
     const acc=Math.round(100*pen*(score[word]||0)/Math.max(z,1e-6));
     const guess=pen<.8||NOISE.has(DOODLE_CLASSES[otherBest])&&probs[otherBest]>score[best]?"a scribble":score[best]>=probs[otherBest]*.35?best:DOODLE_CLASSES[otherBest].replace(/_/g," ");
-    return{guess,acc:Math.min(100,acc)};
+    const top=[...Object.entries(score).map(([w,v])=>({w,p:v/Math.max(z,1e-6)})),{w:"something else",p:(.1*other+noise)/Math.max(z,1e-6)}].sort((a,b)=>b.p-a.p).slice(0,3);
+    return{guess,acc:Math.min(100,acc),top,scribble:pen<.8};
   }));
 }
 
