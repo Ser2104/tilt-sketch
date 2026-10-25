@@ -1,4 +1,4 @@
-import asyncio, math, os
+import asyncio, math, os, random
 from playwright.async_api import async_playwright
 BASE = os.environ.get("BASE", "http://localhost:8766")
 MOCK = os.environ.get("MOCK", "http://127.0.0.1:8790")
@@ -47,7 +47,8 @@ async def main():
         await a.screenshot(path="ch_home.png")
         print("home card:", (await a.inner_text("#cDaily")).replace("\n", " | "))
         await a.click("#cRank")
-        await a.fill("#rkName", "Ana")
+        ana = "Ana" + str(random.randint(100, 999))
+        await a.fill("#rkName", ana)
         await a.click("#rkSave")
         await a.click("#rkBack")
         await a.evaluate("DAILY_TIME=8")
@@ -81,7 +82,7 @@ async def main():
         print("daily card after 2 tries:", card.replace("\n", " | "))
         assert "2 tries" in card
         rows = await a.evaluate("Rank.top('daily-'+todayUTC())")
-        best = max(r["score"] for r in rows if r["player"] == "Ana")
+        best = max(r["score"] for r in rows if r["player"] == ana)
         print("Ana's ranking score is her best try:", best)
         assert f"{best}%" in card
         await a.click("#cLevels")

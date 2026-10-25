@@ -83,14 +83,26 @@ function topList(r){return(r&&r.top||[]).filter(t=>t.p>=.02)}
 function explainShort(r){const t=topList(r);if(!t.length)return"";
   return(t[0].p<.45?"Not sure · ":"")+t.map(x=>`${x.w} ${Math.round(100*x.p)}%`).join(", ")}
 function explainHTML(r){const t=topList(r);if(!t.length)return"";
-  return`<div class="aitop" role="group" aria-label="The AI's top guesses"><span class="label">${r.scribble?"Looks like a scribble. ":""}${t[0].p<.45?"The AI is not sure. ":""}Its top guesses</span>${t.map(x=>`<div class="aibar"><span>${esc(x.w)}</span><i style="width:${Math.max(2,Math.round(100*x.p))}%"></i><b>${Math.round(100*x.p)}%</b></div>`).join("")}</div>`}
+  return`<div class="aitop" role="group" aria-label="The AI's top guesses"><span class="label">${r.scribble?"Looks like a scribble. ":""}${t[0].p<.45?"The AI is not sure. ":""}Its top guesses</span>${r.detail!=null&&r.recog!=null?`<div class="aiscore">Recognized ${r.recog}% · detail ${r.detail}%${r.detail<80?" · add the parts people usually draw":""}</div>`:""}${t.map(x=>`<div class="aibar"><span>${esc(x.w)}</span><i style="width:${Math.max(2,Math.round(100*x.p))}%"></i><b>${Math.round(100*x.p)}%</b></div>`).join("")}</div>`}
+function inkStats(strokes){
+  const ink=strokes.filter(s=>s.pts.length>1),all=ink.flatMap(s=>s.pts);if(all.length<2)return{L:0,n:0};
+  let x0=1e9,x1=-1e9,y0=1e9,y1=-1e9;for(const[x,y]of all){x0=Math.min(x0,x);x1=Math.max(x1,x);y0=Math.min(y0,y);y1=Math.max(y1,y)}
+  const side=Math.max(x1-x0,y1-y0,1e-6);let L=0;for(const s of ink)for(let i=1;i<s.pts.length;i++)L+=Math.hypot(s.pts[i][0]-s.pts[i-1][0],s.pts[i][1]-s.pts[i-1][1]);
+  return{L:L/side,n:ink.length}}
+const median=a=>{const b=[...a].sort((x,y)=>x-y);return b.length?b[b.length>>1]:0};
+function detailOf(word,strokes){
+  const ex=typeof EXAMPLES!=="undefined"&&EXAMPLES[word];if(!ex||!ex.length)return 1;
+  const st=ex.map(d=>inkStats(d.map(s=>({pts:s[0].map((x,i)=>[x,s[1][i]])}))));
+  const u=inkStats(strokes.filter(s=>s.c!=="#FFFFFF")),ir=Math.min(1,u.L/Math.max(.1,.9*median(st.map(s=>s.L)))),sr=Math.min(1,u.n/Math.max(1,median(st.map(s=>s.n))));
+  return Math.max(0,Math.min(1,.65*ir+.35*sr))}
 async function aiJudge(word,items){
   if(AI.kind==="custom")return Promise.all(items.map(async it=>{
     const p=await customProbs(cleanFor(it.strokes));if(!p)return{guess:"nothing (blank sheet)",acc:0};
     const cls=AI.spec.classes;let best=0;p.forEach((v,i)=>{if(v>p[best])best=i});
     const k=cls.indexOf(word),pen=scribblePenalty(it.strokes);
     const top=[...p].map((v,i)=>({w:cls[i]==="other"?"something else":cls[i],p:v})).sort((a,b)=>b.p-a.p).slice(0,3);
-    return{guess:pen<.8?"a scribble":cls[best]==="other"?"something else":cls[best],acc:k<0?0:Math.round(100*p[k]*pen),top,scribble:pen<.8}}));
+    const det=detailOf(word,it.strokes),rec=k<0?0:p[k]*pen;
+    return{guess:pen<.8?"a scribble":cls[best]==="other"?"something else":cls[best],acc:Math.round(100*rec*(.45+.55*det)),recog:Math.round(100*rec),detail:Math.round(100*det),top,scribble:pen<.8}}));
   return Promise.all(items.map(async it=>{
     const probs=new Float32Array(DOODLE_CLASSES.length);let n=0;
     const cs=cleanFor(it.strokes);
@@ -100,10 +112,10 @@ async function aiJudge(word,items){
     const score={};for(const[w,ix]of Object.entries(GAME_IDX))score[w]=ix.reduce((a,k)=>a+probs[k],0);
     const z=Object.values(score).reduce((a,b)=>a+b,0)+.1*other+noise,pen=scribblePenalty(it.strokes);
     const best=Object.keys(score).reduce((a,b)=>score[b]>score[a]?b:a);
-    const acc=Math.round(100*pen*(score[word]||0)/Math.max(z,1e-6));
+    const rec=pen*(score[word]||0)/Math.max(z,1e-6),det=detailOf(word,it.strokes),acc=Math.round(100*rec*(.45+.55*det));
     const guess=pen<.8||NOISE.has(DOODLE_CLASSES[otherBest])&&probs[otherBest]>score[best]?"a scribble":score[best]>=probs[otherBest]*.35?best:DOODLE_CLASSES[otherBest].replace(/_/g," ");
     const top=[...Object.entries(score).map(([w,v])=>({w,p:v/Math.max(z,1e-6)})),{w:"something else",p:(.1*other+noise)/Math.max(z,1e-6)}].sort((a,b)=>b.p-a.p).slice(0,3);
-    return{guess,acc:Math.min(100,acc),top,scribble:pen<.8};
+    return{guess,acc:Math.min(100,acc),recog:Math.min(100,Math.round(100*rec)),detail:Math.round(100*det),top,scribble:pen<.8};
   }));
 }
 

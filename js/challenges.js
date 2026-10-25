@@ -14,7 +14,7 @@ function dailyWord(date=todayUTC()){let h=2166136261;for(const c of"tilt-"+date)
 function starsFor(score,pass){return score>=Math.min(95,pass+35)?3:score>=pass+20?2:score>=pass?1:0}
 function levelState(){return store.get("ts-levels",{unlocked:0,best:{}})}
 function totalStars(st){return LEVEL_LIST.reduce((s,l,i)=>s+starsFor(st.best[i]||0,l.pass),0)}
-function playerName(){const n=($("#myName")&&$("#myName").value.trim())||Profiles.cur()?.name||store.get("ts-rank-name","");return n}
+function playerName(){return store.get("ts-rank-name","")||($("#myName")&&$("#myName").value.trim())||Profiles.cur()?.name||""}
 function stars(n){return"★".repeat(n)+"☆".repeat(3-n)}
 
 function renderChallengeCards(){
@@ -30,7 +30,7 @@ async function judgeOne(word,strokes){
   const[r]=await aiJudge(word,[{strokes}]);return r}
 function playChallenge({word,time,label,onScore}){
   handoff({label,who:up(word),ref:refFor(word),info:`You have ${time} seconds. Draw it so the AI can recognize it. Only the shape counts, not the colors.`,hint:S.ctrl==="look"?"Hold the phone up like a camera before you tap.":"Hold the phone comfortably before you tap.",go:"Start drawing",
-    onGo:()=>startDraw({who:label,word,strokes:[],dur:time,ref:refFor(word)?.emoji,live:true,liveFinish:true,onEnd:async()=>{const strokes=D.strokes.slice();showWait({title:"The AI is looking at your drawing",sub:"",chips:[]});
+    onGo:()=>startDraw({who:label,word,strokes:[],dur:time,ref:refFor(word)?.emoji,live:true,onEnd:async()=>{const strokes=D.strokes.slice();showWait({title:"The AI is looking at your drawing",sub:"",chips:[]});
       const r=await judgeOne(word,strokes);CR_OFFER={word,strokes,r};CR_TOP=r;onScore(r,snapshot(strokes,240))},onError:()=>show("s-home")})});
 }
 let CR_OFFER=null,CR_TOP=null;
@@ -84,9 +84,10 @@ function playLevel(k){
     if(passed&&Rank.on()&&n)sync=(await Rank.submit("levels",n,0,st.unlocked,totalStars(st)))?" Ranking updated.":"";
     const s=starsFor(r.acc,L.pass);
     const actions=[];if(passed&&k+1<LEVEL_LIST.length)actions.push({text:`Next level: ${LEVEL_LIST[k+1].word}`,fn:()=>playLevel(k+1)});
-    actions.push({text:passed?"Try for more stars":"Try again",fn:()=>playLevel(k)},{text:"All levels",fn:openLevels},{text:"Levels ranking",fn:()=>openRanking("levels")});
+    const again={text:passed?"Try for more stars":"Try again",fn:()=>playLevel(k)},all={text:"All levels",fn:openLevels};
+    actions.push(...(passed&&k+1<LEVEL_LIST.length?[all,again]:[again,all]),{text:"Levels ranking",fn:()=>openRanking("levels")});
     showChallengeResult({label:`Level ${k+1} · ${L.word}`,title:passed?(k+1===LEVEL_LIST.length?"You finished every level!":"Level passed"):`Need ${L.pass}% to pass`,score:r.acc,img,
-      info:`The AI sees: ${r.guess}.${passed?"":" Draw the outline clearly and keep it simple."}${sync}`,starsN:s,actions})}});
+      info:(passed?"":"Compare with the example drawings and add the main parts."+" ")+sync.trim(),starsN:s,actions})}});
 }
 
 let rankTab="daily";
@@ -104,7 +105,7 @@ async function openRanking(tab=rankTab){
   function render(rows){list.innerHTML=rows.map((r,i)=>`<li class="${r.player===me?"me":""}"><span class="pos">${i+1}</span><span class="who">${esc(r.player)}</span><span class="val">${tab==="daily"?r.score+"%":tab==="guided"?`${r.level} figures · ${r.stars} ★`:`Level ${r.level} · ${r.stars} ★`}</span></li>`).join("")}
 }
 $("#rkTabs").onclick=e=>{const t=e.target.dataset.tab;if(t)openRanking(t)};
-$("#rkSave").onclick=async()=>{const n=$("#rkName").value.trim().slice(0,24);if(!n){$("#rkName").focus();return}store.set("ts-rank-name",n);if($("#myName")&&!$("#myName").value)$("#myName").value=n;
+$("#rkSave").onclick=async()=>{const n=$("#rkName").value.trim().slice(0,24);if(!n){$("#rkName").focus();return}if(!nameOk(n)){$("#rkStatus").textContent=I18N.t("Please choose another name.");return}store.set("ts-rank-name",n);if($("#myName")&&!$("#myName").value)$("#myName").value=n;
   const d=store.get("ts-daily-"+todayUTC(),null),st=levelState();
   const gst=guidedState();
   if(Rank.on()){if(d)await Rank.submit("daily-"+todayUTC(),n,d.score);if(st.unlocked)await Rank.submit("levels",n,0,st.unlocked,totalStars(st));if(gst.unlocked)await Rank.submit("guided",n,0,gst.unlocked,guidedStars(gst))}

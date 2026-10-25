@@ -26,31 +26,31 @@ jobs:
           python tests/mock_supabase.py 8790 &
           sleep 3
       - name: One phone game
-        run: python tests/e2e.py
+        run: bash tests/ci_run.sh tests/e2e.py
       - name: Practice mode
-        run: python tests/e2e_practice.py
+        run: bash tests/ci_run.sh tests/e2e_practice.py
       - name: Four phones
-        run: python tests/e2e_multi.py
+        run: bash tests/ci_run.sh tests/e2e_multi.py
       - name: Time limits and deadlines
-        run: python tests/e2e_time.py
+        run: bash tests/ci_run.sh tests/e2e_time.py
       - name: Practice never freezes
-        run: python tests/e2e_fuzz.py
+        run: bash tests/ci_run.sh tests/e2e_fuzz.py
       - name: Scribbles score zero
-        run: python tests/e2e_scoring.py
+        run: bash tests/ci_run.sh tests/e2e_scoring.py
       - name: Daily challenge, levels and rankings
-        run: python tests/e2e_challenges.py
+        run: bash tests/ci_run.sh tests/e2e_challenges.py
       - name: Guided drawings
-        run: python tests/e2e_guided.py
+        run: bash tests/ci_run.sh tests/e2e_guided.py
       - name: Drawing sharing and clinician dashboard
-        run: python tests/e2e_cloud.py
+        run: bash tests/ci_run.sh tests/e2e_cloud.py
       - name: AI explanations, feedback and offline app
-        run: python tests/e2e_extras.py
+        run: bash tests/ci_run.sh tests/e2e_extras.py
       - name: Spanish version
-        run: python tests/e2e_es.py
+        run: bash tests/ci_run.sh tests/e2e_es.py
       - name: Browser back and forward buttons
-        run: python tests/e2e_nav.py
+        run: bash tests/ci_run.sh tests/e2e_nav.py
       - name: Eight phones join a room through the live relay
-        run: python tests/e2e_relay.py
+        run: bash tests/ci_run.sh tests/e2e_relay.py
       - name: Live database is reachable and protected
         run: |
           URL=$(grep -o 'https://[a-z0-9]*\.supabase\.co' js/config.js)

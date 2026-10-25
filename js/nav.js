@@ -30,3 +30,19 @@ addEventListener("popstate",e=>{
     (NAV_SCREENS[target]||NAV_SCREENS["s-home"])();
   }finally{navPopping=false}
 });
+
+/* Enter a room code from the home screen */
+const codeBoxes=[...document.querySelectorAll("#cCode .codebox")];
+function joinFromHome(code){
+  codeBoxes.forEach(b=>b.value="");
+  setPlay("multi");show("s-play");$("#joinCode").value=code;
+  const n=$("#myName").value.trim()||(typeof myProfileName==="function"?myProfileName():"");
+  if(n){$("#myName").value=n;$("#joinRoom").click()}else{netMsg("Enter your name and tap Join. If your phone asks for motion access, tap Allow.");$("#myName").focus()}}
+codeBoxes.forEach((b,i)=>{
+  b.addEventListener("input",()=>{const v=b.value.toUpperCase().replace(/[^A-Z]/g,"");
+    if(v.length>1){v.slice(0,4).split("").forEach((c,j)=>{if(codeBoxes[j])codeBoxes[j].value=c})}else b.value=v;
+    const code=codeBoxes.map(x=>x.value).join("");
+    if(code.length===4){codeBoxes.forEach(x=>x.blur());joinFromHome(code);return}
+    if(b.value&&codeBoxes[i+1])codeBoxes[i+1].focus()});
+  b.addEventListener("keydown",e=>{if(e.key==="Backspace"&&!b.value&&codeBoxes[i-1]){codeBoxes[i-1].value="";codeBoxes[i-1].focus()}});
+});

@@ -36,6 +36,7 @@ $("#clJoin").onclick=async()=>{
   const p=Profiles.cur();if(!p)return;const code=cleanCode($("#clCode").value),alias=$("#clAlias").value.trim();
   if(code.length!==6){$("#clMsg").textContent="Enter the 6-character code from your clinician.";$("#clCode").focus();return}
   if(!alias){$("#clMsg").textContent="Enter the name your clinician will see.";$("#clAlias").focus();return}
+  if(!nameOk(alias)){$("#clMsg").textContent="Please choose another name.";return}
   if(!Rank.on()){$("#clMsg").textContent="Sharing is not available: the database is not connected.";return}
   $("#clJoin").disabled=true;$("#clMsg").textContent="Connecting…";
   p.uid=p.uid||uuid();Profiles.save();

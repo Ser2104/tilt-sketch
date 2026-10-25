@@ -124,7 +124,8 @@ class H(BaseHTTPRequestHandler):
             return self.reply(200, out) if out is not None else self.reply(204)
         now = datetime.now(timezone.utc)
         ok_boards = {"levels", "guided", "daily-" + now.strftime("%Y-%m-%d"), "daily-" + (now - timedelta(days=1)).strftime("%Y-%m-%d")}
-        if d["p_board"] not in ok_boards or not d["p_player"].strip():
+        bad = re.search(r"(n+i+g{2,}|n+[iy]+g+r|n+[iy]+g+[ea]+r+[sz]*$|n+[iy]+g+u+h|f+a+g+|k+i+k+e|c+h+i+n+k|r+e+t+a+r+d|n+a+z+i|h+i+t+l+e+r|w+h+o+r+e|s+l+u+t|c+u+n+t|r+a+p+i+s+t)", re.sub("[^a-z]", "", d["p_player"].lower().translate(str.maketrans("0134@$!|5", "oieaasiis"))))
+        if d["p_board"] not in ok_boards or not d["p_player"].strip() or bad:
             return self.reply(400, {"message": "unknown or closed board"})
         key = (d["p_board"], d["p_device"])
         new = {"board": d["p_board"], "player": d["p_player"][:24], "score": max(0, min(100, d["p_score"])), "level": d["p_level"], "stars": d["p_stars"], "t": now.timestamp()}

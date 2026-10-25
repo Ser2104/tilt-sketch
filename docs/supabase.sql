@@ -240,3 +240,46 @@ revoke all on function public.submit_feedback(uuid, text, int, int, int, text, t
 grant execute on function public.submit_feedback(uuid, text, int, int, int, text, text) to anon;
 revoke all on function public.feedback_summary() from public, authenticated;
 grant execute on function public.feedback_summary() to anon;
+-- ---------- Block offensive names on rankings and clinic sharing ----------
+create or replace function public.name_ok(n text) returns boolean language sql immutable set search_path = public as $$
+  select regexp_replace(translate(lower(coalesce(n, '')), '0134@$!|5', 'oieaasiis'), '[^a-z]', '', 'g')
+    !~ '(n+i+g{2,}|n+[iy]+g+r|n+[iy]+g+[ea]+r+[sz]*$|n+[iy]+g+u+h|f+a+g+|k+i+k+e|c+h+i+n+k|r+e+t+a+r+d|n+a+z+i|h+i+t+l+e+r|w+h+o+r+e|s+l+u+t|c+u+n+t|r+a+p+i+s+t)'
+$$;
+revoke all on function public.name_ok(text) from public, anon, authenticated;
+
+create or replace function public.submit_score(
+  p_board text, p_device uuid, p_player text, p_score int, p_level int default 0, p_stars int default 0)
+returns void language plpgsql security definer set search_path = public as $$
+declare
+  today text := to_char(now() at time zone 'utc', 'YYYY-MM-DD');
+  yesterday text := to_char((now() at time zone 'utc') - interval '1 day', 'YYYY-MM-DD');
+begin
+  if p_board not in ('levels', 'guided') and p_board not in ('daily-' || today, 'daily-' || yesterday) then
+    raise exception 'unknown or closed board';
+  end if;
+  if char_length(trim(p_player)) = 0 then raise exception 'empty name'; end if;
+  if not public.name_ok(p_player) then raise exception 'name not allowed'; end if;
+  insert into scores (board, device, player, score, level, stars)
+  values (p_board, p_device, left(trim(p_player), 24), least(greatest(p_score, 0), 100), greatest(p_level, 0), greatest(p_stars, 0))
+  on conflict (board, device) do update set
+    player = excluded.player,
+    score = greatest(scores.score, excluded.score),
+    level = greatest(scores.level, excluded.level),
+    stars = greatest(scores.stars, excluded.stars),
+    updated_at = now();
+end; $$;
+
+create or replace function public.join_clinic(p_code text, p_device uuid, p_alias text)
+returns text language plpgsql security definer set search_path = public as $$
+declare cl clinics;
+begin
+  select * into cl from clinics where code = upper(trim(p_code));
+  if not found then raise exception 'unknown clinic code'; end if;
+  if char_length(trim(coalesce(p_alias, ''))) = 0 then raise exception 'empty name'; end if;
+  if not public.name_ok(p_alias) then raise exception 'name not allowed'; end if;
+  insert into clinic_patients (clinic_id, device, alias) values (cl.id, p_device, left(trim(p_alias), 24))
+  on conflict (clinic_id, device) do update set alias = excluded.alias;
+  return cl.name;
+end; $$;
+
+delete from public.scores where not public.name_ok(player);

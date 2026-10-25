@@ -19,7 +19,7 @@
 <section id="s-home" class="screen scroll">
   <header class="homehead">
     <h1 data-noi18n>Tilt<br>Sketch</h1>
-    <button class="iconbtn" id="openSettings" aria-label="Settings">⚙︎</button>
+    <div class="headbtns"><button class="profchip" id="profChip" aria-label="Your profile"><span class="avatar" id="profAvatar" aria-hidden="true">?</span><span id="profName" data-noi18n></span></button><button class="iconbtn" id="openSettings" aria-label="Settings">⚙︎</button></div>
   </header>
   <p class="lede">Aim your phone to draw. An AI guesses what it is.</p>
 
@@ -28,6 +28,8 @@
     <button class="ccard" id="cDaily"></button>
     <button class="ccard" id="cLevels"></button>
     <button class="ccard" id="cGuided"></button>
+    <div class="ccard codecard" id="cCode"><b>Enter code</b><span>Join a game with a 4-letter code.</span>
+      <div class="codeboxes"><input class="codebox" maxlength="1" inputmode="text" autocapitalize="characters" autocomplete="off" aria-label="Room code letter 1"><input class="codebox" maxlength="1" inputmode="text" autocapitalize="characters" autocomplete="off" aria-label="Room code letter 2"><input class="codebox" maxlength="1" inputmode="text" autocapitalize="characters" autocomplete="off" aria-label="Room code letter 3"><input class="codebox" maxlength="1" inputmode="text" autocapitalize="characters" autocomplete="off" aria-label="Room code letter 4"></div></div>
     <button class="tile tile-practice" id="tPractice"><b>Wrist practice</b><span>Guided exercises that adapt to you, with progress reports</span></button>
   </div>
   <div class="row homelinks"><button class="linkbtn" id="cRank">Rankings</button><button class="linkbtn" id="openSettings2">Settings</button></div>
@@ -93,6 +95,14 @@
 <!-- SETTINGS -->
 <section id="s-settings" class="screen scroll" hidden>
   <header><span class="label">Settings</span><h2 class="h-big">Settings</h2></header>
+  <div class="panel" id="profPanel">
+    <span class="label">Your profile</span>
+    <p class="hint" style="text-align:left;margin:0">Your name appears on rankings and in rooms with friends.</p>
+    <div class="row" style="flex-wrap:nowrap"><input class="field" id="profInput" maxlength="14" placeholder="Your name" autocomplete="nickname" style="flex:1;min-width:0"><button class="btn" id="profSave">Save</button></div>
+    <div class="setting"><span>Practice profile</span><select class="field" id="profPractice" aria-label="Practice profile" style="max-width:55%"></select></div>
+    <button class="linkbtn" id="profManage">Manage practice profiles</button>
+    <p class="hint" id="profMsg" style="text-align:left;margin:0" aria-live="polite"></p>
+  </div>
   <div class="panel">
     <span class="label">Language</span>
     <div class="seg" id="langSeg" role="group" aria-label="Language"><button data-lang="en" aria-pressed="true" lang="en" data-noi18n>English</button><button data-lang="es" aria-pressed="false" lang="es" data-noi18n>Español</button></div>
@@ -521,6 +531,7 @@
 <script src="js/multi.js"></script>
 <script src="js/app.js"></script>
 <script src="js/nav.js"></script>
+<script src="js/profile.js"></script>
 <script src="js/donate.js"></script>
 <script src="js/clinic.js"></script>
 <script src="js/feedback.js"></script>

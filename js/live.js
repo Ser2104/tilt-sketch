@@ -16,7 +16,6 @@ async function liveTick(){
     const[r]=await aiJudge(D.word,[{strokes:D.strokes.map(s=>({...s,pts:s.pts.slice()}))}]);
     if(D.state!=="run")return;
     const box=$("#liveAI"),hit=r.guess===D.word;box.hidden=false;box.classList.toggle("hit",hit);
-    box.textContent=r.scribble?"AI sees: a scribble":`AI sees: ${r.guess} · ${r.acc}%`;
-    if(D.liveFinish&&r.acc>=90&&!D.pen)endTurn("The AI got it!");
+    box.textContent=r.scribble?"AI sees: a scribble":hit&&r.detail<80?`AI sees: ${r.guess} · add more detail`:`AI sees: ${r.guess} · ${r.acc}%`;
   }catch(_){}finally{liveBusy=false}
 }

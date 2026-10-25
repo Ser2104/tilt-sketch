@@ -12,7 +12,7 @@ function setPlay(p){S.play=p;document.querySelectorAll("#playSeg button").forEac
 $("#playSeg").onclick=e=>{const p=e.target.dataset.play;if(p==="practice")return openPractice();if(p)setPlay(p)};
 function showGyroHelp(){openSettings();$("#gyroStatus").scrollIntoView({behavior:"smooth",block:"center"})}
 async function readyToDraw(){if(S.input==="gyro"&&S.gyro!=="ok"&&!(await testGyro())){showGyroHelp();return false}return true}
-function myName(){const n=$("#myName").value.trim();if(!n){netMsg("Enter your name first.");$("#myName").focus();return null}try{localStorage.setItem("ts-name",n)}catch(_){}return n}
+function myName(){const n=$("#myName").value.trim();if(!n){netMsg("Enter your name first.");$("#myName").focus();return null}if(!nameOk(n)){netMsg("Please choose another name.");$("#myName").focus();return null}try{localStorage.setItem("ts-name",n)}catch(_){}return n}
 try{$("#myName").value=localStorage.getItem("ts-name")||""}catch(_){}
 
 $("#createRoom").onclick=async()=>{
@@ -80,7 +80,7 @@ function hostRecv(id,d,c){
     if(!c)return;if(H){c.send({t:"busy"});return}
     if(NET.players.length>=12&&!NET.players.some(p=>p.id===id)){c.send({t:"full"});return}
     NET.conns.set(id,c);if(NET.players.some(p=>p.id===id)){hostLobby();return}
-    let name=String(d.name||"Player").slice(0,14),n=2;while(NET.players.some(p=>p.name===name))name=String(d.name).slice(0,12)+" "+n++;
+    let name=nameOk(d.name)?String(d.name||"Player").slice(0,14):"Player",n=2;while(NET.players.some(p=>p.name===name))name=String(d.name).slice(0,12)+" "+n++;
     NET.players.push({id,name});hostLobby();return}
   if(!H)return;
   if(d.t==="done")H.done&&H.done(id,d);
