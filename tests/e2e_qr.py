@@ -11,7 +11,7 @@ async def main():
         h=await (await b.new_context(viewport={"width":390,"height":844},device_scale_factor=2)).new_page()
         h.on("pageerror",lambda e:errs.append(str(e)))
         await h.goto(URL);await h.evaluate(ORI)
-        await h.click("#playSeg button[data-play=multi]");await h.fill("#myName","Sergio");await h.click("#createRoom")
+        await h.click("#tPlay");await h.click("#playSeg button[data-play=multi]");await h.fill("#myName","Sergio");await h.click("#createRoom")
         await h.wait_for_selector("#s-lobby:not([hidden])",timeout=15000)
         code=await h.inner_text("#lCode");link=await h.evaluate("inviteLink()")
         print("code",code,"link",link)

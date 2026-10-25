@@ -15,6 +15,7 @@ async def main():
             pg.on("pageerror", lambda e, i=i: errs.append(f"p{i}: {e}"))
             await pg.goto(URL); await pg.evaluate(ORI); pages.append(pg)
         h, g1, g2, g3 = pages
+        await h.click("#tPlay")
         await h.evaluate("setPlay('multi');S.rounds=1")
         await h.fill("#myName", "Host"); await h.click("#createRoom")
         await h.wait_for_selector("#s-lobby:not([hidden])", timeout=15000)

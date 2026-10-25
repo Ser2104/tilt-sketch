@@ -41,7 +41,7 @@ const Feedback=(()=>{
     const el=$("#fb-"+screen);el.dataset.inline="1";wire(el)}
   function openGeneral(){
     $("#fbHost").innerHTML=form("fb-general","general");wire($("#fb-general"));
-    const send=$("#fb-general .fblater");send.textContent="Back";send.onclick=e=>{e.stopPropagation();show("s-home")};
+    const send=$("#fb-general .fblater");send.textContent="Back";send.onclick=e=>{e.stopPropagation();show("s-settings")};
     show("s-fb")}
   async function summary(){const r=await Rank.rpc("feedback_summary",{});return r.ok?r.data:null}
   $("#cFeedback").onclick=()=>openGeneral();
@@ -51,6 +51,6 @@ const Feedback=(()=>{
 const _finishSessionFb=finishSession;
 finishSession=function(){const had=P&&P.exercises&&P.exercises.length;_finishSessionFb();if(had)Feedback.ask("s-psum","practice")};
 const _showChallengeResultFb=showChallengeResult;
-showChallengeResult=function(o){_showChallengeResultFb(o);Feedback.ask("s-cres",/^Guided/.test(o.label||"")?"guided":"challenge")};
+showChallengeResult=function(o){_showChallengeResultFb(o);if($("#crDonate").hidden)Feedback.ask("s-cres",/^Guided/.test(o.label||"")?"guided":"challenge")};
 const _finalScreenFb=finalScreen;
 finalScreen=function(){_finalScreenFb();Feedback.ask("s-final","game")};

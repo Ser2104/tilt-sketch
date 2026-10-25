@@ -15,6 +15,7 @@ async def main():
         await pg.wait_for_function("document.querySelector('#aiStatus .dot.ok')", timeout=60000)
         await pg.evaluate("S.players=['Alex','Sam'];renderPlayers();S.time.solo=8;S.rounds=1;syncSettings();WORDS.splice(0,WORDS.length,'sun')")
         await pg.evaluate("""(()=>{const f=(b,g)=>{const e=new Event('deviceorientation');Object.assign(e,{beta:b,gamma:g});dispatchEvent(e)};window.__ori=f;f(40,0)})()""")
+        await pg.click("#tPlay")
         await pg.click("#start")
         for turn in range(2):
             await pg.wait_for_selector("#s-hand:not([hidden])")

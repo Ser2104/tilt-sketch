@@ -67,6 +67,7 @@ async def donations(b):
     await pg.evaluate("show('s-home');Donate.render()")
     await pg.wait_for_timeout(400)
     print("home stats:", await pg.inner_text("#donStats"))
+    await pg.click("#openSettings")
     await pg.click("#donDel"); await pg.click("#donDel")
     await pg.wait_for_function("document.querySelector('#donStats').textContent.includes('Deleted')", timeout=5000)
     print("after delete:", await pg.inner_text("#donStats"))
@@ -77,6 +78,7 @@ async def donations(b):
 
 async def clinic(b):
     doc, e1 = await page(b, "clinician")
+    await doc.click("#openSettings")
     await doc.click("#cClinic")
     await doc.fill("#ckName", "Penn State Hand Therapy (test)")
     await doc.click("#ckCreate")
@@ -131,6 +133,7 @@ async def clinic(b):
     await doc.wait_for_selector("#s-clinic:not([hidden])")
 
     other, e3 = await page(b, "clinician-2")
+    await other.click("#openSettings")
     await other.click("#cClinic")
     await other.fill("#ckCode", code); await other.fill("#ckKey", "0" * 36); await other.click("#ckOpen")
     await other.wait_for_function("document.querySelector('#ckMsg').textContent.length>0")

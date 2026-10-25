@@ -64,7 +64,7 @@ function finalScreen(){
   $("#fCards").innerHTML=tot.map((u,i)=>`<div class="card${i===0?" win":""}" style="grid-template-columns:1fr auto"><div style="min-width:0"><div class="nm">${i+1}. ${esc(u.name)}</div><div class="gs">Rounds: ${u.hist.map(h=>h+"%").join(" · ")}${G.mode==="teams"?" · "+u.members.map(m=>esc(G.names[m])).join(" & "):""}</div><div class="meter"><i style="width:${u.avg}%"></i></div></div><div class="pc">${u.avg}%</div></div>`).join("");
   show("s-final");
 }
-$("#fAgain").onclick=()=>newMatch();$("#fHome").onclick=()=>show("s-home");
+$("#fAgain").onclick=()=>newMatch();$("#fHome").onclick=()=>show("s-play");
 
 /* ---------- Impostor ---------- */
 function newImpostor(names){
@@ -104,5 +104,5 @@ function reveal(){
   $("#vvCards").innerHTML=G.order.map(p=>`<div class="card${p===G.imp?" win":""}"><img alt="${esc(G.names[p])}'s drawing" src="${snapshot(G.draws[p],256)}"><div style="min-width:0"><div class="nm">${esc(G.names[p])}${p===G.imp?" · impostor":""}</div><div class="gs">Drew: ${esc(p===G.imp?G.decoy:G.main)}</div></div><div class="pc">${count[p]}<span class="gs"> vote${count[p]===1?"":"s"}</span></div></div>`).join("");
   show("s-rev");
 }
-$("#vvAgain").onclick=()=>newMatch();$("#vvHome").onclick=()=>show("s-home");
+$("#vvAgain").onclick=()=>newMatch();$("#vvHome").onclick=()=>show("s-play");
 

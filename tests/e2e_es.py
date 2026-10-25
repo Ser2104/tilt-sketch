@@ -16,6 +16,7 @@ async def main():
         ctx = await b.new_context(viewport={"width": 390, "height": 844}, device_scale_factor=2)
         await ctx.add_init_script("try{if(!localStorage.getItem('ts-lang'))localStorage.setItem('ts-lang','es')}catch(_){}")
         await ctx.add_init_script(f"addEventListener('DOMContentLoaded',()=>{{{CONNECT}}})")
+        await ctx.add_init_script("try{if(localStorage.getItem('ts-donate')==null)localStorage.setItem('ts-donate','false')}catch(_){}")
         pg = await ctx.new_page()
         errs = []
         pg.on("pageerror", lambda e: errs.append(str(e)))
@@ -52,6 +53,7 @@ async def main():
         for t in left:
             print("   ", t[:110])
         await pg.evaluate("show('s-home')")
+        await pg.click("#openSettings")
         await pg.click("#langSeg button[data-lang=en]")
         await pg.wait_for_load_state("load")
         await pg.wait_for_timeout(500)

@@ -13,6 +13,7 @@ async def main():
         await pg.evaluate("S.players=['Alex','Sam','Maya','Leo'];S.mode='teams';renderPlayers();S.time.teams=10;S.rounds=1;syncSettings();WORDS.splice(0,WORDS.length,'sun')")
         await pg.evaluate("""(()=>{window.__o=(px,py)=>{const e=new Event('deviceorientation');Object.assign(e,{alpha:-px,beta:90-py,gamma:0});dispatchEvent(e)};__o(0,0)})()""")
         await pg.screenshot(path="look_home.png", full_page=True)
+        await pg.click("#tPlay")
         await pg.click("#start")
         async def stroke(pts):
             await pg.evaluate(f"__o({pts[0][0]},{pts[0][1]})"); await pg.wait_for_timeout(150)

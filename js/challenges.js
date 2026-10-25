@@ -37,7 +37,9 @@ let CR_OFFER=null,CR_TOP=null;
 function showChallengeResult({label,title,score,img,info,starsN,actions}){
   $("#crLabel").textContent=label;$("#crTitle").textContent=title;$("#crScore").textContent=score+"%";$("#crImg").src=img;$("#crInfo").textContent=info;
   $("#crStars").textContent=starsN==null?"":stars(starsN);$("#crStars").hidden=starsN==null;
-  const f=$("#crActions");f.innerHTML="";actions.forEach((a,i)=>{const b=document.createElement("button");b.className="btn"+(i===0?" primary big":"");b.textContent=a.text;b.onclick=a.fn;f.append(b)});
+  const f=$("#crActions");f.innerHTML="";const links=document.createElement("div");links.className="row homelinks";
+  actions.forEach((a,i)=>{const b=document.createElement("button");b.className=i===0?"btn primary big":i===1?"btn":"linkbtn";b.textContent=a.text;b.onclick=a.fn;(i<2?f:links).append(b)});
+  if(links.children.length)f.append(links);
   $("#crTop").innerHTML=CR_TOP?explainHTML(CR_TOP):"";CR_TOP=null;
   const o=CR_OFFER;CR_OFFER=null;$("#crDonate").hidden=true;if(o&&typeof Donate!=="undefined")Donate.offer(o.word,o.strokes,o.r);
   show("s-cres");say(`${score} percent`)}

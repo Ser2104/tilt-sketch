@@ -10,7 +10,8 @@ function inviteLink(){const u=new URL(location.href);u.search="";const q=new URL
 function setPlay(p){S.play=p;document.querySelectorAll("#playSeg button").forEach(b=>b.setAttribute("aria-pressed",b.dataset.play===p));
   $("#multiBox").hidden=p!=="multi";$("#playersPanel").hidden=p==="multi";$("#oneFoot").hidden=p==="multi"}
 $("#playSeg").onclick=e=>{const p=e.target.dataset.play;if(p==="practice")return openPractice();if(p)setPlay(p)};
-async function readyToDraw(){if(S.input==="gyro"&&S.gyro!=="ok"&&!(await testGyro())){$("#gyroStatus").scrollIntoView({behavior:"smooth",block:"center"});return false}return true}
+function showGyroHelp(){openSettings();$("#gyroStatus").scrollIntoView({behavior:"smooth",block:"center"})}
+async function readyToDraw(){if(S.input==="gyro"&&S.gyro!=="ok"&&!(await testGyro())){showGyroHelp();return false}return true}
 function myName(){const n=$("#myName").value.trim();if(!n){netMsg("Enter your name first.");$("#myName").focus();return null}try{localStorage.setItem("ts-name",n)}catch(_){}return n}
 try{$("#myName").value=localStorage.getItem("ts-name")||""}catch(_){}
 
@@ -22,7 +23,7 @@ $("#createRoom").onclick=async()=>{
     p.on("open",()=>{NET.me="host";NET.players=[{id:"host",name}];netMsg("");keepAwake();showLobby();hostLobby()});
     p.on("connection",c=>{c.on("data",d=>hostRecv(c.peer,d,c));c.on("close",()=>dropPlayer(c.peer));c.on("error",()=>dropPlayer(c.peer))});
     p.on("disconnected",()=>{if(!p.destroyed&&(p._rc=(p._rc||0)+1)<=5)setTimeout(()=>{try{p.reconnect()}catch(_){}},1500)});
-    p.on("error",e=>{if(e.type==="unavailable-id"){p.destroy();open()}else if(!NET.code||!$("#s-home").hidden)netMsg("Could not create the room ("+e.type+"). Check your connection and try again.")})};
+    p.on("error",e=>{if(e.type==="unavailable-id"){p.destroy();open()}else if(!NET.code||!$("#s-play").hidden)netMsg("Could not create the room ("+e.type+"). Check your connection and try again.")})};
   open();
 };
 $("#joinRoom").onclick=async()=>{
@@ -40,7 +41,7 @@ $("#joinRoom").onclick=async()=>{
   p.on("error",e=>{clearTimeout(fail);netMsg(e.type==="peer-unavailable"?"Room "+code+" was not found. Check the code.":"Could not join ("+e.type+"). Try again.")});
 };
 function setInvite(code){
-  const on=!!code;$("#s-home").classList.toggle("invite",on);$("#inviteTitle").hidden=!on;
+  const on=!!code;$("#s-play").classList.toggle("invite",on);if(on)show("s-play");$("#inviteTitle").hidden=!on;
   if(on){setPlay("multi");$("#joinCode").value=code;$("#inviteTitle").textContent="Join room "+code;$("#joinCode").hidden=true;$("#joinRoom").textContent="Join room "+code;$("#joinRoom").className="btn go big";$("#joinRoom").style.cssText="flex:1";
     netMsg("Enter your name and tap Join. If your phone asks for motion access, tap Allow.");$("#cancelInvite").hidden=false}
   else{$("#joinCode").hidden=false;$("#joinRoom").textContent="Join";$("#joinRoom").className="btn go";$("#joinRoom").style.cssText="padding:14px 22px";$("#cancelInvite").hidden=true;netMsg("")}
@@ -52,8 +53,8 @@ function leaveRoom(msg){
   try{if(NET.isHost)broadcast({t:"closed"})}catch(_){}
   setTimeout(()=>{try{p&&p.destroy()}catch(_){}},200);
   NET.conns.clear();NET.hostConn=null;NET.players=[];NET.code="";
-  const tp=$("#timePanel");if(tp.parentNode===$("#lSettings"))$("#s-home").insertBefore(tp,$("#multiBox"));
-  show("s-home");setInvite("");setPlay("multi");netMsg(msg||"");
+  const tp=$("#timePanel");if(tp.parentNode===$("#lSettings"))$("#s-play").insertBefore(tp,$("#multiBox"));
+  show("s-play");setInvite("");setPlay("multi");netMsg(msg||"");
 }
 $("#lLeave").onclick=()=>leaveRoom("");
 $("#lCopy").onclick=async e=>{const t=inviteLink();try{await navigator.clipboard.writeText(t);e.target.textContent="Link copied"}catch(_){e.target.textContent=t}setTimeout(()=>e.target.textContent="Copy invite link",2500)};
@@ -105,7 +106,7 @@ function showLobby(){
   if(NET.isHost&&$("#lQr").dataset.code!==NET.code&&typeof qrcode!=="undefined"){const q=qrcode(0,"M");q.addData(inviteLink());q.make();$("#lQr").innerHTML=q.createSvgTag({cellSize:6,margin:0,scalable:true});$("#lQr").dataset.code=NET.code}
   $("#lQr").hidden=!NET.isHost;$("#lScan").hidden=!NET.isHost;$("#lCopy").hidden=!NET.isHost;$("#lHow").textContent=NET.isHost?"Friends scan the QR, or open the game, choose Multiple phones and enter this code.":"You're in. Keep this screen open.";
   $("#lRules").textContent=v.rules||"";
-  const tp=$("#timePanel");if(NET.isHost){if(tp.parentNode!==$("#lSettings"))$("#lSettings").append(tp)}else if(tp.parentNode===$("#lSettings"))$("#s-home").insertBefore(tp,$("#multiBox"));
+  const tp=$("#timePanel");if(NET.isHost){if(tp.parentNode!==$("#lSettings")){$("#lSettings").append(tp);tp.open=true}}else if(tp.parentNode===$("#lSettings"))$("#s-play").insertBefore(tp,$("#multiBox"));
   $("#lMode").textContent=modeName(v.mode);$("#lMode").hidden=NET.isHost;$("#lModes").hidden=!NET.isHost;
   document.querySelectorAll("#lModes button").forEach(b=>b.setAttribute("aria-pressed",b.dataset.m===v.mode));
   $("#lCount").textContent=`Players · ${v.players.length}`;

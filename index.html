@@ -17,24 +17,29 @@
 <body>
 <!-- HOME -->
 <section id="s-home" class="screen scroll">
-  <header>
-    <div class="seg langseg" id="langSeg" role="group" aria-label="Language"><button data-lang="en" aria-pressed="true" lang="en" data-noi18n>English</button><button data-lang="es" aria-pressed="false" lang="es" data-noi18n>Español</button></div>
+  <header class="homehead">
     <h1 data-noi18n>Tilt<br>Sketch</h1>
-    <p class="lede">Draw by aiming your phone: the brush stays in the center and the sheet moves around it. An AI tries to guess what it is, and the most recognizable drawing wins.</p>
+    <button class="iconbtn" id="openSettings" aria-label="Settings">⚙︎</button>
   </header>
+  <p class="lede">Aim your phone to draw. An AI guesses what it is.</p>
 
-  <div class="challenges host-only">
+  <div class="tiles">
+    <button class="tile tile-play" id="tPlay"><b>Play with friends</b><span>Solo, Teams or Impostor, on one phone or many</span></button>
     <button class="ccard" id="cDaily"></button>
     <button class="ccard" id="cLevels"></button>
     <button class="ccard" id="cGuided"></button>
+    <button class="tile tile-practice" id="tPractice"><b>Wrist practice</b><span>Guided exercises that adapt to you, with progress reports</span></button>
   </div>
-  <div class="row host-only" style="gap:18px;margin-top:-4px"><button class="linkbtn" id="cRank">Rankings</button><button class="linkbtn" id="cClinic">For clinicians</button><button class="linkbtn" id="cFeedback">Send feedback</button><button class="linkbtn" id="cInstall" hidden>Install app</button></div>
-  <p class="hint" id="installMsg" style="text-align:left;margin:-6px 0 0" hidden></p>
+  <div class="row homelinks"><button class="linkbtn" id="cRank">Rankings</button><button class="linkbtn" id="openSettings2">Settings</button></div>
+  <p class="disclaimer">A game and wellness exercise tool, not a medical device. Stop if movement causes pain.</p>
+</section>
 
+<!-- PLAY WITH FRIENDS -->
+<section id="s-play" class="screen scroll" hidden>
+  <header><span class="label host-only">Play with friends</span><h2 class="h-big host-only">Choose how to play</h2></header>
   <div class="seg host-only" id="playSeg">
     <button data-play="one" aria-pressed="true">One phone</button>
     <button data-play="multi" aria-pressed="false">Multiple phones</button>
-    <button data-play="practice" aria-pressed="false">Practice</button>
   </div>
 
   <div class="stack host-only">
@@ -52,8 +57,48 @@
     <p class="hint" id="minmsg" style="text-align:left"></p>
   </div>
 
+  <details class="panel host-only" id="timePanel">
+    <summary class="label">Time limits and rounds</summary>
+    <div class="setting"><span>Seconds per turn</span>
+      <div class="stepper" id="timeStep"><button data-d="-5" aria-label="Less time">−</button><output id="time">15</output><button data-d="5" aria-label="More time">+</button></div></div>
+    <div class="setting" id="roundsRow"><span>Rounds</span>
+      <div class="stepper" id="roundStep"><button data-d="-1" aria-label="Fewer rounds">−</button><output id="rounds">3</output><button data-d="1" aria-label="More rounds">+</button></div></div>
+    <div class="setting" id="discRow"><span>Discussion before voting</span>
+      <div class="stepper" id="discStep"><button data-d="-10" aria-label="Shorter discussion">−</button><output id="disc">30 s</output><button data-d="10" aria-label="Longer discussion">+</button></div></div>
+    <div class="setting" id="voteRow"><span>Time to vote</span>
+      <div class="stepper" id="voteStep"><button data-d="-5" aria-label="Less voting time">−</button><output id="vote">30 s</output><button data-d="5" aria-label="More voting time">+</button></div></div>
+  </details>
+
+  <div class="panel" id="multiBox" hidden>
+    <h2 class="invite-title" id="inviteTitle" hidden></h2>
+    <span class="label">Your name</span>
+    <input class="field" id="myName" maxlength="14" placeholder="Your name" autocomplete="nickname">
+    <button class="btn primary big host-only" id="createRoom">Create room</button>
+    <div class="or host-only">OR JOIN A ROOM</div>
+    <div class="row" id="joinRow" style="flex-wrap:nowrap">
+      <input class="field code-in" id="joinCode" maxlength="4" placeholder="CODE" autocomplete="off" autocapitalize="characters" style="flex:1;min-width:0">
+      <button class="btn go" id="joinRoom" style="padding:14px 22px">Join</button>
+    </div>
+    <p class="hint" id="netMsg" style="text-align:left"></p>
+    <button class="linkbtn" id="cancelInvite" hidden>Create my own room instead</button>
+  </div>
+    <div class="status" id="aiStatus"><span class="dot wait"></span><span>Loading the AI that guesses drawings…</span></div>
+
+  <div class="foot" id="oneFoot">
+    <button class="btn primary big" id="start">Start</button>
+  </div>
+  <button class="linkbtn host-only" id="playBack" style="align-self:center">Back to home</button>
+</section>
+
+<!-- SETTINGS -->
+<section id="s-settings" class="screen scroll" hidden>
+  <header><span class="label">Settings</span><h2 class="h-big">Settings</h2></header>
   <div class="panel">
-    <span class="label">Gyroscope</span>
+    <span class="label">Language</span>
+    <div class="seg" id="langSeg" role="group" aria-label="Language"><button data-lang="en" aria-pressed="true" lang="en" data-noi18n>English</button><button data-lang="es" aria-pressed="false" lang="es" data-noi18n>Español</button></div>
+  </div>
+  <div class="panel">
+    <span class="label">Gyroscope and drawing</span>
     <div class="status" id="gyroStatus"><span class="dot wait"></span><span>Tap "Enable gyroscope" and move your phone a little.</span></div>
     <button class="btn go" id="testGyro">Enable gyroscope</button>
     <div class="setting"><span>Aiming</span>
@@ -70,41 +115,6 @@
     <button class="linkbtn" id="devMode">Test on a computer without a gyroscope (mouse)</button>
   </div>
 
-  <div class="panel host-only" id="timePanel">
-    <span class="label">Time limits</span>
-    <div class="setting"><span>Seconds per turn</span>
-      <div class="stepper" id="timeStep"><button data-d="-5" aria-label="Less time">−</button><output id="time">15</output><button data-d="5" aria-label="More time">+</button></div></div>
-    <div class="setting" id="roundsRow"><span>Rounds</span>
-      <div class="stepper" id="roundStep"><button data-d="-1" aria-label="Fewer rounds">−</button><output id="rounds">3</output><button data-d="1" aria-label="More rounds">+</button></div></div>
-    <div class="setting" id="discRow"><span>Discussion before voting</span>
-      <div class="stepper" id="discStep"><button data-d="-10" aria-label="Shorter discussion">−</button><output id="disc">30 s</output><button data-d="10" aria-label="Longer discussion">+</button></div></div>
-    <div class="setting" id="voteRow"><span>Time to vote</span>
-      <div class="stepper" id="voteStep"><button data-d="-5" aria-label="Less voting time">−</button><output id="vote">30 s</output><button data-d="5" aria-label="More voting time">+</button></div></div>
-    <div class="status" id="aiStatus"><span class="dot wait"></span><span>Loading the AI that guesses drawings…</span></div>
-  </div>
-
-  <div class="panel" id="multiBox" hidden>
-    <h2 class="invite-title" id="inviteTitle" hidden></h2>
-    <span class="label">Your name</span>
-    <input class="field" id="myName" maxlength="14" placeholder="Your name" autocomplete="nickname">
-    <button class="btn primary big host-only" id="createRoom">Create room</button>
-    <div class="or host-only">OR JOIN A ROOM</div>
-    <div class="row" id="joinRow" style="flex-wrap:nowrap">
-      <input class="field code-in" id="joinCode" maxlength="4" placeholder="CODE" autocomplete="off" autocapitalize="characters" style="flex:1;min-width:0">
-      <button class="btn go" id="joinRoom" style="padding:14px 22px">Join</button>
-    </div>
-    <p class="hint" id="netMsg" style="text-align:left"></p>
-    <button class="linkbtn" id="cancelInvite" hidden>Create my own room instead</button>
-  </div>
-
-  <div class="panel host-only" id="donatePanel">
-    <span class="label">Help train the AI</span>
-    <p class="hint" style="text-align:left;margin:0">Share your drawings so the AI learns how real gyroscope drawings look. Only the lines and the object's name are sent: no name, photo or location. Off unless you turn it on, and you can delete them at any time.</p>
-    <div class="seg"><button id="donOff" aria-pressed="true">Don't share</button><button id="donOn" aria-pressed="false">Share my drawings</button></div>
-    <p class="hint" id="donStats" style="text-align:left;margin:0"></p>
-    <button class="linkbtn" id="donDel" hidden>Delete the drawings I shared</button>
-  </div>
-
   <div class="panel host-only" id="a11yPanel">
     <span class="label">Accessibility</span>
     <div class="toggles">
@@ -115,10 +125,23 @@
     </div>
   </div>
 
-  <div class="foot" id="oneFoot">
-    <button class="btn primary big" id="start">Start</button>
+  <div class="panel host-only" id="donatePanel">
+    <span class="label">Help train the AI</span>
+    <p class="hint" style="text-align:left;margin:0">Share your drawings so the AI learns how real gyroscope drawings look. Only the lines and the object's name are sent: no name, photo or location. Off unless you turn it on, and you can delete them at any time.</p>
+    <div class="seg"><button id="donOff" aria-pressed="true">Don't share</button><button id="donOn" aria-pressed="false">Share my drawings</button></div>
+    <p class="hint" id="donStats" style="text-align:left;margin:0"></p>
+    <button class="linkbtn" id="donDel" hidden>Delete the drawings I shared</button>
+  </div>
+
+  <div class="panel">
+    <span class="label">More</span>
+    <button class="btn" id="cClinic">For clinicians</button>
+    <button class="btn" id="cFeedback">Send feedback</button>
+    <button class="btn" id="cInstall" hidden>Install app</button>
+    <p class="hint" id="installMsg" style="text-align:left;margin:0" hidden></p>
   </div>
   <p class="disclaimer">Tilt Sketch is a game and wellness exercise tool. It is not a medical device and does not diagnose or treat any condition. Stop if movement causes pain, and follow your clinician's advice.</p>
+  <div class="foot"><button class="btn primary big" id="settingsBack">Done</button></div>
 </section>
 
 <!-- HANDOFF -->
@@ -301,7 +324,7 @@
     <p class="hint" id="clMsg" style="text-align:left;margin:0" aria-live="polite"></p>
   </div>
   <div class="foot">
-    <button class="btn" id="pBack">Back to games</button>
+    <button class="btn" id="pBack">Back to home</button>
     <button class="linkbtn" id="pDel" style="align-self:center">Delete profile</button>
     <button class="linkbtn" id="pClinic" style="align-self:center">I'm a clinician</button>
     <p class="disclaimer">Not a medical device. Stop if movement causes pain.</p>
@@ -493,6 +516,7 @@
 <script src="js/local-game.js"></script>
 <script src="js/multi.js"></script>
 <script src="js/app.js"></script>
+<script src="js/nav.js"></script>
 <script src="js/donate.js"></script>
 <script src="js/clinic.js"></script>
 <script src="js/feedback.js"></script>

@@ -36,7 +36,7 @@ async def main():
         pg.on("pageerror", lambda e: errs.append(str(e)))
         await pg.goto(BASE + "/index.html")
         await pg.evaluate(ORI)
-        await pg.click("#playSeg button[data-play=practice]")
+        await pg.click("#tPractice")
         await pg.fill("#pfName", "Test patient")
         await pg.click("#pfCreate")
         print("hub stats:", (await pg.inner_text("#pfStats")).replace("\n", " "))

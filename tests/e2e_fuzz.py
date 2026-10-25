@@ -53,7 +53,7 @@ async def main():
         await pg.goto(BASE + "/index.html")
         await pg.evaluate(ORI)
         await pg.evaluate("Profiles.create('Fuzz');S.sens=24")
-        await pg.click("#playSeg button[data-play=practice]")
+        await pg.click("#tPractice")
         results = {}
         for rnd in range(2):
             await pg.click("#pStart")

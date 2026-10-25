@@ -33,6 +33,7 @@ async def main():
             await pg.evaluate(ORI)
             pages.append(pg)
         host, *guests = pages
+        await host.click("#tPlay")
         await host.evaluate("setPlay('multi');S.time.solo=6;S.time.teams=6;S.time.impostor=6;S.rounds=1;WORDS.splice(0,WORDS.length,'moon')")
         await host.fill("#myName", "Sergio")
         await host.click("#createRoom")

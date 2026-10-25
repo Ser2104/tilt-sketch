@@ -9,6 +9,7 @@ async def main():
         b = await p.chromium.launch()
         ctx = await b.new_context(viewport={"width": 390, "height": 844}, device_scale_factor=2)
         await ctx.add_init_script(f"addEventListener('DOMContentLoaded',()=>{{{CONNECT}}})")
+        await ctx.add_init_script("try{if(localStorage.getItem('ts-donate')==null)localStorage.setItem('ts-donate','false')}catch(_){}")
         pg = await ctx.new_page()
         errs = []
         pg.on("pageerror", lambda e: errs.append(str(e)))
@@ -42,6 +43,7 @@ async def main():
         print("second result: no survey, AI:", (await pg.inner_text("#crTop")).replace("\n", " | "))
 
         await pg.evaluate("show('s-home')")
+        await pg.click("#openSettings")
         await pg.click("#cFeedback")
         await pg.wait_for_selector("#s-fb:not([hidden])")
         await pg.fill("#fb-general textarea", "Please add Spanish")
@@ -59,7 +61,7 @@ async def main():
         await pg.wait_for_function("typeof AI!=='undefined'&&AI.state!=='wait'", timeout=20000)
         print("offline reload: home shown, AI", await pg.evaluate("AI.state+' '+AI.kind"), "| note:", await pg.inner_text("#installMsg"))
         assert await pg.evaluate("AI.state") == "ok"
-        await pg.click("#playSeg button[data-play=practice]")
+        await pg.click("#tPractice")
         await pg.wait_for_selector("#s-practice:not([hidden])")
         print("offline practice hub opens")
         manifest = await pg.evaluate("fetch('manifest.webmanifest').then(r=>r.json())")
