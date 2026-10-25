@@ -62,9 +62,17 @@ function alertMsg(t){$("#crInfo").textContent=t}
 function openLevels(){
   const st=levelState();
   $("#lvStars").textContent=`${totalStars(st)} of ${LEVEL_LIST.length*3} ★ · level ${Math.min(st.unlocked+1,LEVEL_LIST.length)} of ${LEVEL_LIST.length}`;
-  $("#lvWorlds").innerHTML=WORLDS.map((w,wi)=>`<section class="world"><div class="setting"><span class="label">World ${wi+1} · ${esc(w.name)}</span><span class="tag">${w.time} s · pass ${w.pass}%</span></div><div class="lvgrid">${w.items.map((word,i)=>{const k=wi*8+i,open=k<=st.unlocked,b=st.best[k];
-    return`<button class="lv${open?"":" locked"}" data-k="${k}" ${open?"":"disabled"} aria-label="Level ${k+1}: ${open?esc(word):"locked"}"><b>${k+1}</b><span>${open?esc(word):"🔒"}</span><i>${b!=null?stars(starsFor(b,w.pass)):""}</i></button>`}).join("")}</div></section>`).join("");
+  const N=LEVEL_LIST.length,gap=140,pad=90,H=pad*2+(N-1)*gap;
+  const P=LEVEL_LIST.map((l,k)=>({x:50+28*Math.sin(k*1.1),y:H-pad-k*gap}));
+  const seg=(a,b)=>`C${a.x} ${a.y-gap/2} ${b.x} ${b.y+gap/2} ${b.x} ${b.y}`;
+  const path=to=>P.slice(0,to+1).map((p,i)=>i?seg(P[i-1],p):`M${p.x} ${p.y}`).join("");
+  const reached=Math.min(st.unlocked,N-1);
+  const nodes=LEVEL_LIST.map((l,k)=>{const w=WORLDS[l.world],open=k<=st.unlocked,b=st.best[k],cls=["lv",open?"":"locked",b!=null&&starsFor(b,l.pass)?"done":"",k===st.unlocked?"cur":""].join(" ");
+    return`<button class="${cls}" data-k="${k}" ${open?"":"disabled"} style="left:${P[k].x}%;top:${P[k].y}px" aria-label="Level ${k+1}: ${open?esc(l.word):"locked"}"><b>${open?k+1:"🔒"}</b><span>${open?esc(l.word):""}</span><i>${b!=null?stars(starsFor(b,l.pass)):""}</i></button>`}).join("");
+  const banners=WORLDS.map((w,wi)=>`<div class="lvworld" style="top:${P[wi*8].y+82}px"><b>World ${wi+1} · ${esc(w.name)}</b><span>${w.time} s · pass ${w.pass}%</span></div>`).join("");
+  $("#lvWorlds").innerHTML=`<div class="lvmap" style="height:${H}px"><svg viewBox="0 0 100 ${H}" preserveAspectRatio="none" aria-hidden="true"><path d="${path(N-1)}" class="lvroad"/><path d="${path(reached)}" class="lvdone"/></svg><div class="lvgoal" style="top:${pad/2-20}px">🏆</div>${banners}${nodes}</div>`;
   show("s-levels");
+  const cur=$("#lvWorlds .lv.cur")||$("#lvWorlds .lv[data-k='0']");if(cur)cur.scrollIntoView({block:"center"});
 }
 $("#lvWorlds").onclick=async e=>{const b=e.target.closest(".lv");if(!b||b.disabled)return;if(!(await readyToDraw()))return;playLevel(+b.dataset.k)};
 function playLevel(k){
