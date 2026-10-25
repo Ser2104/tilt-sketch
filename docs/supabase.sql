@@ -29,7 +29,7 @@ declare
   today text := to_char(now() at time zone 'utc', 'YYYY-MM-DD');
   yesterday text := to_char((now() at time zone 'utc') - interval '1 day', 'YYYY-MM-DD');
 begin
-  if p_board <> 'levels' and p_board not in ('daily-' || today, 'daily-' || yesterday) then
+  if p_board not in ('levels', 'guided') and p_board not in ('daily-' || today, 'daily-' || yesterday) then
     raise exception 'unknown or closed board';
   end if;
   if char_length(trim(p_player)) = 0 then

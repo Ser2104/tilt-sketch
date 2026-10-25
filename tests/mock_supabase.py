@@ -27,7 +27,7 @@ class H(BaseHTTPRequestHandler):
             return self.reply(404, {"message": "not found"})
         d = json.loads(self.rfile.read(int(self.headers["Content-Length"])))
         now = datetime.now(timezone.utc)
-        ok_boards = {"levels", "daily-" + now.strftime("%Y-%m-%d"), "daily-" + (now - timedelta(days=1)).strftime("%Y-%m-%d")}
+        ok_boards = {"levels", "guided", "daily-" + now.strftime("%Y-%m-%d"), "daily-" + (now - timedelta(days=1)).strftime("%Y-%m-%d")}
         if d["p_board"] not in ok_boards or not d["p_player"].strip():
             return self.reply(400, {"message": "unknown or closed board"})
         key = (d["p_board"], d["p_device"])
@@ -46,7 +46,7 @@ class H(BaseHTTPRequestHandler):
         q = parse_qs(u.query)
         board = q["board"][0].removeprefix("eq.")
         rows = [r for r in ROWS.values() if r["board"] == board]
-        rows.sort(key=lambda r: (-r["level"], -r["stars"], r["t"]) if board == "levels" else (-r["score"], r["t"]))
+        rows.sort(key=lambda r: (-r["level"], -r["stars"], r["t"]) if board in ("levels", "guided") else (-r["score"], r["t"]))
         self.reply(200, [{k: r[k] for k in ("player", "score", "level", "stars")} for r in rows[: int(q.get("limit", ["25"])[0])]])
 
     def log_message(self, *a):

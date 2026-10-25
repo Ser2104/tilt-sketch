@@ -20,6 +20,7 @@
   <div class="challenges host-only">
     <button class="ccard" id="cDaily"></button>
     <button class="ccard" id="cLevels"></button>
+    <button class="ccard" id="cGuided"></button>
   </div>
   <button class="linkbtn host-only" id="cRank" style="align-self:flex-start;margin-top:-4px">Rankings</button>
 
@@ -111,6 +112,7 @@
     <span class="pass" id="hPass">Pass the phone to</span>
     <div class="who" id="hWho">Alex</div>
     <p class="lede" id="hInfo" style="text-align:center"></p>
+    <div class="refbox" id="hRef" hidden><img class="thumb" id="hRefImg" alt="Example of the figure" hidden><div class="refemoji" id="hRefEmoji" aria-hidden="true"></div><div class="reftip" id="hRefTip"></div></div>
     <img class="thumb" id="hThumb" alt="Teammate's drawing" hidden>
     <div class="reveal" id="hReveal" hidden>
       <div class="label">Press and hold to see your object</div>
@@ -126,7 +128,7 @@
 <!-- DRAW -->
 <section id="s-draw" class="screen" hidden>
   <div class="topbar">
-    <div style="min-width:0"><div class="label" id="dWho">Alex · Round 1</div><div class="word" id="dWord">CAT</div></div>
+    <div style="min-width:0"><div class="label" id="dWho">Alex · Round 1</div><div class="word"><span id="dWord">CAT</span> <span id="dRef" class="dref" hidden></span></div></div>
     <div class="clock" id="dClock">10</div>
   </div>
   <div class="bar"><i id="dBar"></i></div>
@@ -357,10 +359,17 @@
   <div class="foot"><button class="btn primary" id="lvRank">Levels ranking</button><button class="btn" id="lvBack">Back to home</button></div>
 </section>
 
+<!-- GUIDED DRAWINGS -->
+<section id="s-guided" class="screen scroll" hidden>
+  <header><span class="label">Guided drawings</span><h2 class="h-big">Trace it, line by line</h2><p class="hint" id="gdStars" style="text-align:left;margin:0"></p></header>
+  <div class="stack" id="gdWorlds"></div>
+  <div class="foot"><button class="btn primary" id="gdRank">Guided ranking</button><button class="btn" id="gdBack">Back to home</button></div>
+</section>
+
 <!-- RANKINGS -->
 <section id="s-rank" class="screen scroll" hidden>
   <header><span class="label">Rankings</span><h2 class="h-big" id="rkTitle"></h2></header>
-  <div class="seg" id="rkTabs"><button data-tab="daily" aria-pressed="true">Daily challenge</button><button data-tab="levels" aria-pressed="false">Levels</button></div>
+  <div class="seg" id="rkTabs"><button data-tab="daily" aria-pressed="true">Daily</button><button data-tab="levels" aria-pressed="false">Levels</button><button data-tab="guided" aria-pressed="false">Guided</button></div>
   <p class="hint" id="rkStatus" style="text-align:left;margin:0"></p>
   <ol class="ranklist" id="rkList"></ol>
   <div class="panel">
@@ -381,6 +390,7 @@
 <script src="vendor/peerjs.min.js"></script>
 <script src="vendor/qrcode.js"></script>
 <script src="js/core.js"></script>
+<script src="js/figures.js"></script>
 <script src="js/home.js"></script>
 <script src="js/gyro.js"></script>
 <script src="js/motor.js"></script>
@@ -392,6 +402,7 @@
 <script src="js/config.js"></script>
 <script src="js/rank.js"></script>
 <script src="js/challenges.js"></script>
+<script src="js/guided.js"></script>
 <script src="js/local-game.js"></script>
 <script src="js/multi.js"></script>
 <script src="js/app.js"></script>

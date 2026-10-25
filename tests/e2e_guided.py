@@ -1,0 +1,97 @@
+import asyncio, os
+from playwright.async_api import async_playwright
+BASE = os.environ.get("BASE", "http://localhost:8766")
+MOCK = os.environ.get("MOCK", "http://127.0.0.1:8790")
+ORI = """(()=>{window.__o=(px,py)=>{const e=new Event('deviceorientation');Object.assign(e,{alpha:-px,beta:90-py,gamma:0});dispatchEvent(e)};__o(0,0)})()"""
+
+
+async def trace(pg, strokes_to_draw, wobble=0.0):
+    sens = await pg.evaluate("degPerSheet()")
+    bb = await (await pg.query_selector("#pen")).bounding_box()
+    await pg.mouse.move(bb["x"] + 40, bb["y"] + 20)
+    start = await pg.evaluate("D.template.strokes[0][0]")
+    for si in strokes_to_draw:
+        pts = await pg.evaluate(f"Motor.densify(D.template.strokes[{si}],.012)")
+        x, y = pts[0]
+        await pg.evaluate(f"__o({(x - start[0]) * sens},{(y - start[1]) * sens})")
+        await pg.wait_for_timeout(150)
+        await pg.mouse.down()
+        for i, (x, y) in enumerate(pts):
+            off = wobble * (1 if i % 6 < 3 else -1)
+            await pg.evaluate(f"__o({(x - start[0]) * sens + off},{(y - start[1]) * sens + off})")
+            await pg.wait_for_timeout(16)
+        await pg.wait_for_timeout(100)
+        await pg.mouse.up()
+
+
+async def main():
+    async with async_playwright() as p:
+        b = await p.chromium.launch()
+        pg = await (await b.new_context(viewport={"width": 390, "height": 844}, device_scale_factor=2)).new_page()
+        errs = []
+        pg.on("pageerror", lambda e: errs.append(str(e)))
+        await pg.goto(BASE + "/index.html")
+        await pg.evaluate(ORI)
+        await pg.evaluate(f"TS_CONFIG.supabaseUrl='{MOCK}';TS_CONFIG.supabaseKey='sb_publishable_test';store.set('ts-rank-name','Ana');S.sens=30;renderChallengeCards()")
+        print("home card:", (await pg.inner_text("#cGuided")).replace("\n", " | "))
+        await pg.click("#cGuided")
+        await pg.wait_for_selector("#s-guided:not([hidden])")
+        await pg.screenshot(path="gd_worlds.png", full_page=True)
+        await pg.click(".lv[data-k='0']")
+        await pg.wait_for_selector("#s-hand:not([hidden])")
+        print("intro:", await pg.inner_text("#hWho"), "| ref image shown:", await pg.evaluate("!document.querySelector('#hRefImg').hidden"))
+        await pg.screenshot(path="gd_intro.png")
+        await pg.evaluate("__o(0,0)")
+        await pg.click("#hGo")
+        await pg.wait_for_function("D.state==='run'")
+        await pg.wait_for_timeout(1500)
+        print("untimed clock:", await pg.inner_text("#dClock"), "| bar hidden:", await pg.evaluate("document.querySelector('#dBar').parentElement.hidden"))
+        await trace(pg, [0])
+        try:
+            await pg.wait_for_selector("#s-cres:not([hidden])", timeout=8000)
+        except Exception:
+            await pg.screenshot(path="gd_stuck.png"); print("not auto-completed; cov", await pg.evaluate("D.template.cov")); await pg.click("#finish")
+            await pg.wait_for_selector("#s-cres:not([hidden])", timeout=8000)
+        print("heart:", await pg.inner_text("#crScore"), await pg.inner_text("#crStars"), "|", await pg.inner_text("#crTitle"), "|", await pg.inner_text("#crInfo"))
+        await pg.screenshot(path="gd_result.png")
+        await pg.click("#crActions button:nth-child(1)")
+        await pg.wait_for_selector("#s-hand:not([hidden])")
+        print("next figure:", await pg.inner_text("#hWho"))
+        await pg.evaluate("__o(0,0)")
+        await pg.click("#hGo")
+        await pg.wait_for_function("D.state==='run'")
+        await trace(pg, [0], wobble=1.6)
+        await pg.click("#finish")
+        await pg.wait_for_selector("#s-cres:not([hidden])", timeout=8000)
+        print("wobbly star:", await pg.inner_text("#crScore"), await pg.inner_text("#crStars"), "|", await pg.inner_text("#crTitle"))
+        await pg.click("#crActions button:has-text('All guided')")
+        k = 3
+        await pg.evaluate(f"(()=>{{const st=guidedState();st.unlocked={k};store.set('ts-guided',st)}})()")
+        await pg.evaluate("openGuided()")
+        await pg.click(f".lv[data-k='{k}']")
+        await pg.wait_for_selector("#s-hand:not([hidden])")
+        print("multi-line figure:", await pg.inner_text("#hWho"), "|", await pg.inner_text("#hInfo"))
+        await pg.evaluate("__o(0,0)")
+        await pg.click("#hGo")
+        await pg.wait_for_function("D.state==='run'")
+        n = await pg.evaluate("D.template.strokes.length")
+        await trace(pg, [0])
+        await pg.wait_for_timeout(400)
+        print("after line 1:", await pg.inner_text("#dWho"))
+        await pg.screenshot(path="gd_progress.png")
+        await trace(pg, list(range(1, n)))
+        await pg.wait_for_selector("#s-cres:not([hidden])", timeout=8000)
+        print("house:", await pg.inner_text("#crScore"), await pg.inner_text("#crStars"), "|", await pg.inner_text("#crInfo"))
+        await pg.click("#crActions button:has-text('Guided ranking')")
+        await pg.wait_for_function("document.querySelector('#rkList li')", timeout=10000)
+        print("guided ranking:", (await pg.inner_text("#rkList")).replace("\n", " "))
+        await pg.click("#rkBack")
+        await pg.evaluate("DAILY_TIME=4")
+        await pg.click("#cDaily")
+        await pg.wait_for_selector("#s-hand:not([hidden])")
+        print("daily reference:", await pg.inner_text("#hWho"), await pg.inner_text("#hRefEmoji"), "|", await pg.inner_text("#hRefTip"))
+        await pg.screenshot(path="gd_daily_ref.png")
+        print("errors:", errs)
+        await b.close()
+
+asyncio.run(main())

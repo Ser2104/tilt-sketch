@@ -16,11 +16,11 @@ function nextTurn(){
   const w=G.words[G.round],who=G.names[t.m],team=G.mode==="teams";
   const rl=`Round ${G.round+1} of ${G.words.length}`;
   const cont=team&&t.k>0;const prev=cont?G.names[t.it.u.members[t.k-1]]:"";
-  handoff({who,
+  handoff({who,ref:refFor(w),
     info:cont?`You continue ${prev}'s drawing. The orange circle marks where they stopped, and your brush starts there.`:(team?`${t.it.u.name} · ${rl}. You start the drawing.`:rl),
     hint:cont?S.ctrl==="look"?"Hold the phone up like a camera before tapping. Where you aim becomes the spot where they stopped.":"Hold the phone comfortably before tapping. That tilt becomes the spot where they stopped.":(S.input==="gyro"?S.ctrl==="look"?"Hold the phone up like a camera. Where you aim during the 3-2-1 countdown becomes the center of the sheet.":"During the 3-2-1 countdown, hold the phone comfortably. That position becomes the center.":"Mouse test mode: drag on the sheet to draw. The brush stays in the center."),
     thumb:cont?thumbWithMark(t.it.strokes,t.it.last):null,
-    onGo:()=>startDraw({who:`${who}${team?" · "+t.it.u.name:""} · ${rl}`,word:w,strokes:t.it.strokes,dur:S.time[G.mode],mark:cont?t.it.last:null,
+    onGo:()=>startDraw({who:`${who}${team?" · "+t.it.u.name:""} · ${rl}`,word:w,ref:refFor(w)?.emoji,strokes:t.it.strokes,dur:S.time[G.mode],mark:cont?t.it.last:null,
       onEnd:lp=>{t.it.last=lp;nextTurn()}})});
 }
 async function judge(){
@@ -76,7 +76,7 @@ function impTurn(){
   if(G.step>=G.order.length)return gallery();
   const p=G.order[G.step],w=p===G.imp?G.decoy:G.main;
   handoff({who:G.names[p],info:`Turn ${G.step+1} of ${G.order.length}. Nobody else should look at the screen.`,word:w,hint:"Tap \"I'm ready\" after you see your object.",
-    onGo:()=>startDraw({who:`${G.names[p]} · turn ${G.step+1}`,word:w,strokes:G.draws[p],dur:S.time.impostor,onEnd:()=>{G.step++;impTurn()}})});
+    onGo:()=>startDraw({who:`${G.names[p]} · turn ${G.step+1}`,word:w,ref:refFor(w)?.emoji,strokes:G.draws[p],dur:S.time.impostor,onEnd:()=>{G.step++;impTurn()}})});
 }
 let galTimer=0;
 function gallery(){

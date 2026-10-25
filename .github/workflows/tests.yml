@@ -39,6 +39,8 @@ jobs:
         run: python tests/e2e_scoring.py
       - name: Daily challenge, levels and rankings
         run: python tests/e2e_challenges.py
+      - name: Guided drawings
+        run: python tests/e2e_guided.py
       - name: Live ranking database is reachable and protected
         run: |
           URL=$(grep -o 'https://[a-z0-9]*\.supabase\.co' js/config.js)

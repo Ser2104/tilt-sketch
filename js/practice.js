@@ -102,7 +102,7 @@ function nextExercise(){
   P.recent.push(key);
   handoff({label:`Exercise ${P.i+1} of ${SESSION_LEN} · Level ${p.level}`,who:sh.label,info:"Trace the dotted blue path from the green dot to the orange ring. Stay inside the light band.",
     hint:S.ctrl==="look"?"Hold the phone up like a camera. Move slowly and smoothly; accuracy matters more than speed.":"Hold the phone comfortably. Move slowly and smoothly; accuracy matters more than speed.",go:"Start exercise",
-    onGo:()=>startDraw({who:`${p.name} · Practice`,word:sh.label,strokes:[],dur:lv.time,mark:tpl.pts[0],template:tpl,steady:true,onEnd:()=>scoreExercise(key,tpl),onError:()=>{P.i++;nextExercise()}})});
+    onGo:()=>startDraw({who:`${p.name} · Practice`,word:sh.label,strokes:[],dur:lv.time,mark:tpl.pts[0],template:tpl,steady:true,zoom:1.5,onEnd:()=>scoreExercise(key,tpl),onError:()=>{P.i++;nextExercise()}})});
   say(`Exercise ${P.i+1}. ${sh.label}`);
 }
 function scoreExercise(key,tpl){

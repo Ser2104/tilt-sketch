@@ -122,8 +122,8 @@ function showWait(d){$("#wTitle").textContent=d.title||"Waiting for the others";
 let autoGo=0;
 function remoteDraw(d){
   clearInterval(autoGo);
-  handoff({label:d.label||"Your object",who:up(d.word),info:d.info||"",hint:d.hint||"",thumb:d.strokes&&d.strokes.length?thumbWithMark(d.strokes,d.mark):null,go:"Start drawing",
-    onGo:()=>startDraw({who:d.who,word:d.word,strokes:d.strokes||[],dur:d.dur,mark:d.mark||null,
+  handoff({label:d.label||"Your object",who:up(d.word),ref:refFor(d.word),info:d.info||"",hint:d.hint||"",thumb:d.strokes&&d.strokes.length?thumbWithMark(d.strokes,d.mark):null,go:"Start drawing",
+    onGo:()=>startDraw({who:d.who,word:d.word,ref:refFor(d.word)?.emoji,strokes:d.strokes||[],dur:d.dur,mark:d.mark||null,
       onEnd:lp=>{toHost({t:"done",turn:d.turn,strokes:D.strokes,last:lp});showWait({title:"Nice! Waiting for the others",sub:"",chips:[]})}})});
   let left=d.prep||10;const btn=$("#hGo"),tick=()=>{if($("#s-hand").hidden){clearInterval(autoGo);return}if(left<=0){clearInterval(autoGo);btn.click();return}btn.textContent=`Start drawing · auto in ${left}`;left--};
   tick();autoGo=setInterval(tick,1000);

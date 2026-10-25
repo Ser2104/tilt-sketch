@@ -10,7 +10,7 @@ const Rank=(()=>{
       body:JSON.stringify({p_board:board,p_device:device,p_player:player.slice(0,24),p_score:Math.round(score),p_level:level,p_stars:stars})});return r.ok}catch(_){return false}}
   async function top(board,limit=25){
     if(!on())return null;
-    const order=board==="levels"?"level.desc,stars.desc,updated_at.asc":"score.desc,updated_at.asc";
+    const order=board==="levels"||board==="guided"?"level.desc,stars.desc,updated_at.asc":"score.desc,updated_at.asc";
     try{const r=await fetch(`${TS_CONFIG.supabaseUrl.replace(/\/$/,"")}/rest/v1/leaderboard?board=eq.${encodeURIComponent(board)}&order=${order}&limit=${limit}&select=player,score,level,stars`,{headers:headers()});
       return r.ok?await r.json():null}catch(_){return null}}
   return{on,submit,top,device}

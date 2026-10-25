@@ -28,6 +28,8 @@ More than 795,000 people in the US have a stroke each year, and stroke reduces m
 - Custom time limits; nobody can stall a game (auto start, cut-off and vote deadlines).
 
 **Challenges**
+- Every free drawing (games, daily challenge, levels) first shows a reference picture and a one-line tip on how to draw it in a few lines, and keeps the picture next to the name while drawing.
+- Guided drawings: 30 original line-art figures in 5 worlds (Warm-up, Sky and space, Heroes, Movie night, Animals) traced line by line with no time limit. The current line is highlighted with its start dot, direction arrow and end ring; finished lines turn green; the drawing completes itself when every line is covered. Stars, unlocks and a shared ranking. All figures are original designs, not copyrighted characters.
 - Daily challenge: the same object for everyone each day (UTC), one official try, shareable result, daily ranking.
 - Levels: 40 objects in 5 worlds (First lines, Around the house, Animals, Heroes and legends, Masters) with rising pass marks and 1–3 stars; ranking by highest level and stars.
 - Shared rankings use a free Supabase project; see [docs/RANKINGS.md](docs/RANKINGS.md). Without it, results stay on the phone.
@@ -85,6 +87,7 @@ python tests/e2e_time.py       # custom times, auto-start, deadlines, vote timeo
 python tests/e2e_fuzz.py       # Practice never freezes; bad play scores near zero
 python tests/e2e_scoring.py    # real drawings score high, scribbles score zero
 python tests/mock_supabase.py 8790 & python tests/e2e_challenges.py   # daily, levels, rankings
+python tests/e2e_guided.py     # guided figures: line-by-line tracing, auto-complete, stars, ranking
 ```
 
 They also run on every push with GitHub Actions.

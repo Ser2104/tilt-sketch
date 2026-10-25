@@ -188,3 +188,12 @@ html.high-contrast{--bg:#FFFFFF;--surface:#FFFFFF;--ink:#000000;--muted:#1F2A3A;
 .ranklist .pos{font-family:var(--f-mono);font-weight:700;color:var(--muted)}
 .ranklist .who{font-weight:800;overflow-wrap:anywhere}
 .ranklist .val{font-family:var(--f-mono)}
+.dref{font-family:system-ui,"Apple Color Emoji","Segoe UI Emoji",sans-serif}
+.refbox{display:flex;flex-direction:column;align-items:center;gap:6px}
+.refemoji{font-size:64px;line-height:1;font-family:system-ui,"Apple Color Emoji","Segoe UI Emoji",sans-serif}
+.reftip{font-weight:700;text-align:center;max-width:32ch}
+.challenges{grid-template-columns:repeat(auto-fit,minmax(150px,1fr))}
+.lvgrid.gd{grid-template-columns:repeat(3,1fr)}
+.lvgrid.gd img{width:64px;height:64px;border-radius:8px}
+#cGuided{border-color:var(--go)}
+.lv.locked img{opacity:.35;filter:grayscale(1)}

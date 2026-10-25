@@ -20,6 +20,8 @@ function stars(n){return"★".repeat(n)+"☆".repeat(3-n)}
 function renderChallengeCards(){
   const d=store.get("ts-daily-"+todayUTC(),null),st=levelState(),lv=Math.min(st.unlocked,LEVEL_LIST.length-1),L=LEVEL_LIST[lv];
   $("#cDaily").innerHTML=`<b>Daily challenge</b><span>${d?`Today: ${d.score}% on ${esc(d.word)}`:`Today's object is the same for everyone. One try.`}</span>`;
+  const gs=store.get("ts-guided",{unlocked:0,best:{}});
+  $("#cGuided").innerHTML=`<b>Guided drawings</b><span>Trace heroes, rockets, animals… No time limit · ${GUIDED.reduce((s,_,i)=>s+gStars(gs.best[i]||0),0)} ★</span>`;
   $("#cLevels").innerHTML=`<b>Levels</b><span>${st.unlocked>=LEVEL_LIST.length?"All levels complete":`${esc(WORLDS[L.world].name)} · level ${L.world*8+L.index+1} of ${LEVEL_LIST.length}`} · ${totalStars(st)} ★</span>`;
 }
 async function judgeOne(word,strokes){
@@ -27,8 +29,8 @@ async function judgeOne(word,strokes){
   if(AI.state!=="ok")return{acc:0,guess:"AI unavailable"};
   const[r]=await aiJudge(word,[{strokes}]);return r}
 function playChallenge({word,time,label,onScore}){
-  handoff({label,who:up(word),info:`You have ${time} seconds. Draw it so the AI can recognize it. Scribbles score zero.`,hint:S.ctrl==="look"?"Hold the phone up like a camera before you tap.":"Hold the phone comfortably before you tap.",go:"Start drawing",
-    onGo:()=>startDraw({who:label,word,strokes:[],dur:time,onEnd:async()=>{const strokes=D.strokes.slice();showWait({title:"The AI is looking at your drawing",sub:"",chips:[]});
+  handoff({label,who:up(word),ref:refFor(word),info:`You have ${time} seconds. Draw it so the AI can recognize it. Scribbles score zero.`,hint:S.ctrl==="look"?"Hold the phone up like a camera before you tap.":"Hold the phone comfortably before you tap.",go:"Start drawing",
+    onGo:()=>startDraw({who:label,word,strokes:[],dur:time,ref:refFor(word)?.emoji,onEnd:async()=>{const strokes=D.strokes.slice();showWait({title:"The AI is looking at your drawing",sub:"",chips:[]});
       const r=await judgeOne(word,strokes);onScore(r,snapshot(strokes,240))},onError:()=>show("s-home")})});
 }
 function showChallengeResult({label,title,score,img,info,starsN,actions}){
@@ -79,19 +81,20 @@ async function openRanking(tab=rankTab){
   rankTab=tab;document.querySelectorAll("#rkTabs button").forEach(b=>b.setAttribute("aria-pressed",b.dataset.tab===tab));
   $("#rkName").value=playerName();show("s-rank");
   const list=$("#rkList"),me=playerName();
-  const local=tab==="daily"?(()=>{const d=store.get("ts-daily-"+todayUTC(),null);return d?[{player:me||"You",score:d.score}]:[]})():(()=>{const st=levelState();return st.unlocked||Object.keys(st.best).length?[{player:me||"You",level:st.unlocked,stars:totalStars(st)}]:[]})();
-  $("#rkTitle").textContent=tab==="daily"?`Today · ${dailyWord()} · ${todayUTC()}`:"Highest level reached";
+  const local=tab==="daily"?(()=>{const d=store.get("ts-daily-"+todayUTC(),null);return d?[{player:me||"You",score:d.score}]:[]})():tab==="guided"?(()=>{const st=guidedState();return st.unlocked||Object.keys(st.best).length?[{player:me||"You",level:st.unlocked,stars:guidedStars(st)}]:[]})():(()=>{const st=levelState();return st.unlocked||Object.keys(st.best).length?[{player:me||"You",level:st.unlocked,stars:totalStars(st)}]:[]})();
+  $("#rkTitle").textContent=tab==="daily"?`Today · ${dailyWord()} · ${todayUTC()}`:tab==="guided"?"Most figures traced":"Highest level reached";
   if(!Rank.on()){$("#rkStatus").textContent="Shared ranking is not connected yet, so this shows only your own result on this phone.";render(local);return}
   $("#rkStatus").textContent="Loading…";list.innerHTML="";
-  const rows=await Rank.top(tab==="daily"?"daily-"+todayUTC():"levels");
+  const rows=await Rank.top(tab==="daily"?"daily-"+todayUTC():tab);
   if(!rows){$("#rkStatus").textContent="Could not reach the ranking. Showing your result on this phone.";render(local);return}
   $("#rkStatus").textContent=rows.length?"":"No one is on the board yet. Be the first!";render(rows);
-  function render(rows){list.innerHTML=rows.map((r,i)=>`<li class="${r.player===me?"me":""}"><span class="pos">${i+1}</span><span class="who">${esc(r.player)}</span><span class="val">${tab==="daily"?r.score+"%":`Level ${r.level} · ${r.stars} ★`}</span></li>`).join("")}
+  function render(rows){list.innerHTML=rows.map((r,i)=>`<li class="${r.player===me?"me":""}"><span class="pos">${i+1}</span><span class="who">${esc(r.player)}</span><span class="val">${tab==="daily"?r.score+"%":tab==="guided"?`${r.level} figures · ${r.stars} ★`:`Level ${r.level} · ${r.stars} ★`}</span></li>`).join("")}
 }
 $("#rkTabs").onclick=e=>{const t=e.target.dataset.tab;if(t)openRanking(t)};
 $("#rkSave").onclick=async()=>{const n=$("#rkName").value.trim().slice(0,24);if(!n){$("#rkName").focus();return}store.set("ts-rank-name",n);if($("#myName")&&!$("#myName").value)$("#myName").value=n;
   const d=store.get("ts-daily-"+todayUTC(),null),st=levelState();
-  if(Rank.on()){if(d)await Rank.submit("daily-"+todayUTC(),n,d.score);if(st.unlocked)await Rank.submit("levels",n,0,st.unlocked,totalStars(st))}
+  const gst=guidedState();
+  if(Rank.on()){if(d)await Rank.submit("daily-"+todayUTC(),n,d.score);if(st.unlocked)await Rank.submit("levels",n,0,st.unlocked,totalStars(st));if(gst.unlocked)await Rank.submit("guided",n,0,gst.unlocked,guidedStars(gst))}
   openRanking()};
 $("#rkBack").onclick=()=>{renderChallengeCards();show("s-home")};
 $("#cDaily").onclick=()=>startDaily();
@@ -99,4 +102,3 @@ $("#cLevels").onclick=()=>openLevels();
 $("#cRank").onclick=()=>openRanking("daily");
 $("#lvBack").onclick=()=>{renderChallengeCards();show("s-home")};
 $("#lvRank").onclick=()=>openRanking("levels");
-renderChallengeCards();
