@@ -199,3 +199,44 @@ begin
     execute format('grant execute on function public.%s to anon', f);
   end loop;
 end $$;
+
+-- ---------- In-app feedback (anonymous survey answers) ----------
+create table if not exists public.feedback (
+  id         bigint generated always as identity primary key,
+  device     uuid        not null,
+  context    text        not null check (context in ('practice', 'game', 'challenge', 'guided', 'general')),
+  ease       int         check (ease between 1 and 5),
+  again      int         check (again between 1 and 5),
+  helped     int         check (helped between 1 and 5),
+  comment    text        check (char_length(comment) <= 500),
+  lang       text        check (lang in ('en', 'es')),
+  created_at timestamptz not null default now()
+);
+alter table public.feedback enable row level security;
+revoke all on public.feedback from anon, authenticated;
+
+create or replace function public.submit_feedback(p_device uuid, p_context text, p_ease int, p_again int, p_helped int, p_comment text, p_lang text)
+returns void language plpgsql security definer set search_path = public as $$
+begin
+  if p_context not in ('practice', 'game', 'challenge', 'guided', 'general') then raise exception 'unknown context'; end if;
+  if p_ease is null and p_again is null and p_helped is null and char_length(trim(coalesce(p_comment, ''))) = 0 then raise exception 'empty feedback'; end if;
+  if (select count(*) from feedback where device = p_device and created_at > now() - interval '1 day') >= 20 then raise exception 'daily limit'; end if;
+  insert into feedback (device, context, ease, again, helped, comment, lang)
+  values (p_device, p_context,
+    case when p_ease between 1 and 5 then p_ease end, case when p_again between 1 and 5 then p_again end,
+    case when p_helped between 1 and 5 then p_helped end, nullif(left(trim(coalesce(p_comment, '')), 500), ''),
+    case when p_lang in ('en', 'es') then p_lang end);
+end; $$;
+
+create or replace function public.feedback_summary()
+returns json language sql stable security definer set search_path = public as $$
+  select json_build_object('answers', count(*), 'people', count(distinct device),
+    'ease', round(avg(ease), 2), 'again', round(avg(again), 2), 'helped', round(avg(helped), 2),
+    'would_use_again_pct', round(100.0 * count(*) filter (where again >= 4) / nullif(count(again), 0)))
+  from feedback;
+$$;
+
+revoke all on function public.submit_feedback(uuid, text, int, int, int, text, text) from public, authenticated;
+grant execute on function public.submit_feedback(uuid, text, int, int, int, text, text) to anon;
+revoke all on function public.feedback_summary() from public, authenticated;
+grant execute on function public.feedback_summary() to anon;
