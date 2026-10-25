@@ -87,13 +87,15 @@ def main():
     with Pool(a.workers) as pool:
         for split, js in jobs.items():
             xs, ys = [], []
-            for label, arr in pool.imap_unordered(work, js):
+            for k, (label, arr) in enumerate(pool.imap_unordered(work, js), 1):
+                if k % 10 == 0 or k == len(js):
+                    print(f"  {split}: {k}/{len(js)} objects rendered", flush=True)
                 if not len(arr):
                     continue
                 xs.append(arr)
                 ys.append(np.full(len(arr), label, np.int16))
             X, Y = np.concatenate(xs), np.concatenate(ys)
-            np.savez_compressed(OUT / f"{split}.npz", x=X, y=Y)
+            np.savez(OUT / f"{split}.npz", x=X, y=Y)
             print(split, X.shape)
     with gzip.open(OUT / "test_strokes.json.gz", "wt") as f:
         json.dump(test_strokes, f)

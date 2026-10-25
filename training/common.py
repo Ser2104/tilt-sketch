@@ -62,11 +62,11 @@ def chaikin(p, it=2):
     for _ in range(it):
         if len(p) < 3:
             return p
-        q = [p[0]]
-        for a, b in zip(p[:-1], p[1:]):
-            q += [0.75 * a + 0.25 * b, 0.25 * a + 0.75 * b]
-        q.append(p[-1])
-        p = np.asarray(q)
+        a, b = p[:-1], p[1:]
+        mid = np.empty((2 * len(a), 2))
+        mid[0::2] = 0.75 * a + 0.25 * b
+        mid[1::2] = 0.25 * a + 0.75 * b
+        p = np.vstack([p[:1], mid, p[-1:]])
     return p
 
 
@@ -126,7 +126,47 @@ def gyro_augment(strokes, rng):
     return out
 
 
+try:
+    import cv2
+except ImportError:
+    cv2 = None
+
+
+def thin(q, gap):
+    """Keep about one point every gap pixels along the line; the drawing looks the same and renders much faster."""
+    if len(q) < 3:
+        return q
+    d = np.r_[0, np.cumsum(np.hypot(*np.diff(q, axis=0).T))]
+    keep = np.r_[True, np.diff(np.floor(d / gap)) > 0]
+    keep[-1] = True
+    return q[keep]
+
+
 def render(strokes, size=SIZE, pad=PAD, line=LINE):
+    """Same framing as the browser: crop to the ink, keep aspect, pad, draw dark lines on white, return ink in [0,1]."""
+    if cv2 is None:
+        return render_pil(strokes, size, pad, line)
+    pts = np.concatenate(strokes)
+    x0, y0 = pts.min(0)
+    x1, y1 = pts.max(0)
+    side = max(x1 - x0, y1 - y0, 1e-6)
+    cx, cy = (x0 + x1) / 2, (y0 + y1) / 2
+    big = size * SS
+    sc = (big - 2 * pad * SS) / side
+    img = np.full((big, big), 255, np.uint8)
+    w = max(1, int(round(line * SS)) - 2)
+    for s in strokes:
+        q = thin((np.asarray(s, float) - (cx, cy)) * sc + big / 2, 2.0)
+        q = np.round(q * 16).astype(np.int32)
+        if len(q) == 1:
+            cv2.circle(img, tuple(int(v) for v in q[0]), int(w * 8), 0, -1, cv2.LINE_AA, 4)
+        else:
+            cv2.polylines(img, [q.reshape(-1, 1, 2)], False, 0, w, cv2.LINE_AA, 4)
+    img = cv2.resize(img, (size, size), interpolation=cv2.INTER_AREA)
+    return (255 - img).astype(np.uint8)
+
+
+def render_pil(strokes, size=SIZE, pad=PAD, line=LINE):
     """Same framing as the browser: crop to the ink, keep aspect, pad, draw dark lines on white, return ink in [0,1]."""
     pts = np.concatenate(strokes)
     x0, y0 = pts.min(0)
