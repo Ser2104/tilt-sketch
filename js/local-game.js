@@ -3,7 +3,7 @@ function newMatch(){
   const names=S.players.map((p,i)=>p.trim()||"Player "+(i+1));
   if(S.mode==="impostor")return newImpostor(names);
   const units=S.mode==="solo"?names.map((n,i)=>({name:n,members:[i],total:0,hist:[]})):teamsOf(names).map((t,i)=>({name:"Team "+(i+1),members:t,total:0,hist:[]}));
-  G={mode:S.mode,names,units,round:0,words:shuffle(WORDS).slice(0,S.rounds),items:[],queue:[]};
+  G={mode:S.mode,names,units,round:0,words:shuffle(gameWords()).slice(0,S.rounds),items:[],queue:[]};
   keepAwake();startRound();
 }
 function startRound(){
@@ -20,7 +20,7 @@ function nextTurn(){
     info:cont?`You continue ${prev}'s drawing. The orange circle marks where they stopped, and your brush starts there.`:(team?`${t.it.u.name} · ${rl}. You start the drawing.`:rl),
     hint:cont?S.ctrl==="look"?"Hold the phone up like a camera before tapping. Where you aim becomes the spot where they stopped.":"Hold the phone comfortably before tapping. That tilt becomes the spot where they stopped.":(S.input==="gyro"?S.ctrl==="look"?"Hold the phone up like a camera. Where you aim during the 3-2-1 countdown becomes the center of the sheet.":"During the 3-2-1 countdown, hold the phone comfortably. That position becomes the center.":"Mouse test mode: drag on the sheet to draw. The brush stays in the center."),
     thumb:cont?thumbWithMark(t.it.strokes,t.it.last):null,
-    onGo:()=>startDraw({who:`${who}${team?" · "+t.it.u.name:""} · ${rl}`,word:w,ref:refFor(w)?.emoji,strokes:t.it.strokes,dur:S.time[G.mode],mark:cont?t.it.last:null,
+    onGo:()=>startDraw({who:`${who}${team?" · "+t.it.u.name:""} · ${rl}`,word:w,ref:refFor(w)?.emoji,live:true,strokes:t.it.strokes,dur:S.time[G.mode],mark:cont?t.it.last:null,
       onEnd:lp=>{t.it.last=lp;nextTurn()}})});
 }
 async function judge(){

@@ -1,16 +1,16 @@
 /* ---------- Daily challenge and Levels ---------- */
 const WORLDS=[
-  {name:"First lines",time:25,pass:35,items:["house","smiley face","snowman","rainbow","umbrella","ice cream","sailboat","mushroom"]},
-  {name:"Around the house",time:22,pass:40,items:["clock","scissors","eyeglasses","hamburger","camera","headphones","guitar","cactus"]},
-  {name:"Animals",time:20,pass:45,items:["fish","snail","cat","spider","octopus","butterfly","giraffe","sea turtle"]},
-  {name:"Adventure",time:20,pass:50,items:["crown","castle","skull","lighthouse","hot air balloon","helicopter","airplane","train"]},
-  {name:"Masters",time:18,pass:55,items:["bicycle","elephant","Eiffel Tower","pineapple","strawberry","car","penguin","owl"]}
+  {name:"First lines",time:25,pass:35,items:["house", "smiley face", "snowman", "rainbow", "umbrella", "ice cream", "sailboat", "ladder"]},
+  {name:"Around the house",time:22,pass:40,items:["hourglass", "scissors", "eyeglasses", "hamburger", "camera", "headphones", "guitar", "television"]},
+  {name:"Animals",time:20,pass:45,items:["fish", "snail", "cat", "spider", "octopus", "butterfly", "giraffe", "bee"]},
+  {name:"Adventure",time:20,pass:50,items:["crown", "castle", "skull", "lighthouse", "helicopter", "train", "diamond", "snowflake"]},
+  {name:"Masters",time:18,pass:55,items:["bicycle", "Eiffel Tower", "pineapple", "car", "penguin", "cactus", "angel", "rabbit"]}
 ];
 const LEVEL_LIST=WORLDS.flatMap((w,wi)=>w.items.map((word,i)=>({word,world:wi,index:i,time:w.time,pass:w.pass})));
 let DAILY_TIME=25;
 const store={get(k,d){try{const v=localStorage.getItem(k);return v==null?d:JSON.parse(v)}catch(_){return d}},set(k,v){try{localStorage.setItem(k,JSON.stringify(v))}catch(_){}}};
 function todayUTC(){return new Date().toISOString().slice(0,10)}
-function dailyWord(date=todayUTC()){let h=2166136261;for(const c of"tilt-"+date)h=Math.imul(h^c.charCodeAt(0),16777619)>>>0;return WORDS[h%WORDS.length]}
+function dailyWord(date=todayUTC()){let h=2166136261;for(const c of"tilt-"+date)h=Math.imul(h^c.charCodeAt(0),16777619)>>>0;const L=LEVEL_LIST.map(l=>l.word);return L[h%L.length]}
 function starsFor(score,pass){return score>=Math.min(95,pass+35)?3:score>=pass+20?2:score>=pass?1:0}
 function levelState(){return store.get("ts-levels",{unlocked:0,best:{}})}
 function totalStars(st){return LEVEL_LIST.reduce((s,l,i)=>s+starsFor(st.best[i]||0,l.pass),0)}
@@ -29,8 +29,8 @@ async function judgeOne(word,strokes){
   if(AI.state!=="ok")return{acc:0,guess:"AI unavailable"};
   const[r]=await aiJudge(word,[{strokes}]);return r}
 function playChallenge({word,time,label,onScore}){
-  handoff({label,who:up(word),ref:refFor(word),info:`You have ${time} seconds. Draw it so the AI can recognize it. Scribbles score zero.`,hint:S.ctrl==="look"?"Hold the phone up like a camera before you tap.":"Hold the phone comfortably before you tap.",go:"Start drawing",
-    onGo:()=>startDraw({who:label,word,strokes:[],dur:time,ref:refFor(word)?.emoji,onEnd:async()=>{const strokes=D.strokes.slice();showWait({title:"The AI is looking at your drawing",sub:"",chips:[]});
+  handoff({label,who:up(word),ref:refFor(word),info:`You have ${time} seconds. Draw it so the AI can recognize it. Only the shape counts, not the colors.`,hint:S.ctrl==="look"?"Hold the phone up like a camera before you tap.":"Hold the phone comfortably before you tap.",go:"Start drawing",
+    onGo:()=>startDraw({who:label,word,strokes:[],dur:time,ref:refFor(word)?.emoji,live:true,liveFinish:true,onEnd:async()=>{const strokes=D.strokes.slice();showWait({title:"The AI is looking at your drawing",sub:"",chips:[]});
       const r=await judgeOne(word,strokes);CR_OFFER={word,strokes,r};CR_TOP=r;onScore(r,snapshot(strokes,240))},onError:()=>show("s-home")})});
 }
 let CR_OFFER=null,CR_TOP=null;

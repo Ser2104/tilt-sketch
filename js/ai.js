@@ -26,7 +26,7 @@ async function loadCustomModel(){
     catch(_){DOODLE_CLASSES=await (await fetch("models/doodlenet/classes.json")).json();AI.model=await tf.loadLayersModel("models/doodlenet/model.json");buildGameIndex();AI.kind="doodlenet"}
     const n=AI.kind==="custom"?AI.spec.input.size:28;tf.tidy(()=>AI.model.predict(tf.zeros([1,n,n,1])));
     const per=AI.kind==="custom"&&AI.spec.evaluation&&AI.spec.evaluation.per_object;
-    if(per){const weak=WORDS.filter(w=>per[w]!=null&&per[w]<.6);if(weak.length<WORDS.length-20)weak.forEach(w=>WORDS.splice(WORDS.indexOf(w),1))}
+    if(per)AI.per=per;
     AI.state="ok";aiMsg("ok",AI.kind==="custom"?"Tilt Sketch AI ready, trained for this game's objects. It runs on the phone.":"AI ready. It runs on the phone, with no internet or account needed.");
   }catch(e){AI.state="off";aiMsg("bad","The AI could not load. Players will score each drawing.")}
 })();
@@ -78,6 +78,7 @@ function cleanStrokes(strokes,win=.1,eps=.015){
     return p.filter((_,i)=>keep[i])}
   return strokes.map(s=>s.c==="#FFFFFF"||s.pts.length<3?s:{...s,pts:rdp(smooth(resample(s.pts)),eps*size)})}
 function cleanFor(strokes){const c=AI.spec&&AI.spec.input&&AI.spec.input.clean;if(AI.kind==="custom"&&!c)return strokes;return c?cleanStrokes(strokes,c.win,c.eps):cleanStrokes(strokes)}
+function gameWords(){const p=AI.per;if(!p)return WORDS;const good=WORDS.filter(w=>p[w]==null||p[w]>=.8);return good.length?good:WORDS}
 function topList(r){return(r&&r.top||[]).filter(t=>t.p>=.02)}
 function explainShort(r){const t=topList(r);if(!t.length)return"";
   return(t[0].p<.45?"Not sure · ":"")+t.map(x=>`${x.w} ${Math.round(100*x.p)}%`).join(", ")}

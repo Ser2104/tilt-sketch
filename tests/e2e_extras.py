@@ -15,7 +15,7 @@ async def main():
         pg.on("pageerror", lambda e: errs.append(str(e)))
         await pg.goto(BASE + "/index.html")
         await pg.evaluate(ORI)
-        await pg.evaluate("S.sens=22;WORDS.splice(0,WORDS.length,'sun');LEVEL_LIST[0].time=8;LEVEL_LIST[0].word='sun';DAILY_TIME=8")
+        await pg.evaluate("S.sens=22;WORDS.splice(0,WORDS.length,'sun');LEVEL_LIST.forEach(l=>l.word='sun');LEVEL_LIST[0].time=8;LEVEL_LIST[0].word='sun';DAILY_TIME=8")
 
         before = len(mock_state()["feedback"])
         await pg.click("#cDaily"); await pg.wait_for_selector("#s-hand:not([hidden])")

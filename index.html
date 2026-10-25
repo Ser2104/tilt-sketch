@@ -150,7 +150,7 @@
     <span class="pass" id="hPass">Pass the phone to</span>
     <div class="who" id="hWho">Alex</div>
     <p class="lede" id="hInfo" style="text-align:center"></p>
-    <div class="refbox" id="hRef" hidden><img class="thumb" id="hRefImg" alt="Example of the figure" hidden><div class="refemoji" id="hRefEmoji" aria-hidden="true"></div><div class="reftip" id="hRefTip"></div></div>
+    <div class="refbox" id="hRef" hidden><img class="thumb" id="hRefImg" alt="Example of the figure" hidden><div class="refemoji" id="hRefEmoji" aria-hidden="true"></div><div class="reftip" id="hRefTip"></div><div class="exbox" id="hExBox" hidden><span class="label">How other people draw it · the AI knows these</span><div class="examples" id="hEx"></div></div></div>
     <img class="thumb" id="hThumb" alt="Teammate's drawing" hidden>
     <div class="reveal" id="hReveal" hidden>
       <div class="label">Press and hold to see your object</div>
@@ -174,6 +174,7 @@
     <video id="camv" playsinline muted autoplay hidden></video>
     <canvas id="cv" width="300" height="300" aria-label="Drawing plane"></canvas>
     <div class="overlay" id="dOver"></div>
+    <div class="liveai" id="liveAI" hidden aria-live="polite"></div>
     <div class="aimhint" id="aimHint" hidden>Hold the phone up like a camera</div>
   </div>
   <div class="tools" id="swatchRow">
@@ -506,6 +507,7 @@
 <script src="js/motor.js"></script>
 <script src="js/draw.js"></script>
 <script src="js/ai.js"></script>
+<script src="js/live.js"></script>
 <script src="js/a11y.js"></script>
 <script src="js/practice.js"></script>
 <script src="js/progress.js"></script>

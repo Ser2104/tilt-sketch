@@ -37,7 +37,7 @@ async def trace_once(pg):
 
 async def donations(b):
     pg, errs = await page(b, "donor")
-    await pg.evaluate("S.sens=22;WORDS.splice(0,WORDS.length,'sun');LEVEL_LIST[0].time=8;LEVEL_LIST[0].word='sun';DAILY_TIME=8;Donate.render()")
+    await pg.evaluate("S.sens=22;WORDS.splice(0,WORDS.length,'sun');LEVEL_LIST.forEach(l=>l.word='sun');LEVEL_LIST[0].time=8;LEVEL_LIST[0].word='sun';DAILY_TIME=8;Donate.render()")
     print("home panel:", (await pg.inner_text("#donatePanel")).replace("\n", " | "))
     before = len(mock_state()["drawings"])
     await pg.click("#cDaily"); await pg.wait_for_selector("#s-hand:not([hidden])")

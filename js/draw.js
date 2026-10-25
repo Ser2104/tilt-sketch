@@ -78,8 +78,8 @@ cv.addEventListener("pointermove",e=>{if(S.input!=="finger"||!drag)return;D.pos.
 
 let wake=null;async function keepAwake(){try{wake=await navigator.wakeLock.request("screen")}catch(_){}}
 
-function startDraw({who,word,strokes,dur,mark,onEnd,onError=null,template=null,steady=false,hud=null,autoFinish=false,ref=null,zoom=null}){
-  D.zoom=zoom;
+function startDraw({who,word,strokes,dur,mark,onEnd,onError=null,template=null,steady=false,hud=null,autoFinish=false,ref=null,zoom=null,live=false,liveFinish=false}){
+  D.zoom=zoom;D.word=word;D.live=live;D.liveFinish=liveFinish;liveReset();
   D.tplHud=hud;D.autoFinish=autoFinish;$("#dRef").textContent=ref||"";$("#dRef").hidden=!ref;$("#dBar").parentElement.hidden=!dur;
   D.onError=onError;
   D.strokes=strokes;D.base=strokes.length;D.dur=dur;D.mark=mark||null;D.onEnd=onEnd;D.cur=null;D.pen=false;D.samples=[];D.template=template;D.steady=steady;
@@ -105,9 +105,10 @@ function thumbWithMark(strokes,mark){const n=320,c=document.createElement("canva
   if(mark){x.strokeStyle="#FF5A36";x.lineWidth=3;x.beginPath();x.arc(mark[0]*n,mark[1]*n,12,0,7);x.stroke()}return c.toDataURL()}
 
 /* ---------- Handoff ---------- */
-function refFor(word){const h=FIG.HINTS[word];return h?{emoji:h[0],tip:h[1]}:null}
+function refFor(word){const h=FIG.HINTS[word];return h?{emoji:h[0],tip:h[1],examples:typeof EXAMPLES!=="undefined"?EXAMPLES[word]:null}:null}
 function handoff({who,info="",hint="",word=null,thumb=null,label="Pass the phone to",go="I'm ready",onGo,ref=null}){
   $("#hRef").hidden=!ref;if(ref){$("#hRefEmoji").textContent=ref.emoji||"";$("#hRefEmoji").hidden=!ref.emoji;$("#hRefImg").hidden=!ref.img;if(ref.img)$("#hRefImg").src=ref.img;$("#hRefTip").textContent=ref.tip||""}
+  const ex=ref&&ref.examples;$("#hExBox").hidden=!ex;if(ex)$("#hEx").innerHTML=ex.map(d=>exampleSVG(d)).join("");
   $("#hPass").textContent=label;$("#hWho").textContent=who;$("#hInfo").textContent=info;$("#hHint").textContent=hint;
   $("#hThumb").hidden=!thumb;if(thumb)$("#hThumb").src=thumb;
   const rv=$("#hReveal");rv.hidden=!word;$("#hWord").textContent="";

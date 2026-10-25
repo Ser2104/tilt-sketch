@@ -30,6 +30,9 @@ More than 795,000 people in the US have a stroke each year, and stroke reduces m
 
 **Challenges**
 - Every free drawing (games, daily challenge, levels) first shows a reference picture and a one-line tip on how to draw it in a few lines, and keeps the picture next to the name while drawing.
+- Before each free drawing the player also sees three real drawings by other people that the AI recognizes best, so they know the shape the AI expects (colors do not count, only the shape).
+- While drawing, the AI shows its live guess ("AI sees: sun · 89%"); in levels and the daily challenge the turn ends as soon as the AI is sure.
+- Levels and the daily challenge use only objects the model recognizes at least 80% of the time on gyroscope-style test drawings.
 - Guided drawings: 30 original line-art figures in 5 worlds (Warm-up, Sky and space, Heroes, Movie night, Animals) traced line by line with no time limit. The current line is highlighted with its start dot, direction arrow and end ring; finished lines turn green; the drawing completes itself when every line is covered. Stars, unlocks and a shared ranking. All figures are original designs, not copyrighted characters.
 - Daily challenge: the same object for everyone each day (UTC); every try can raise your best score on the daily ranking; shareable result.
 - Levels and the daily challenge only use objects with a shape that is hard to confuse (no crescent moon, plain sun or star), so a good drawing is not mistaken for something else.

@@ -35,7 +35,7 @@ async def phone(b, name):
     pg.on("pageerror", lambda e: print("PAGEERROR", name, e))
     await pg.goto(BASE + "/index.html")
     await pg.evaluate(ORI)
-    await pg.evaluate(CONNECT + ";S.sens=22;WORDS.splice(0,WORDS.length,'sun');LEVEL_LIST[0].time=8;LEVEL_LIST[0].word='sun';LEVEL_LIST[1].word='sun';LEVEL_LIST[1].time=8")
+    await pg.evaluate(CONNECT + ";S.sens=22;WORDS.splice(0,WORDS.length,'sun');LEVEL_LIST.forEach(l=>l.word='sun');LEVEL_LIST[0].time=8;LEVEL_LIST[0].word='sun';LEVEL_LIST[1].word='sun';LEVEL_LIST[1].time=8")
     await pg.evaluate("renderChallengeCards()")
     return pg
 
