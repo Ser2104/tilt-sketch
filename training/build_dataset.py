@@ -26,11 +26,14 @@ def work(args):
         s = to_points(d)
         if not s:
             continue
-        if augment:
-            for _ in range(variants):
-                xs.append(render(gyro_augment(s, r)))
-        else:
-            xs.append(render(s))
+        try:
+            if augment:
+                for _ in range(variants):
+                    xs.append(render(gyro_augment(s, r)))
+            else:
+                xs.append(render(s))
+        except ValueError:
+            continue
     return label, np.asarray(xs, np.uint8)
 
 

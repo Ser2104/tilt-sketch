@@ -105,8 +105,9 @@ def gyro_augment(strokes, rng):
         if rng.random() < 0.7:
             p = chaikin(p)
         out.append((p - c) @ M.T + c)
+    out = [s for s in out if len(s)]
     if not out:
-        out = strokes
+        return strokes
     if len(out) > 1 and rng.random() < 0.3:
         joined = [out[0]]
         for s in out[1:]:
@@ -114,14 +115,14 @@ def gyro_augment(strokes, rng):
         out = joined
     if rng.random() < 0.3:
         total = sum(len(s) for s in out)
-        keep = int(total * rng.uniform(0.6, 1.0))
+        keep = max(1, int(total * rng.uniform(0.6, 1.0)))
         cut, n = [], 0
         for s in out:
             if n >= keep:
                 break
             cut.append(s[: max(1, keep - n)])
             n += len(s)
-        out = cut
+        out = [s for s in cut if len(s)] or out
     return out
 
 
