@@ -10,7 +10,7 @@ import numpy as np
 import tensorflow as tf
 from PIL import Image, ImageDraw
 
-from common import CLASSES, GAME, MODEL_DIR, OTHER, OUT, ROOT, gyro_augment, to_points
+from common import CLASSES, GAME, MODEL_DIR, OTHER, OUT, ROOT, clean, gyro_augment, to_points
 from train import build
 
 DOCS = ROOT.parent / "docs"
@@ -115,7 +115,7 @@ def main():
     for lbl, d in test:
         s = to_points(d)
         if s:
-            xs.append(doodlenet_input(gyro_augment(s, r), 4))
+            xs.append(doodlenet_input(clean(gyro_augment(s, r)), 4))
             ys.append(lbl)
     dp = dn.predict(np.asarray(xs), batch_size=1024, verbose=0)
     restricted = np.stack([dp[:, idx[w]].sum(1) for w in words], 1)
@@ -131,7 +131,7 @@ def main():
         ours_real = float((pr[:, :len(words)].argmax(1) == yr).mean())
         with gzip.open(OUT / "test_real_strokes.json.gz", "rt") as f:
             rs = [(lbl, to_points(dr)) for lbl, dr in json.load(f)]
-        rx = np.asarray([doodlenet_input(s, 4) for _, s in rs])
+        rx = np.asarray([doodlenet_input(clean(s), 4) for _, s in rs])
         rd = dn.predict(rx, batch_size=1024, verbose=0)
         dn_real = float((np.stack([rd[:, idx[w]].sum(1) for w in words], 1).argmax(1) == np.asarray([l for l, _ in rs])).mean())
         real_eval = {"real_n": int(len(yr)), "real_ours_top1": round(ours_real, 4), "real_doodlenet_top1": round(dn_real, 4)}

@@ -10,7 +10,7 @@ from multiprocessing import Pool
 
 import numpy as np
 
-from common import CLASSES, DATA, OUT, gyro_augment, render, to_points
+from common import CLASSES, DATA, OUT, clean, gyro_augment, render, to_points
 
 
 def load(name):
@@ -29,9 +29,9 @@ def work(args):
         try:
             if augment:
                 for _ in range(variants):
-                    xs.append(render(gyro_augment(s, r)))
+                    xs.append(render(clean(gyro_augment(s, r))))
             else:
-                xs.append(render(s))
+                xs.append(render(clean(s)))
         except ValueError:
             continue
     return label, np.asarray(xs, np.uint8)

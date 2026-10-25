@@ -40,4 +40,5 @@ async def main():
             print(f"target {word:6} | {label:12} -> {r['acc']:3}% (AI sees: {r['guess']})")
         await b.close()
 
-asyncio.run(main())
+if __name__ == "__main__":
+    asyncio.run(main())

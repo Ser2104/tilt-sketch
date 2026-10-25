@@ -61,6 +61,23 @@ function scribblePenalty(strokes){
   let x0=1,x1=0,y0=1,y1=0,L=0;for(const[x,y]of pts){x0=Math.min(x0,x);x1=Math.max(x1,x);y0=Math.min(y0,y);y1=Math.max(y1,y)}
   for(const s of ink)for(let i=1;i<s.pts.length;i++)L+=Math.hypot(s.pts[i][0]-s.pts[i-1][0],s.pts[i][1]-s.pts[i-1][1]);
   const density=L/Math.max(.02,Math.max(x1-x0,y1-y0));return density<=14?1:Math.max(.05,(14/density)**1.5)}
+function cleanStrokes(strokes,win=.1,eps=.015){
+  const all=strokes.filter(s=>s.c!=="#FFFFFF").flatMap(s=>s.pts);if(!all.length)return strokes;
+  let x0=1e9,x1=-1e9,y0=1e9,y1=-1e9;for(const[x,y]of all){x0=Math.min(x0,x);x1=Math.max(x1,x);y0=Math.min(y0,y);y1=Math.max(y1,y)}
+  const size=Math.max(x1-x0,y1-y0,1e-6),step=size/100,k=Math.round(win*100/2);
+  function resample(p){const d=[0];for(let i=1;i<p.length;i++)d.push(d[i-1]+Math.hypot(p[i][0]-p[i-1][0],p[i][1]-p[i-1][1]));
+    const L=d[d.length-1];if(L<1e-6)return[p[0]];const out=[];let j=0;
+    for(let t=0;t<L;t+=step){while(d[j+1]<t)j++;const f=(t-d[j])/((d[j+1]-d[j])||1e-12);out.push([p[j][0]+(p[j+1][0]-p[j][0])*f,p[j][1]+(p[j+1][1]-p[j][1])*f])}
+    out.push(p[p.length-1]);return out}
+  function smooth(p){if(p.length<3||k<1)return p;const c=[[0,0]];for(const q of p)c.push([c[c.length-1][0]+q[0],c[c.length-1][1]+q[1]]);
+    const out=p.map((_,i)=>{const lo=Math.max(0,i-k),hi=Math.min(p.length-1,i+k),n=hi-lo+1;return[(c[hi+1][0]-c[lo][0])/n,(c[hi+1][1]-c[lo][1])/n]});out[0]=p[0];out[out.length-1]=p[p.length-1];return out}
+  function rdp(p,e){const keep=new Uint8Array(p.length);keep[0]=keep[p.length-1]=1;const st=[[0,p.length-1]];
+    while(st.length){const[i,j]=st.pop();if(j-i<2)continue;const a=p[i],b=p[j],L=Math.hypot(b[0]-a[0],b[1]-a[1])||1e-9;let md=-1,mi=-1;
+      for(let m=i+1;m<j;m++){const d=L>1e-6?Math.abs((b[0]-a[0])*(a[1]-p[m][1])-(a[0]-p[m][0])*(b[1]-a[1]))/L:Math.hypot(p[m][0]-a[0],p[m][1]-a[1]);if(d>md){md=d;mi=m}}
+      if(md>e){keep[mi]=1;st.push([i,mi],[mi,j])}}
+    return p.filter((_,i)=>keep[i])}
+  return strokes.map(s=>s.c==="#FFFFFF"||s.pts.length<3?s:{...s,pts:rdp(smooth(resample(s.pts)),eps*size)})}
+function cleanFor(strokes){const c=AI.spec&&AI.spec.input&&AI.spec.input.clean;if(AI.kind==="custom"&&!c)return strokes;return c?cleanStrokes(strokes,c.win,c.eps):cleanStrokes(strokes)}
 function topList(r){return(r&&r.top||[]).filter(t=>t.p>=.02)}
 function explainShort(r){const t=topList(r);if(!t.length)return"";
   return(t[0].p<.45?"Not sure · ":"")+t.map(x=>`${x.w} ${Math.round(100*x.p)}%`).join(", ")}
@@ -68,14 +85,15 @@ function explainHTML(r){const t=topList(r);if(!t.length)return"";
   return`<div class="aitop" role="group" aria-label="The AI's top guesses"><span class="label">${r.scribble?"Looks like a scribble. ":""}${t[0].p<.45?"The AI is not sure. ":""}Its top guesses</span>${t.map(x=>`<div class="aibar"><span>${esc(x.w)}</span><i style="width:${Math.max(2,Math.round(100*x.p))}%"></i><b>${Math.round(100*x.p)}%</b></div>`).join("")}</div>`}
 async function aiJudge(word,items){
   if(AI.kind==="custom")return Promise.all(items.map(async it=>{
-    const p=await customProbs(it.strokes);if(!p)return{guess:"nothing (blank sheet)",acc:0};
+    const p=await customProbs(cleanFor(it.strokes));if(!p)return{guess:"nothing (blank sheet)",acc:0};
     const cls=AI.spec.classes;let best=0;p.forEach((v,i)=>{if(v>p[best])best=i});
     const k=cls.indexOf(word),pen=scribblePenalty(it.strokes);
     const top=[...p].map((v,i)=>({w:cls[i]==="other"?"something else":cls[i],p:v})).sort((a,b)=>b.p-a.p).slice(0,3);
     return{guess:pen<.8?"a scribble":cls[best]==="other"?"something else":cls[best],acc:k<0?0:Math.round(100*p[k]*pen),top,scribble:pen<.8}}));
   return Promise.all(items.map(async it=>{
     const probs=new Float32Array(DOODLE_CLASSES.length);let n=0;
-    for(const pad of[3,4,6]){const t=inkTensor(it.strokes,pad);if(!t)break;const p=await tf.tidy(()=>AI.model.predict(t)).data();t.dispose();p.forEach((v,i)=>probs[i]+=v/3);n++}
+    const cs=cleanFor(it.strokes);
+    for(const pad of[3,4,6]){const t=inkTensor(cs,pad);if(!t)break;const p=await tf.tidy(()=>AI.model.predict(t)).data();t.dispose();p.forEach((v,i)=>probs[i]+=v/3);n++}
     if(!n)return{guess:"nothing (blank sheet)",acc:0};
     let other=0,noise=0,otherBest=-1;probs.forEach((v,i)=>{if(!IN_GAME.has(i)){if(NOISE.has(DOODLE_CLASSES[i]))noise+=v;else other+=v;if(otherBest<0||v>probs[otherBest])otherBest=i}});
     const score={};for(const[w,ix]of Object.entries(GAME_IDX))score[w]=ix.reduce((a,k)=>a+probs[k],0);

@@ -1,6 +1,6 @@
 # Training the Tilt Sketch AI
 
-Fastest: open `train_colab.ipynb` in Google Colab, switch the runtime to a T4 GPU and run all cells (about 45 minutes). It uses the competition settings: 6,000 drawings per object, the wider model (`--arch wide`, 1.1 M parameters) and 16 epochs. Download the zip at the end and add its files to the repository.
+Fastest: open `train_colab.ipynb` in Google Colab, switch the runtime to a T4 GPU and run all cells (about 30 minutes). It uses 5,000 drawings per object, the wider model (`--arch wide`, 1.1 M parameters) and 14 epochs. Every drawing is cleaned the same way the game cleans it (even spacing, smoothing, simplification) so phone wobble does not confuse the model. Download the zip at the end and add its files to the repository.
 
 Locally (slow on CPU):
 

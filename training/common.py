@@ -70,6 +70,57 @@ def chaikin(p, it=2):
     return p
 
 
+CLEAN_WIN = 0.1
+CLEAN_EPS = 0.015
+
+
+def _rdp(p, eps):
+    keep = np.zeros(len(p), bool)
+    keep[0] = keep[-1] = True
+    stack = [(0, len(p) - 1)]
+    while stack:
+        i, j = stack.pop()
+        if j - i < 2:
+            continue
+        a, b = p[i], p[j]
+        L = np.hypot(*(b - a))
+        seg = p[i + 1:j]
+        if L > 1e-6:
+            d = np.abs((b[0] - a[0]) * (a[1] - seg[:, 1]) - (a[0] - seg[:, 0]) * (b[1] - a[1])) / L
+        else:
+            d = np.hypot(seg[:, 0] - a[0], seg[:, 1] - a[1])
+        k = int(np.argmax(d))
+        if d[k] > eps:
+            m = i + 1 + k
+            keep[m] = True
+            stack += [(i, m), (m, j)]
+    return p[keep]
+
+
+def clean(strokes, win=CLEAN_WIN, eps=CLEAN_EPS):
+    """Same as cleanStrokes in js/ai.js: even spacing, moving-average smoothing, then simplification. Removes phone wobble."""
+    pts = np.concatenate(strokes)
+    size = max(np.ptp(pts[:, 0]), np.ptp(pts[:, 1]), 1e-6)
+    k = int(round(win * 100 / 2))
+    out = []
+    for s in strokes:
+        s = np.asarray(s, float)
+        if len(s) < 3:
+            out.append(s)
+            continue
+        r = resample(s, size / 100)
+        r = np.vstack([r, s[-1:]]) if len(r) else s
+        if len(r) >= 3 and k >= 1:
+            c = np.cumsum(np.vstack([[0, 0], r]), 0)
+            idx = np.arange(len(r))
+            lo, hi = np.maximum(0, idx - k), np.minimum(len(r) - 1, idx + k)
+            sm = (c[hi + 1] - c[lo]) / (hi - lo + 1)[:, None]
+            sm[0], sm[-1] = r[0], r[-1]
+            r = sm
+        out.append(_rdp(r, eps * size))
+    return out
+
+
 def resample(p, step):
     if len(p) < 2:
         return p

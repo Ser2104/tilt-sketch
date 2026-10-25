@@ -10,7 +10,7 @@ import time
 import numpy as np
 import tensorflow as tf
 
-from common import CLASSES, MODEL_DIR, OUT, SIZE, PAD, LINE
+from common import CLASSES, CLEAN_EPS, CLEAN_WIN, MODEL_DIR, OUT, SIZE, PAD, LINE
 
 ARCH = [
     {"type": "conv", "filters": 32}, {"type": "bn"}, {"type": "relu"},
@@ -102,7 +102,7 @@ def export(model, T, meta, arch=ARCH):
             manifest.append({"layer": layer.name, "shape": list(a.shape)})
             blobs.append(a.tobytes())
     (MODEL_DIR / "weights.bin").write_bytes(b"".join(blobs))
-    spec = {"version": 1, "input": {"size": SIZE, "pad": PAD, "line": LINE}, "classes": CLASSES,
+    spec = {"version": 1, "input": {"size": SIZE, "pad": PAD, "line": LINE, "clean": {"win": CLEAN_WIN, "eps": CLEAN_EPS}}, "classes": CLASSES,
             "arch": arch, "weights": manifest, "temperature": T, "trained": meta}
     (MODEL_DIR / "spec.json").write_text(json.dumps(spec, indent=1))
 
