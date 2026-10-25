@@ -39,7 +39,10 @@ class Train(Batches):
     """Feeds uint8 images in shuffled batches so the training set never has to fit in memory as float32."""
 
     def __init__(self, x, y, batch):
-        super().__init__()
+        if Batches is tf.keras.utils.Sequence:
+            super().__init__()
+        else:
+            super().__init__(workers=4, use_multiprocessing=False, max_queue_size=16)
         self.x, self.y, self.batch = x, y, batch
         self.order = np.random.permutation(len(x))
 
@@ -71,7 +74,7 @@ def build(arch=ARCH):
         elif t == "dropout":
             x = tf.keras.layers.Dropout(L["rate"])(x)
         elif t == "dense":
-            x = tf.keras.layers.Dense(L["units"])(x)
+            x = tf.keras.layers.Dense(L["units"], dtype="float32")(x)
     return tf.keras.Model(inp, x)
 
 
@@ -112,7 +115,10 @@ def main():
     ap.add_argument("--epochs", type=int, default=12)
     ap.add_argument("--batch", type=int, default=256)
     ap.add_argument("--arch", choices=sorted(ARCHS), default="base")
+    ap.add_argument("--fast", action="store_true", help="mixed precision on the GPU (about 3x faster on a T4)")
     a = ap.parse_args()
+    if a.fast and tf.config.list_physical_devices("GPU"):
+        tf.keras.mixed_precision.set_global_policy("mixed_float16")
     xtr, ytr = load("train", raw=True)
     xva, yva = load("val")
     arch = ARCHS[a.arch]
