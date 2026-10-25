@@ -49,6 +49,8 @@ jobs:
         run: python tests/e2e_es.py
       - name: Browser back and forward buttons
         run: python tests/e2e_nav.py
+      - name: Eight phones join a room through the live relay
+        run: python tests/e2e_relay.py
       - name: Live database is reachable and protected
         run: |
           URL=$(grep -o 'https://[a-z0-9]*\.supabase\.co' js/config.js)

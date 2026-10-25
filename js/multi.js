@@ -19,6 +19,11 @@ $("#createRoom").onclick=async()=>{
   const name=myName();if(!name||!(await readyToDraw()))return;
   if(typeof Peer==="undefined"){netMsg("Multiplayer could not load. Check your connection and reload.");return}
   netMsg("Creating room…");NET.isHost=true;NET.name=name;
+  if(Relay.usable()){NET.code=newCode();const r=Relay.host(NET.code,{
+      onOpen:()=>{if(NET.peer!==r)return;NET.me="host";NET.players=[{id:"host",name}];netMsg("");keepAwake();showLobby();hostLobby()},
+      onConnection:c=>{c.on("data",d=>hostRecv(c.peer,d,c));c.on("close",()=>dropPlayer(c.peer))},
+      onError:e=>{if(NET.peer===r){NET.peer=null;NET.code="";netMsg("Could not create the room ("+e+"). Check your connection and try again.")}}});
+    NET.peer=r;return}
   const open=()=>{NET.code=newCode();const p=new Peer(PFX+NET.code,peerOpts());NET.peer=p;
     p.on("open",()=>{NET.me="host";NET.players=[{id:"host",name}];netMsg("");keepAwake();showLobby();hostLobby()});
     p.on("connection",c=>{c.on("data",d=>hostRecv(c.peer,d,c));c.on("close",()=>dropPlayer(c.peer));c.on("error",()=>dropPlayer(c.peer))});
@@ -32,6 +37,11 @@ $("#joinRoom").onclick=async()=>{
   if(!(await readyToDraw()))return;
   if(typeof Peer==="undefined"){netMsg("Multiplayer could not load. Check your connection and reload.");return}
   netMsg("Joining room "+code+"…");NET.isHost=false;NET.name=name;NET.code=code;
+  if(Relay.usable()){const r=Relay.guest(code,{
+      onOpen:hc=>{if(NET.peer!==r)return;NET.hostConn=hc;hc.on("data",clientRecv);hc.on("close",()=>{if(NET.peer===r)leaveRoom("The host left the room.")});hc.send({t:"hello",name});keepAwake()},
+      onNotFound:()=>{if(NET.peer===r){r.destroy();NET.peer=null;NET.code="";netMsg("Room "+code+" was not found. Check the code and that the host has the room open.")}},
+      onError:e=>{if(NET.peer===r){r.destroy();NET.peer=null;NET.code="";netMsg("Could not join ("+e+"). Check your connection and try again.")}}});
+    NET.peer=r;return}
   const p=new Peer(peerOpts());NET.peer=p;
   const fail=setTimeout(()=>{if(!NET.hostConn||!NET.hostConn.open){netMsg("Could not reach room "+code+". Check the code and that the host has the lobby open.");p.destroy()}},12000);
   p.on("open",()=>{const c=p.connect(PFX+code,{reliable:true});NET.hostConn=c;
@@ -59,6 +69,7 @@ function leaveRoom(msg){
 $("#lLeave").onclick=()=>leaveRoom("");
 $("#lCopy").onclick=async e=>{const t=inviteLink();try{await navigator.clipboard.writeText(t);e.target.textContent="Link copied"}catch(_){e.target.textContent=t}setTimeout(()=>e.target.textContent="Copy invite link",2500)};
 
+function packStrokes(st){return(st||[]).map(s=>({c:s.c,w:+(+s.w).toFixed(4),pts:s.pts.map(p=>[+p[0].toFixed(4),+p[1].toFixed(4)])}))}
 function sendTo(id,msg){if(id==="host")setTimeout(()=>clientRecv(msg),0);else{const c=NET.conns.get(id);if(c&&c.open)c.send(msg)}}
 function broadcast(msg){NET.players.forEach(p=>sendTo(p.id,msg))}
 function toHost(msg){if(NET.isHost)setTimeout(()=>hostRecv("host",msg),0);else if(NET.hostConn&&NET.hostConn.open)NET.hostConn.send(msg)}
@@ -125,7 +136,7 @@ function remoteDraw(d){
   clearInterval(autoGo);
   handoff({label:d.label||"Your object",who:up(d.word),ref:refFor(d.word),info:d.info||"",hint:d.hint||"",thumb:d.strokes&&d.strokes.length?thumbWithMark(d.strokes,d.mark):null,go:"Start drawing",
     onGo:()=>startDraw({who:d.who,word:d.word,ref:refFor(d.word)?.emoji,live:true,strokes:d.strokes||[],dur:d.dur,mark:d.mark||null,
-      onEnd:lp=>{toHost({t:"done",turn:d.turn,strokes:D.strokes,last:lp});showWait({title:"Nice! Waiting for the others",sub:"",chips:[]})}})});
+      onEnd:lp=>{toHost({t:"done",turn:d.turn,strokes:packStrokes(D.strokes),last:lp});showWait({title:"Nice! Waiting for the others",sub:"",chips:[]})}})});
   let left=d.prep||10;const btn=$("#hGo"),tick=()=>{if($("#s-hand").hidden){clearInterval(autoGo);return}if(left<=0){clearInterval(autoGo);btn.click();return}btn.textContent=`Start drawing · auto in ${left}`;left--};
   tick();autoGo=setInterval(tick,1000);
 }
@@ -165,7 +176,7 @@ function runStage(){
   for(const it of H.items){const id=it.u.members[k];if(!id||!H.players.some(p=>p.id===id))continue;H.pending.set(id,it)}
   if(!H.pending.size){if(k===0||!H.items.some(it=>it.u.members.length>k))return judgeM();H.stage++;return runStage()}
   for(const[id,it]of H.pending){const cont=team&&k>0,prev=cont?nameOf(it.u.members[k-1]):"";
-    sendTo(id,{t:"draw",turn:H.turn,word:w,dur:S.time[H.mode],strokes:cont?it.strokes:[],mark:cont?it.last:null,
+    sendTo(id,{t:"draw",turn:H.turn,word:w,dur:S.time[H.mode],strokes:cont?packStrokes(it.strokes):[],mark:cont?it.last:null,
       who:`${nameOf(id)}${team?" · "+it.u.name:""} · ${rl}`,label:cont?`You continue ${prev}'s drawing of`:team?`${it.u.name} · you start drawing`:rl+" · draw",
       info:cont?`The orange circle marks where ${prev} stopped. Your brush starts there.`:team?"When your time is up, the drawing jumps to your teammate's phone.":"Everyone draws at the same time. The AI judges after the timer.",
       hint:S.ctrl==="look"?"Hold the phone up like a camera before you tap.":"Hold the phone comfortably before you tap.",prep:PREP})}
@@ -186,7 +197,7 @@ async function judgeM(){
   H.items.forEach((it,i)=>{it.acc=r?r[i].acc:0;it.guess=r?r[i].guess:"AI unavailable";it.why=r?explainShort(r[i]):"";it.u.total+=it.acc;it.u.hist.push(it.acc)});
   const sorted=[...H.items].sort((a,b)=>b.acc-a.acc),last=H.round>=H.words.length-1,top=sorted[0].acc>0&&(!sorted[1]||sorted[0].acc>sorted[1].acc);
   broadcast({t:"board",label:`Round ${H.round+1} of ${H.words.length} · object`,title:up(w),
-    cards:sorted.map((it,i)=>({img:snapshot(it.strokes,200),name:it.u.name+(i===0&&top?" · wins the round":""),sub:`The AI sees: ${it.guess}`+(it.why?` (${it.why})`:"")+(H.mode==="teams"?" · "+it.u.members.map(nameOf).join(" & "):""),meter:it.acc,pc:it.acc+"%",win:i===0&&top})),
+    cards:sorted.map((it,i)=>({img:snapshot(it.strokes,200,"jpeg"),name:it.u.name+(i===0&&top?" · wins the round":""),sub:`The AI sees: ${it.guess}`+(it.why?` (${it.why})`:"")+(H.mode==="teams"?" · "+it.u.members.map(nameOf).join(" & "):""),meter:it.acc,pc:it.acc+"%",win:i===0&&top})),
     totals:[...H.units].sort((a,b)=>b.total/b.hist.length-a.total/a.hist.length).map(u=>({name:u.name,avg:Math.round(u.total/u.hist.length)})),
     actions:[last?{id:"final",text:"See final results"}:{id:"next",text:"Next round"}],waitText:"Waiting for the host to continue…"});
 }
@@ -213,7 +224,7 @@ function impStartM(players){
 }
 function galleryM(){
   if(H.phase)return;clearTimeout(H.timer);H.phase="vote";H.votes={};
-  broadcast({t:"gallery",disc:S.disc,vote:S.vote,items:H.players.map(p=>({id:p.id,name:p.name,img:snapshot(H.draws[p.id]||[],240)}))});
+  broadcast({t:"gallery",disc:S.disc,vote:S.vote,items:H.players.map(p=>({id:p.id,name:p.name,img:snapshot(H.draws[p.id]||[],240,"jpeg")}))});
   H.voteTimer=setTimeout(()=>{if(H&&H.phase==="vote")voteStatus(true)},(S.disc+S.vote+3)*1000);
 }
 function voteStatus(force){
@@ -226,7 +237,7 @@ function voteStatus(force){
   H.phase="done";
   broadcast({t:"board",banner:true,label:out?`Eliminated: ${out}`:max?"The vote is tied":"Nobody voted in time",title:caught?"You caught the impostor!":"The impostor wins",
     info:`The impostor was ${nameOf(H.imp)}. The object was "${H.main}" and the impostor drew "${H.decoy}".`,
-    cards:H.players.map(p=>({img:snapshot(H.draws[p.id]||[],200),name:p.name+(p.id===H.imp?" · impostor":""),sub:"Drew: "+(p.id===H.imp?H.decoy:H.main),pc:`${count[p.id]||0} vote${count[p.id]===1?"":"s"}`,win:p.id===H.imp})),
+    cards:H.players.map(p=>({img:snapshot(H.draws[p.id]||[],200,"jpeg"),name:p.name+(p.id===H.imp?" · impostor":""),sub:"Drew: "+(p.id===H.imp?H.decoy:H.main),pc:`${count[p.id]||0} vote${count[p.id]===1?"":"s"}`,win:p.id===H.imp})),
     actions:[{id:"again",text:"Play again"},{id:"lobby",text:"Back to lobby"}],waitText:"Waiting for the host…"});
 }
 function showGalleryM(d){

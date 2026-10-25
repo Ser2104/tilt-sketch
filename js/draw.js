@@ -100,7 +100,7 @@ function endTurn(msg){if(D.state!=="run")return;penUp();D.state="done";const m=t
 function abortDraw(){clearInterval(autoGo);if(D.state==="idle")return;penUp();cancelAnimationFrame(D.raf);D.state="idle";$("#dOver").innerHTML="";try{$("#camv").pause()}catch(_){}}
 
 function snapshot(strokes,n=512,type="dataURL"){const c=document.createElement("canvas");c.width=c.height=n;const x=c.getContext("2d");paintPaper(x,n,false);strokes.forEach(s=>drawStroke(x,s,n));
-  return type==="blob"?new Promise(r=>c.toBlob(r,"image/png")):c.toDataURL("image/png")}
+  return type==="blob"?new Promise(r=>c.toBlob(r,"image/png")):type==="jpeg"?c.toDataURL("image/jpeg",.72):c.toDataURL("image/png")}
 function thumbWithMark(strokes,mark){const n=320,c=document.createElement("canvas");c.width=c.height=n;const x=c.getContext("2d");paintPaper(x,n,true);strokes.forEach(s=>drawStroke(x,s,n));
   if(mark){x.strokeStyle="#FF5A36";x.lineWidth=3;x.beginPath();x.arc(mark[0]*n,mark[1]*n,12,0,7);x.stroke()}return c.toDataURL()}
 
