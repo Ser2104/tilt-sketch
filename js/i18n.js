@@ -74,7 +74,7 @@ const I18N=(()=>{
     "Tilt Sketch":"Tilt Sketch","English":"English","Español":"Español",
     "Draw by aiming your phone: the brush stays in the center and the sheet moves around it. An AI tries to guess what it is, and the most recognizable drawing wins.":"Dibuja apuntando con tu celular: el pincel se queda en el centro y la hoja se mueve a su alrededor. Una IA intenta adivinar qué es, y gana el dibujo más reconocible.",
     "Daily challenge":"Reto diario","Today's object is the same for everyone. One try.":"El objeto de hoy es el mismo para todos. Un solo intento.",
-    "Levels":"Niveles","Guided drawings":"Dibujos guiados","Rankings":"Rankings","For clinicians":"Para terapeutas","Send feedback":"Enviar opinión","Install app":"Instalar app",
+    "Levels":"Niveles","Guided drawings":"Dibujos guiados","Rankings":"Rankings","For clinicians":"Para terapeutas","Send feedback":"Enviar opinión","Install app":"Instalar app","Privacy policy":"Política de privacidad",
     "One phone":"Un celular","Multiple phones":"Varios celulares","Practice":"Práctica","Game mode":"Modo de juego","Solo":"Solo","Teams":"Equipos","Impostor":"Impostor",
     "Everyone draws the same object. {} rounds, best average wins.":"Todos dibujan el mismo objeto. {1} rondas, gana el mejor promedio.",
     "One player draws for {} s, passes the phone, and a teammate continues the same drawing.":"Una persona dibuja {1} s, pasa el celular y su compañero continúa el mismo dibujo.",

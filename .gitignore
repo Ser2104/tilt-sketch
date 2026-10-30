@@ -12,3 +12,4 @@ android/keystore.properties
 *.jks
 *.keystore
 !android/app/src/main/res/**/*.png
+!docs/play-store/*.png
