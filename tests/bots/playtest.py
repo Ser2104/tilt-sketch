@@ -131,6 +131,33 @@ async def go(pg, pts, sens):
     await pg.wait_for_timeout(120); await pg.mouse.up(); await pg.wait_for_timeout(120)
 
 
+AIM = """(()=>{if(window.__aimBy)return;window.__lx=0;window.__ly=0;const o=__o;
+  window.__o=(x,y)=>{window.__lx=x;window.__ly=y;o(x,y)};
+  window.__aimBy=(dx,dy)=>__o(__lx+dx,__ly+dy)})()"""
+
+
+async def move_by(pg, dx, dy, sens, step=.012):
+    """Turns the phone by a sheet distance at a steady, drawing-like speed."""
+    n = max(1, math.ceil(math.hypot(dx, dy) / step))
+    for _ in range(n):
+        await pg.evaluate(f"__aimBy({dx / n * sens},{dy / n * sens})"); await pg.wait_for_timeout(16)
+
+
+async def go_watching(pg, pts, sens):
+    """Draws one stroke like a player: glides to its start while watching the brush, then traces it."""
+    await pg.evaluate(AIM)
+    for _ in range(5):
+        x, y = await pg.evaluate("[D.pos.x,D.pos.y]")
+        ex, ey = pts[0][0] - x, pts[0][1] - y
+        if math.hypot(ex, ey) < .005:
+            break
+        await move_by(pg, ex, ey, sens); await pg.wait_for_timeout(140)
+    await pg.mouse.down()
+    for (x0, y0), (x1, y1) in zip(pts, pts[1:]):
+        await move_by(pg, x1 - x0, y1 - y0, sens)
+    await pg.wait_for_timeout(100); await pg.mouse.up(); await pg.wait_for_timeout(60)
+
+
 def thin(pts, step=.012):
     out = [pts[0]]
     for p in pts[1:]:
@@ -151,7 +178,7 @@ async def draw_now(pg, strokes, finish=True):
     for s in strokes:
         if not await pg.evaluate("D.state==='run'"):
             break
-        await go(pg, thin(s["pts"]), sens)
+        await go_watching(pg, thin(s["pts"]), sens)
     took = time.time() - t0
     METRICS["last_draw_complete"] = await pg.evaluate("D.state==='run'")
     if finish and await pg.evaluate("D.state==='run'"):

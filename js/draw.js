@@ -102,7 +102,12 @@ function endTurn(msg){if(D.state!=="run")return;clearInterval(liveT);penUp();D.s
 function camStop(){try{$("#camv").pause()}catch(_){}if(camStream){camStream.getTracks().forEach(t=>t.stop());camStream=null}}
 function abortDraw(){clearInterval(autoGo);clearInterval(liveT);if(typeof tutActive!=="undefined"&&tutActive)tutActive.cancel();if(D.state==="idle")return;penUp();cancelAnimationFrame(D.raf);D.state="idle";$("#dOver").innerHTML="";camStop()}
 
-function snapshot(strokes,n=512,type="dataURL"){const c=document.createElement("canvas");c.width=c.height=n;const x=c.getContext("2d");paintPaper(x,n,false);strokes.forEach(s=>drawStroke(x,s,n));
+/* For thumbnails: center the drawing and enlarge it (up to 2.5x) so small drawings stay readable */
+function fitStrokes(strokes){const pts=strokes.filter(s=>s.c!=="#FFFFFF").flatMap(s=>s.pts);if(!pts.length)return strokes;
+  const xs=pts.map(p=>p[0]),ys=pts.map(p=>p[1]),x0=Math.min(...xs),x1=Math.max(...xs),y0=Math.min(...ys),y1=Math.max(...ys);
+  const k=Math.min(2.5,.84/Math.max(x1-x0,y1-y0,1e-3)),cx=(x0+x1)/2,cy=(y0+y1)/2;
+  return strokes.map(s=>({...s,pts:s.pts.map(p=>[.5+(p[0]-cx)*k,.5+(p[1]-cy)*k])}))}
+function snapshot(strokes,n=512,type="dataURL",fit=false){if(fit)strokes=fitStrokes(strokes);const c=document.createElement("canvas");c.width=c.height=n;const x=c.getContext("2d");paintPaper(x,n,false);strokes.forEach(s=>drawStroke(x,s,n));
   return type==="blob"?new Promise(r=>c.toBlob(r,"image/png")):type==="jpeg"?c.toDataURL("image/jpeg",.72):c.toDataURL("image/png")}
 function thumbWithMark(strokes,mark){const n=320,c=document.createElement("canvas");c.width=c.height=n;const x=c.getContext("2d");paintPaper(x,n,true);strokes.forEach(s=>drawStroke(x,s,n));
   if(mark){x.strokeStyle="#FF5A36";x.lineWidth=3;x.beginPath();x.arc(mark[0]*n,mark[1]*n,12,0,7);x.stroke()}return c.toDataURL()}

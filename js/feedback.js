@@ -25,7 +25,9 @@ const Feedback=(()=>{
     const item={p_device:Rank.device,p_context:el.dataset.ctx,p_ease:pick("ease"),p_again:pick("again"),p_helped:pick("helped"),p_comment:el.querySelector("textarea").value.trim(),p_lang:lang()};
     if(item.p_ease==null&&item.p_again==null&&item.p_helped==null&&!item.p_comment){el.querySelector(".fbmsg").textContent="Tap a number or write a comment first.";return}
     store.set("ts-fb-queue",[...queue(),item]);store.set("ts-fb-"+item.p_context,Date.now()+SNOOZE.answered);
-    el.innerHTML=`<span class="label">Thank you</span><p class="hint" style="text-align:left;margin:0">Your answer helps us improve Tilt Sketch.</p>`;
+    const general=el.dataset.ctx==="general";
+    el.innerHTML=`<span class="label">Thank you</span><p class="hint" style="text-align:left;margin:0">Your answer helps us improve Tilt Sketch.</p>${general?`<div class="row"><button type="button" class="btn fbback">Back</button></div>`:""}`;
+    if(general){const b=el.querySelector(".fbback");b.onclick=e=>{e.stopPropagation();show("s-settings")};b.focus()}
     await flush()}
   function wire(el){
     el.addEventListener("click",e=>{

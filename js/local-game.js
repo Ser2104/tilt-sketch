@@ -39,7 +39,7 @@ $("#jRetry").onclick=()=>judge();$("#jHuman").onclick=()=>humanJudge();
 function humanJudge(){
   const w=G.words[G.round];
   $("#rLabel").textContent=`Round ${G.round+1} · score together how much each looks like`;$("#rTitle").textContent=up(w);
-  $("#rCards").innerHTML=G.items.map((it,i)=>`<div class="card"><img alt="${esc(it.u.name)}'s drawing" src="${snapshot(it.strokes,256)}"><div style="min-width:0"><div class="nm">${esc(it.u.name)}</div><input type="range" id="hj${i}" min="0" max="100" step="5" value="50" aria-label="Score for ${esc(it.u.name)}"></div><div class="pc" id="hv${i}">50%</div></div>`).join("");
+  $("#rCards").innerHTML=G.items.map((it,i)=>`<div class="card"><img alt="${esc(it.u.name)}'s drawing" src="${snapshot(it.strokes,256,undefined,true)}"><div style="min-width:0"><div class="nm">${esc(it.u.name)}</div><input type="range" id="hj${i}" min="0" max="100" step="5" value="50" aria-label="Score for ${esc(it.u.name)}"></div><div class="pc" id="hv${i}">50%</div></div>`).join("");
   G.items.forEach((_,i)=>$("#hj"+i).oninput=e=>$("#hv"+i).textContent=e.target.value+"%");
   $("#rTotals").hidden=true;$("#rNext").textContent="Confirm scores";
   $("#rNext").onclick=()=>{G.items.forEach((it,i)=>{it.acc=+$("#hj"+i).value;it.guess=null;it.why=null});showRound()};
@@ -49,7 +49,7 @@ function showRound(){
   const w=G.words[G.round];G.items.forEach(it=>{it.u.total+=it.acc;it.u.hist.push(it.acc)});
   const sorted=[...G.items].sort((a,b)=>b.acc-a.acc),top=sorted[0]&&sorted[0].acc>0&&(!sorted[1]||sorted[0].acc>sorted[1].acc);
   $("#rLabel").textContent=`Round ${G.round+1} of ${G.words.length} · object`;$("#rTitle").textContent=up(w);
-  $("#rCards").innerHTML=sorted.map((it,i)=>`<div class="card${i===0&&top?" win":""}"><img alt="${esc(it.u.name)}'s drawing" src="${snapshot(it.strokes,256)}"><div style="min-width:0"><div class="nm">${esc(it.u.name)}${i===0&&top?" · wins the round":""}</div>${it.guess?`<div class="gs">The AI sees: ${esc(it.guess)}</div>`:""}${it.why?`<div class="gs why">${esc(it.why)}</div>`:""}<div class="meter"><i style="width:${it.acc}%"></i></div></div><div class="pc">${it.acc}%</div></div>`).join("");
+  $("#rCards").innerHTML=sorted.map((it,i)=>`<div class="card${i===0&&top?" win":""}"><img alt="${esc(it.u.name)}'s drawing" src="${snapshot(it.strokes,256,undefined,true)}"><div style="min-width:0"><div class="nm">${esc(it.u.name)}${i===0&&top?" · wins the round":""}</div>${it.guess?`<div class="gs">The AI sees: ${esc(it.guess)}</div>`:""}${it.why?`<div class="gs why">${esc(it.why)}</div>`:""}<div class="meter"><i style="width:${it.acc}%"></i></div></div><div class="pc">${it.acc}%</div></div>`).join("");
   const tot=[...G.units].sort((a,b)=>b.total-a.total);
   $("#rTotals").hidden=false;$("#rTotals").innerHTML=`<span class="label">Running average</span>`+tot.map(u=>`<div class="setting"><span>${esc(u.name)}</span><span class="clock" style="font-size:18px">${Math.round(u.total/u.hist.length)}%</span></div>`).join("");
   const last=G.round>=G.words.length-1;$("#rNext").textContent=last?"See final results":"Next round";
@@ -79,10 +79,12 @@ function impTurn(){
     onGo:()=>startDraw({who:`${G.names[p]} · turn ${G.step+1}`,word:w,ref:refFor(w)?.emoji,strokes:G.draws[p],dur:S.time.impostor,onEnd:()=>{G.step++;impTurn()}})});
 }
 let galTimer=0;
+/* Countdown clock for discussion and voting: shows the seconds left, turns red for the last 5 */
+function clockDown(sel,left){const c=Math.max(0,left),el=$(sel);el.textContent=`${Math.floor(c/60)}:${String(c%60).padStart(2,"0")}`;el.classList.toggle("low",c>0&&c<=5)}
 function gallery(){
-  $("#gGrid").innerHTML=G.order.map(p=>`<figure><img alt="${esc(G.names[p])}'s drawing" src="${snapshot(G.draws[p],300)}"><figcaption>${esc(G.names[p])}</figcaption></figure>`).join("");
-  const t0=performance.now(),btn=$("#gVote");btn.disabled=true;
-  clearInterval(galTimer);galTimer=setInterval(()=>{const s=Math.floor((performance.now()-t0)/1000);$("#gClock").textContent=`${Math.floor(s/60)}:${String(s%60).padStart(2,"0")}`;
+  $("#gGrid").innerHTML=G.order.map(p=>`<figure><img alt="${esc(G.names[p])}'s drawing" src="${snapshot(G.draws[p],300,undefined,true)}"><figcaption>${esc(G.names[p])}</figcaption></figure>`).join("");
+  const t0=performance.now(),btn=$("#gVote");btn.disabled=true;clockDown("#gClock",S.disc);btn.textContent=`Voting in ${S.disc} s`;
+  clearInterval(galTimer);galTimer=setInterval(()=>{const s=Math.floor((performance.now()-t0)/1000);clockDown("#gClock",S.disc-s);
     if(s<S.disc){btn.disabled=true;btn.textContent=`Voting in ${S.disc-s} s`}else{btn.disabled=false;btn.textContent="Start voting"}},250);
   btn.onclick=()=>{clearInterval(galTimer);G.votes=[];voteTurn(0)};
   show("s-gal");
@@ -101,7 +103,7 @@ function reveal(){
   $("#vvLabel").textContent=out?`Eliminated: ${out}`:"The vote is tied";
   $("#vvTitle").textContent=caught?"You caught the impostor!":"The impostor wins";
   $("#vvInfo").textContent=`The impostor was ${G.names[G.imp]}. The object was "${G.main}" and the impostor drew "${G.decoy}".`;
-  $("#vvCards").innerHTML=G.order.map(p=>`<div class="card${p===G.imp?" win":""}"><img alt="${esc(G.names[p])}'s drawing" src="${snapshot(G.draws[p],256)}"><div style="min-width:0"><div class="nm">${esc(G.names[p])}${p===G.imp?" · impostor":""}</div><div class="gs">Drew: ${esc(p===G.imp?G.decoy:G.main)}</div></div><div class="pc">${count[p]}<span class="gs"> vote${count[p]===1?"":"s"}</span></div></div>`).join("");
+  $("#vvCards").innerHTML=G.order.map(p=>`<div class="card${p===G.imp?" win":""}"><img alt="${esc(G.names[p])}'s drawing" src="${snapshot(G.draws[p],256,undefined,true)}"><div style="min-width:0"><div class="nm">${esc(G.names[p])}${p===G.imp?" · impostor":""}</div><div class="gs">Drew: ${esc(p===G.imp?G.decoy:G.main)}</div></div><div class="pc">${count[p]}<span class="gs"> vote${count[p]===1?"":"s"}</span></div></div>`).join("");
   show("s-rev");
 }
 $("#vvAgain").onclick=()=>newMatch();$("#vvHome").onclick=()=>show("s-play");

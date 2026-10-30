@@ -31,10 +31,12 @@ const Game=(()=>{
     if(daily)markDaily(s);
     s.xp+=gain;const after=levelOf(s.xp).n;
     const fresh=ACH.filter(a=>!s.got.includes(a[0])&&a[4](s));s.got.push(...fresh.map(a=>a[0]));save(s);
-    const parts=[];if(after>before){const u=UNLOCKS.find(x=>x[0]===after);parts.push({i:"⭐",b:`Level ${after}!`,s:u?`New brush color: ${u[2]}`:""});setTimeout(()=>{SFX.win();confetti()},250)}
-    fresh.forEach(a=>parts.push({i:a[1],b:a[2],s:a[3]}));if(fresh.length)setTimeout(()=>{SFX.badge();buzz([40,60,40])},400);
-    if(parts.length===1)toast(`<i>${parts[0].i}</i><b>${parts[0].b}</b>${parts[0].s?`<span>${parts[0].s}</span>`:""}`);
-    else if(parts.length)toast(`<i>${parts[0].i}</i><b>${parts[0].b}</b><span>${parts.slice(1).map(p=>p.i+" "+p.b).join(" · ")}</span>`);
+    const parts=[];if(after>before){const u=UNLOCKS.find(x=>x[0]===after);parts.push({i:"⭐",b:`Level ${after}!`,s:u?`New brush color: ${u[2]}`:""});setTimeout(()=>{SFX.win();confetti()},share?250:1900)}
+    fresh.forEach(a=>parts.push({i:a[1],b:a[2],s:a[3]}));if(fresh.length)setTimeout(()=>{SFX.badge();buzz([40,60,40])},share?400:1900);
+    /* Wait until the result headline (winner, score, impostor) has been seen before the badge slides over it */
+    const msg=parts.length===1?`<i>${parts[0].i}</i><b>${parts[0].b}</b>${parts[0].s?`<span>${parts[0].s}</span>`:""}`:
+      parts.length?`<i>${parts[0].i}</i><b>${parts[0].b}</b><span>${parts.slice(1).map(p=>p.i+" "+p.b).join(" · ")}</span>`:null;
+    if(msg)setTimeout(()=>toast(msg),share?0:1800);
     renderSwatches();renderLevelChip();
     return{gain,after,s}}
 

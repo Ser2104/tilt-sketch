@@ -200,7 +200,7 @@ async function judgeM(){
   H.items.forEach((it,i)=>{it.acc=r?r[i].acc:0;it.guess=r?r[i].guess:"AI unavailable";it.why=r?explainShort(r[i]):"";it.u.total+=it.acc;it.u.hist.push(it.acc)});
   const sorted=[...H.items].sort((a,b)=>b.acc-a.acc),last=H.round>=H.words.length-1,top=sorted[0].acc>0&&(!sorted[1]||sorted[0].acc>sorted[1].acc);
   broadcast({t:"board",label:`Round ${H.round+1} of ${H.words.length} · object`,title:up(w),
-    cards:sorted.map((it,i)=>({img:snapshot(it.strokes,200,"jpeg"),name:it.u.name+(i===0&&top?" · wins the round":""),sub:`The AI sees: ${it.guess}`+(it.why?` (${it.why})`:"")+(H.mode==="teams"?" · "+it.u.members.map(nameOf).join(" & "):""),meter:it.acc,pc:it.acc+"%",win:i===0&&top})),
+    cards:sorted.map((it,i)=>({img:snapshot(it.strokes,200,"jpeg",true),name:it.u.name+(i===0&&top?" · wins the round":""),sub:`The AI sees: ${it.guess}`+(it.why?` (${it.why})`:"")+(H.mode==="teams"?" · "+it.u.members.map(nameOf).join(" & "):""),meter:it.acc,pc:it.acc+"%",win:i===0&&top})),
     totals:[...H.units].sort((a,b)=>b.total/b.hist.length-a.total/a.hist.length).map(u=>({name:u.name,avg:Math.round(u.total/u.hist.length)})),
     actions:[last?{id:"final",text:"See final results"}:{id:"next",text:"Next round"}],waitText:"Waiting for the host to continue…"});
 }
@@ -232,7 +232,7 @@ function impStartM(players){
 }
 function galleryM(){
   if(H.phase)return;clearTimeout(H.timer);H.phase="vote";H.votes={};
-  broadcast({t:"gallery",disc:S.disc,vote:S.vote,items:H.players.map(p=>({id:p.id,name:p.name,img:snapshot(H.draws[p.id]||[],240,"jpeg")}))});
+  broadcast({t:"gallery",disc:S.disc,vote:S.vote,items:H.players.map(p=>({id:p.id,name:p.name,img:snapshot(H.draws[p.id]||[],240,"jpeg",true)}))});
   H.voteTimer=setTimeout(()=>{if(H&&H.phase==="vote")voteStatus(true)},(S.disc+S.vote+3)*1000);
 }
 function voteStatus(force){
@@ -245,7 +245,7 @@ function voteStatus(force){
   H.phase="done";
   broadcast({t:"board",banner:true,label:out?`Eliminated: ${out}`:max?"The vote is tied":"Nobody voted in time",title:caught?"You caught the impostor!":"The impostor wins",
     info:`The impostor was ${H.impName}. The object was "${H.main}" and the impostor drew "${H.decoy}".`,
-    cards:H.players.map(p=>({img:snapshot(H.draws[p.id]||[],200,"jpeg"),name:p.name+(p.id===H.imp?" · impostor":""),sub:"Drew: "+(p.id===H.imp?H.decoy:H.main),pc:`${count[p.id]||0} vote${count[p.id]===1?"":"s"}`,win:p.id===H.imp})),
+    cards:H.players.map(p=>({img:snapshot(H.draws[p.id]||[],200,"jpeg",true),name:p.name+(p.id===H.imp?" · impostor":""),sub:"Drew: "+(p.id===H.imp?H.decoy:H.main),pc:`${count[p.id]||0} vote${count[p.id]===1?"":"s"}`,win:p.id===H.imp})),
     actions:[{id:"again",text:"Play again"},{id:"lobby",text:"Back to lobby"}],waitText:"Waiting for the host…"});
 }
 function showGalleryM(d){
@@ -255,8 +255,8 @@ function showGalleryM(d){
   $("#mgVotes").innerHTML=others.map(it=>`<button class="btn" data-v="${esc(it.id)}" disabled>${esc(it.name)}</button>`).join("");
   $("#mgVotes").onclick=e=>{const v=e.target.dataset.v;if(!v||e.target.disabled)return;toHost({t:"vote",v});showWait({title:"Vote sent",sub:"Waiting for the others…",chips:[]})};
   const t0=performance.now(),disc=d.disc??30,vt=d.vote??30;clearInterval(mgTimer);
-  mgTimer=setInterval(()=>{const s=Math.floor((performance.now()-t0)/1000);$("#mgClock").textContent=`${Math.floor(s/60)}:${String(s%60).padStart(2,"0")}`;
-    const open=s>=disc,closeIn=disc+vt-s;$("#mgVoteLabel").textContent=!open?`Voting opens in ${disc-s} s`:closeIn>0?`Vote: who is the impostor? Closes in ${closeIn} s`:"Voting closed";
+  mgTimer=setInterval(()=>{const s=Math.floor((performance.now()-t0)/1000);
+    const open=s>=disc,closeIn=disc+vt-s;clockDown("#mgClock",open?closeIn:disc-s);$("#mgVoteLabel").textContent=!open?`Voting opens in ${disc-s} s`:closeIn>0?`Vote: who is the impostor? Closes in ${closeIn} s`:"Voting closed";
     document.querySelectorAll("#mgVotes button").forEach(b=>b.disabled=!open||closeIn<=0)},250);
   show("s-mgal");
 }

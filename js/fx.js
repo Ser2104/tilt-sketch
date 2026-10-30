@@ -52,7 +52,8 @@ function toast(html){toastQ.push(html);if(!toastOn)nextToast()}
 function nextToast(){
   const h=toastQ.shift();if(h==null){toastOn=false;return}toastOn=true;
   let t=$("#toast");if(!t){t=document.createElement("div");t.id="toast";t.className="toast";t.setAttribute("role","status");document.body.append(t)}
-  t.innerHTML=h;t.classList.add("on");setTimeout(()=>{t.classList.remove("on");setTimeout(nextToast,350)},toastQ.length?2000:2600)}
+  t.innerHTML=h;t.classList.add("on");let done=false;const hide=()=>{if(done)return;done=true;t.classList.remove("on");setTimeout(nextToast,350)};
+  t.onclick=hide;setTimeout(hide,toastQ.length?2000:2600)}
 
 function renderFx(){document.querySelectorAll("[data-fx]").forEach(b=>b.setAttribute("aria-pressed",!!FX[b.dataset.fx]))}
 document.addEventListener("click",e=>{const b=e.target.closest("[data-fx]");if(!b)return;const k=b.dataset.fx;FX[k]=!FX[k];try{localStorage.setItem("ts-fx",JSON.stringify(FX))}catch(_){}renderFx();
