@@ -67,11 +67,11 @@ async def main():
         async with pg.expect_download() as dl:
             await pg.click("#crActions button:has-text('Share drawing')")
         path = await (await dl.value).path()
-        from PIL import Image
-        im = Image.open(path)
-        print("share image:", im.size)
-        assert im.size == (1080, 1350)
-        im.save("game_share.png")
+        import struct
+        head = open(path, "rb").read(24)
+        size = struct.unpack(">II", head[16:24])
+        print("share image:", size)
+        assert head[:8] == b"\x89PNG\r\n\x1a\n" and size == (1080, 1350)
 
         g = await pg.evaluate("Game.state()")
         print("state:", {k: g[k] for k in ("xp", "draws", "streak", "shares", "got")})
