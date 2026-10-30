@@ -1,17 +1,18 @@
 /* ---------- Daily challenge and Levels ---------- */
 const WORLDS=[
   {name:"First lines",time:25,pass:35,items:["house", "smiley face", "snowman", "rainbow", "umbrella", "ice cream", "sailboat", "ladder"]},
-  {name:"Around the house",time:22,pass:40,items:["hourglass", "scissors", "eyeglasses", "hamburger", "camera", "headphones", "guitar", "television"]},
-  {name:"Animals",time:20,pass:45,items:["fish", "snail", "cat", "spider", "octopus", "butterfly", "giraffe", "bee"]},
-  {name:"Adventure",time:20,pass:50,items:["crown", "castle", "skull", "lighthouse", "helicopter", "train", "diamond", "snowflake"]},
-  {name:"Masters",time:18,pass:55,items:["bicycle", "Eiffel Tower", "pineapple", "car", "penguin", "cactus", "angel", "rabbit"]}
+  {name:"Around the house",time:20,pass:40,items:["hourglass", "eyeglasses", "crown", "hamburger", "camera", "scissors", "headphones", "television"]},
+  {name:"Animals",time:18,pass:45,items:["fish", "snail", "cat", "octopus", "giraffe", "rabbit", "bee", "spider"]},
+  {name:"Adventure",time:16,pass:50,items:["castle", "skull", "lighthouse", "diamond", "helicopter", "snowflake", "guitar", "train"]},
+  {name:"Masters",time:15,pass:55,items:["cactus", "bicycle", "car", "Eiffel Tower", "pineapple", "angel", "butterfly", "penguin"]}
 ];
-const LEVEL_LIST=WORLDS.flatMap((w,wi)=>w.items.map((word,i)=>({word,world:wi,index:i,time:w.time,pass:w.pass})));
+const PASS_OVERRIDE={"crown":70,"snowflake":70,"smiley face":45,"scissors":50};
+const LEVEL_LIST=WORLDS.flatMap((w,wi)=>w.items.map((word,i)=>({word,world:wi,index:i,time:w.time,pass:PASS_OVERRIDE[word]||w.pass})));
 let DAILY_TIME=25;
 const store={get(k,d){try{const v=localStorage.getItem(k);return v==null?d:JSON.parse(v)}catch(_){return d}},set(k,v){try{localStorage.setItem(k,JSON.stringify(v))}catch(_){}}};
 function todayUTC(){return new Date().toISOString().slice(0,10)}
 function dailyWord(date=todayUTC()){let h=2166136261;for(const c of"tilt-"+date)h=Math.imul(h^c.charCodeAt(0),16777619)>>>0;const L=LEVEL_LIST.map(l=>l.word);return L[h%L.length]}
-function starsFor(score,pass){return score>=Math.min(95,pass+35)?3:score>=pass+20?2:score>=pass?1:0}
+function starsFor(score,pass){return score>=Math.min(90,pass+30)?3:score>=Math.min(80,pass+18)?2:score>=pass?1:0}
 function levelState(){const s=store.get("ts-levels",null);return{unlocked:Math.max(0,Math.min(LEVEL_LIST.length,+(s&&s.unlocked)||0)),best:s&&typeof s.best==="object"&&s.best?s.best:{}}}
 function totalStars(st){return LEVEL_LIST.reduce((s,l,i)=>s+starsFor(st.best[i]||0,l.pass),0)}
 function playerName(){return store.get("ts-rank-name","")||($("#myName")&&$("#myName").value.trim())||Profiles.cur()?.name||""}
@@ -26,6 +27,7 @@ function renderChallengeCards(){
 }
 async function judgeOne(word,strokes){
   while(AI.state==="wait")await new Promise(r=>setTimeout(r,200));
+  for(let i=0;i<20&&!Object.keys(EXAMPLES).length;i++)await new Promise(r=>setTimeout(r,200));
   if(AI.state!=="ok")return{acc:0,guess:"AI unavailable"};
   const[r]=await aiJudge(word,[{strokes}]);return r}
 function playChallenge({word,time,label,onScore}){

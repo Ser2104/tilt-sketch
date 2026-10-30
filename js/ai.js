@@ -94,14 +94,16 @@ function detailOf(word,strokes){
   const ex=typeof EXAMPLES!=="undefined"&&EXAMPLES[word];if(!ex||!ex.length)return 1;
   const st=ex.map(d=>inkStats(d.map(s=>({pts:s[0].map((x,i)=>[x,s[1][i]])}))));
   const u=inkStats(strokes.filter(s=>s.c!=="#FFFFFF")),ir=Math.min(1,u.L/Math.max(.1,.9*median(st.map(s=>s.L)))),sr=Math.min(1,u.n/Math.max(1,median(st.map(s=>s.n))));
-  return Math.max(0,Math.min(1,.65*ir+.35*sr))}
+  return Math.max(0,Math.min(1,.85*ir+.15*sr))}
+function strokeGate(word,strokes){const ex=typeof EXAMPLES!=="undefined"&&EXAMPLES[word];if(!ex||!ex.length)return 1;
+  const n=strokes.filter(s=>s.c!=="#FFFFFF"&&s.pts.length>1).length;return n<2&&median(ex.map(d=>d.length))>=3?.5:1}
 async function aiJudge(word,items){
   if(AI.kind==="custom")return Promise.all(items.map(async it=>{
     const p=await customProbs(cleanFor(it.strokes));if(!p)return{guess:"nothing (blank sheet)",acc:0};
     const cls=AI.spec.classes;let best=0;p.forEach((v,i)=>{if(v>p[best])best=i});
     const k=cls.indexOf(word),pen=scribblePenalty(it.strokes);
     const top=[...p].map((v,i)=>({w:cls[i]==="other"?"something else":cls[i],p:v})).sort((a,b)=>b.p-a.p).slice(0,3);
-    const det=detailOf(word,it.strokes),rec=k<0?0:p[k]*pen;
+    const det=detailOf(word,it.strokes),rec=k<0?0:p[k]*pen*strokeGate(word,it.strokes);
     return{guess:pen<.8?"a scribble":cls[best]==="other"?"something else":cls[best],acc:Math.round(100*rec*(.45+.55*det)),recog:Math.round(100*rec),detail:Math.round(100*det),top,scribble:pen<.8}}));
   return Promise.all(items.map(async it=>{
     const probs=new Float32Array(DOODLE_CLASSES.length);let n=0;

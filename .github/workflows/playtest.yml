@@ -2,6 +2,9 @@ name: playtest
 on:
   schedule:
     - cron: "23 */6 * * *"
+  push:
+    branches: [main]
+    paths: ["tests/bots/**", ".github/workflows/playtest.yml"]
   workflow_dispatch:
     inputs:
       monkey_minutes:
@@ -31,7 +34,9 @@ jobs:
           SITE: https://ser2104.github.io/tilt-sketch/index.html
           OUT: playtest-out
           MONKEY_MINUTES: ${{ github.event.inputs.monkey_minutes || '4' }}
-        run: python tests/bots/playtest.py
+        run: |
+          sleep 90
+          python tests/bots/playtest.py
       - uses: actions/upload-artifact@v4
         if: always()
         with:
