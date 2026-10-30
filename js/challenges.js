@@ -6,7 +6,7 @@ const WORLDS=[
   {name:"Adventure",time:20,pass:50,items:["castle", "skull", "lighthouse", "diamond", "helicopter", "snowflake", "guitar", "train"]},
   {name:"Masters",time:20,pass:55,items:["cactus", "bicycle", "car", "Eiffel Tower", "pineapple", "angel", "butterfly", "penguin"]}
 ];
-const PASS_OVERRIDE={"crown":70,"snowflake":70,"smiley face":45,"scissors":50};
+const PASS_OVERRIDE={"crown":70,"snowflake":70,"smiley face":45,"scissors":50,"diamond":40};
 const LEVEL_LIST=WORLDS.flatMap((w,wi)=>w.items.map((word,i)=>({word,world:wi,index:i,time:w.time,pass:PASS_OVERRIDE[word]||w.pass})));
 let DAILY_TIME=25;
 const store={get(k,d){try{const v=localStorage.getItem(k);return v==null?d:JSON.parse(v)}catch(_){return d}},set(k,v){try{localStorage.setItem(k,JSON.stringify(v))}catch(_){}}};

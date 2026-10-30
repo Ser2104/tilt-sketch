@@ -242,7 +242,8 @@ async def first_time_player(b):
         word = await pg.evaluate("dailyWord()")
         score, title = await play_challenge(pg, word, rng, "daily")
         METRICS["daily_word"] = word
-        if score < 40:
+        # A low score only matters when the same drawing passes when judged directly (otherwise it was just a poor sample drawing)
+        if score < 40 and METRICS["ui_plays"][-1]["direct"] >= 40 and METRICS.get("last_draw_complete", True):
             find("medium", "daily", f"A real human drawing of today's object '{word}' scored only {score}% ({title}).", await snap(pg, "daily-low"))
         async with pg.expect_download(timeout=15000) as dl:
             await pg.click("#crActions button:has-text('Share drawing')")
@@ -253,7 +254,7 @@ async def first_time_player(b):
         await pg.evaluate("show('s-home')"); await pg.click("#cLevels"); await pg.click(".lv[data-k='0']")
         word = await pg.evaluate("LEVEL_LIST[0].word")
         score, title = await play_challenge(pg, word, rng, "level-1")
-        if "passed" not in title.lower() and METRICS.get("last_draw_complete", True):
+        if "passed" not in title.lower() and METRICS.get("last_draw_complete", True) and METRICS["ui_plays"][-1]["direct"] >= await pg.evaluate("LEVEL_LIST[0].pass"):
             find("high", "levels", f"A real human drawing of level 1 ('{word}') did not pass: {score}% ({title}).", await snap(pg, "level1-fail"))
 
         await pg.evaluate("show('s-home')"); await pg.click("#cGuided"); await pg.click("#gdWorlds .lv[data-k='0']")
