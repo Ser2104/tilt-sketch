@@ -131,6 +131,16 @@ async def go(pg, pts, sens):
     await pg.wait_for_timeout(120); await pg.mouse.up(); await pg.wait_for_timeout(120)
 
 
+def thin(pts, step=.012):
+    out = [pts[0]]
+    for p in pts[1:]:
+        if math.hypot(p[0] - out[-1][0], p[1] - out[-1][1]) >= step:
+            out.append(p)
+    if out[-1] != pts[-1]:
+        out.append(pts[-1])
+    return out
+
+
 async def draw_now(pg, strokes, finish=True):
     """Draws on the open drawing screen by aiming the phone, like a player."""
     await pg.wait_for_function("D.state==='run'", timeout=10000)
@@ -141,8 +151,9 @@ async def draw_now(pg, strokes, finish=True):
     for s in strokes:
         if not await pg.evaluate("D.state==='run'"):
             break
-        await go(pg, s["pts"], sens)
+        await go(pg, thin(s["pts"]), sens)
     took = time.time() - t0
+    METRICS["last_draw_complete"] = await pg.evaluate("D.state==='run'")
     if finish and await pg.evaluate("D.state==='run'"):
         await pg.click("#finish")
     return took
@@ -161,7 +172,9 @@ async def play_challenge(pg, word, rng, tag):
     score = int((await pg.inner_text("#crScore")).strip("%") or 0)
     title = await pg.inner_text("#crTitle")
     METRICS.setdefault("ui_plays", []).append({"what": tag, "word": word, "score": score, "direct": direct, "title": title, "draw_seconds": round(took, 1)})
-    if direct - score >= 40:
+    if not METRICS.get("last_draw_complete", True):
+        find("low", "bots", f"{tag}: the bot ran out of time before finishing its '{word}' drawing ({round(took, 1)} s), so this score does not count.")
+    elif direct - score >= 40:
         find("medium", "drawing input", f"{tag}: the same '{word}' drawing scored {direct}% when judged directly but {score}% after drawing it by aiming the phone. Aiming may lose or bend lines.", await snap(pg, f"{tag}-input"))
     if not await pg.is_visible("#crXP"):
         find("medium", "progression", f"No XP box after {tag}.", await snap(pg, f"{tag}-noxp"))
@@ -211,7 +224,7 @@ async def first_time_player(b):
         await pg.evaluate("show('s-home')"); await pg.click("#cLevels"); await pg.click(".lv[data-k='0']")
         word = await pg.evaluate("LEVEL_LIST[0].word")
         score, title = await play_challenge(pg, word, rng, "level-1")
-        if "passed" not in title.lower():
+        if "passed" not in title.lower() and METRICS.get("last_draw_complete", True):
             find("high", "levels", f"A real human drawing of level 1 ('{word}') did not pass: {score}% ({title}).", await snap(pg, "level1-fail"))
 
         await pg.evaluate("show('s-home')"); await pg.click("#cGuided"); await pg.click("#gdWorlds .lv[data-k='0']")
