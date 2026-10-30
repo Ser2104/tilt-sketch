@@ -50,7 +50,7 @@ async def main():
         pg = await (await b.new_context(viewport={"width": 390, "height": 844})).new_page()
         errs = []
         pg.on("pageerror", lambda e: errs.append(str(e)))
-        await pg.goto(BASE + "/index.html")
+        await pg.goto(BASE + "/index.html?rehab=1")
         await pg.evaluate(ORI)
         await pg.evaluate("Profiles.create('Fuzz');S.sens=24")
         await pg.click("#tPractice")

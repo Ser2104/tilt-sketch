@@ -10,7 +10,7 @@ $("#playBack").onclick=()=>{renderChallengeCards();show("s-home")};
 /* Browser back button: each main screen is a history entry; back from a game or exercise leaves it cleanly */
 const NAV_SCREENS={"s-home":()=>{renderChallengeCards();showScreen("s-home")},"s-play":()=>showScreen("s-play"),"s-settings":()=>showScreen("s-settings"),
   "s-practice":()=>openPractice(),"s-levels":()=>openLevels(),"s-guided":()=>openGuided(),"s-rank":()=>openRanking(typeof rankTab!=="undefined"?rankTab:"daily"),
-  "s-clinic":()=>openClinic(),"s-fb":()=>showScreen("s-fb"),"s-prog":()=>PV?openProgress(PV,PBACK||openPractice):openPractice(),"s-report":()=>PV?openReport():openPractice()};
+  "s-clinic":()=>openClinic(),"s-fb":()=>showScreen("s-fb"),"s-trophies":()=>openTrophies(),"s-prog":()=>PV?openProgress(PV,PBACK||openPractice):openPractice(),"s-report":()=>PV?openReport():openPractice()};
 const showScreen=show;
 let navPopping=false;
 show=function(id){

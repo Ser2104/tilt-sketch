@@ -1,17 +1,15 @@
 # Tilt Sketch
 
-Tilt Sketch turns a phone into a brush you control by moving your wrist. It has two sides:
+Tilt Sketch is a drawing game where your phone is the pencil: you aim it like a camera and move it to draw, and an AI we trained ourselves guesses what you drew, out loud, while you draw.
 
-- **Practice:** guided wrist exercises (trace lines, circles, spirals…) that adapt to the person, measure movement quality with on-device AI and track progress over weeks, with a report a therapist can read.
-- **Games:** drawing party games for one phone or many phones at once (Solo, Teams relay, Impostor), a daily challenge with a shared ranking, and 40 levels in 5 worlds with stars and a ranking, all judged by an AI that guesses each drawing. The games keep people coming back to the same wrist movements.
+- **Play your way:** a daily challenge with a shared leaderboard and a streak, 40 levels in 5 worlds, and 30 guided drawings.
+- **Play with friends:** Solo, Teams (relay drawing) and Impostor, on one phone or up to 12 phones joined by a 4-letter code or QR.
+- **Keep coming back:** player levels and XP, 14 trophies, unlockable brush colors, and shareable result images.
+- **A real AI:** a custom CNN trained on 395,000 drawings with gyroscope-style augmentation. It is right 82% of the time on shaky phone drawings, against 39% for DoodleNet, and runs on the phone with no internet.
 
-**Try it:** https://ser2104.github.io/tilt-sketch/ (open on a phone)
+**Try it:** https://ser2104.github.io/tilt-sketch/ (open on a phone). Android app: see [docs/play-store](docs/play-store/README.md).
 
-> Tilt Sketch is a game and wellness exercise tool. It is not a medical device and does not diagnose or treat any condition.
-
-## Why
-
-More than 795,000 people in the US have a stroke each year, and stroke reduces mobility in more than half of survivors aged 65 and older ([CDC](https://www.cdc.gov/stroke/data-research/facts-stats)). Recovery depends on repetitive home exercise, yet in a 2026 survey only 24% of people completed all their assigned at-home physical therapy exercises ([Medical Economics, on an Ohio State Wexner Medical Center survey](https://www.medicaleconomics.com/view/patients-aren-t-doing-their-physical-therapy-homework)). Therapists also see little of what happens between visits. Tilt Sketch makes the exercises engaging and turns each session into objective measurements, using only the phone people already own.
+The original HackPSU version also had a wrist-practice mode and a clinician dashboard. They are still in the code, hidden by default; open the site with `?rehab=1` to turn them on.
 
 ## Features
 

@@ -49,6 +49,8 @@ jobs:
         run: bash tests/ci_run.sh tests/e2e_es.py
       - name: Browser back and forward buttons
         run: bash tests/ci_run.sh tests/e2e_nav.py
+      - name: Tutorial, levels, achievements and sharing
+        run: bash tests/ci_run.sh tests/e2e_game.py
       - name: Eight phones join a room through the live relay
         run: bash tests/ci_run.sh tests/e2e_relay.py
       - name: Live database is reachable and protected

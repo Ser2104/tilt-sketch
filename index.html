@@ -19,7 +19,7 @@
 <section id="s-home" class="screen scroll">
   <header class="homehead">
     <h1 data-noi18n>Tilt<br>Sketch</h1>
-    <div class="headbtns"><button class="profchip" id="profChip" aria-label="Your profile"><span class="avatar" id="profAvatar" aria-hidden="true">?</span><span id="profName" data-noi18n></span></button><button class="iconbtn" id="openSettings" aria-label="Settings">⚙︎</button></div>
+    <div class="headbtns"><button class="profchip" id="profChip" aria-label="Your profile"><span class="avatar" id="profAvatar" aria-hidden="true">?</span><i class="lvbadge" id="profLv" hidden></i><span id="profName" data-noi18n></span></button><button class="iconbtn" id="openSettings" aria-label="Settings">⚙︎</button></div>
   </header>
   <p class="lede">Aim your phone to draw. An AI guesses what it is.</p>
 
@@ -30,10 +30,10 @@
     <button class="ccard" id="cGuided"></button>
     <div class="ccard codecard" id="cCode"><b>Enter code</b><span>Join a game with a 4-letter code.</span>
       <div class="codeboxes"><input class="codebox" maxlength="1" inputmode="text" autocapitalize="characters" autocomplete="off" aria-label="Room code letter 1"><input class="codebox" maxlength="1" inputmode="text" autocapitalize="characters" autocomplete="off" aria-label="Room code letter 2"><input class="codebox" maxlength="1" inputmode="text" autocapitalize="characters" autocomplete="off" aria-label="Room code letter 3"><input class="codebox" maxlength="1" inputmode="text" autocapitalize="characters" autocomplete="off" aria-label="Room code letter 4"></div></div>
-    <button class="tile tile-practice" id="tPractice"><b>Wrist practice</b><span>Guided exercises that adapt to you, with progress reports</span></button>
+    <button class="tile tile-practice rehab-only" id="tPractice"><b>Wrist practice</b><span>Guided exercises that adapt to you, with progress reports</span></button>
   </div>
-  <div class="row homelinks"><button class="linkbtn" id="cRank">Rankings</button><button class="linkbtn" id="openSettings2">Settings</button></div>
-  <p class="disclaimer">A game and wellness exercise tool, not a medical device. Stop if movement causes pain.</p>
+  <div class="row homelinks"><button class="linkbtn" id="cTrophies">Trophies</button><button class="linkbtn" id="cRank">Rankings</button><button class="linkbtn" id="openSettings2">Settings</button></div>
+  <p class="disclaimer rehab-only">A game and wellness exercise tool, not a medical device. Stop if movement causes pain.</p>
 </section>
 
 <!-- PLAY WITH FRIENDS -->
@@ -99,8 +99,8 @@
     <span class="label">Your profile</span>
     <p class="hint" style="text-align:left;margin:0">Your name appears on rankings and in rooms with friends.</p>
     <div class="row" style="flex-wrap:nowrap"><input class="field" id="profInput" maxlength="14" placeholder="Your name" autocomplete="nickname" style="flex:1;min-width:0"><button class="btn" id="profSave">Save</button></div>
-    <div class="setting"><span>Practice profile</span><select class="field" id="profPractice" aria-label="Practice profile" style="max-width:55%"></select></div>
-    <button class="linkbtn" id="profManage">Manage practice profiles</button>
+    <div class="setting rehab-only"><span>Practice profile</span><select class="field" id="profPractice" aria-label="Practice profile" style="max-width:55%"></select></div>
+    <button class="linkbtn rehab-only" id="profManage">Manage practice profiles</button>
     <p class="hint" id="profMsg" style="text-align:left;margin:0" aria-live="polite"></p>
   </div>
   <div class="panel">
@@ -125,6 +125,15 @@
     <button class="linkbtn" id="devMode">Test on a computer without a gyroscope (mouse)</button>
   </div>
 
+  <div class="panel host-only" id="fxPanel">
+    <span class="label">Sound</span>
+    <div class="toggles">
+      <button class="toggle" data-fx="sound" aria-pressed="true">Sounds and vibration</button>
+      <button class="toggle" data-fx="voice" aria-pressed="true">AI talks while you draw</button>
+    </div>
+    <button class="linkbtn" id="cTutorial">How to play (tutorial)</button>
+  </div>
+
   <div class="panel host-only" id="a11yPanel">
     <span class="label">Accessibility</span>
     <div class="toggles">
@@ -145,12 +154,13 @@
 
   <div class="panel">
     <span class="label">More</span>
-    <button class="btn" id="cClinic">For clinicians</button>
+    <button class="btn rehab-only" id="cClinic">For clinicians</button>
     <button class="btn" id="cFeedback">Send feedback</button>
     <button class="btn" id="cInstall" hidden>Install app</button>
     <p class="hint" id="installMsg" style="text-align:left;margin:0" hidden></p>
   </div>
-  <p class="disclaimer">Tilt Sketch is a game and wellness exercise tool. It is not a medical device and does not diagnose or treat any condition. Stop if movement causes pain, and follow your clinician's advice.</p>
+  <p class="disclaimer game-only">Play in an open space, keep a good grip on your phone, and take a break if your wrist gets tired.</p>
+  <p class="disclaimer rehab-only">Tilt Sketch is a game and wellness exercise tool. It is not a medical device and does not diagnose or treat any condition. Stop if movement causes pain, and follow your clinician's advice.</p>
   <p class="hint" style="text-align:center"><a href="privacy.html" id="privacyLink">Privacy policy</a></p>
   <div class="foot"><button class="btn primary big" id="settingsBack">Done</button></div>
 </section>
@@ -183,6 +193,7 @@
   <div class="bar"><i id="dBar"></i></div>
   <div class="stage" id="stage">
     <video id="camv" playsinline muted autoplay hidden></video>
+    <div class="coach" id="coach" role="status" hidden><b id="coachT"></b><span id="coachS"></span><button class="linkbtn" id="coachSkip">Skip tutorial</button></div>
     <canvas id="cv" width="300" height="300" aria-label="Drawing plane"></canvas>
     <div class="overlay" id="dOver"></div>
     <div class="liveai" id="liveAI" hidden aria-live="polite"></div>
@@ -414,6 +425,7 @@
     <img class="thumb" id="crImg" alt="Your drawing">
     <div id="crTop" style="width:100%"></div>
     <p class="lede" id="crInfo" style="text-align:center"></p>
+    <div class="xpbox" id="crXP" hidden></div>
   </div>
   <div class="panel" id="crDonate" hidden>
     <span class="label">Help train the AI</span>
@@ -428,6 +440,16 @@
   <header><span class="label">Levels</span><h2 class="h-big">Draw your way up</h2><p class="hint" id="lvStars" style="text-align:left;margin:0"></p></header>
   <div class="stack" id="lvWorlds"></div>
   <div class="foot"><button class="btn primary" id="lvRank">Levels ranking</button><button class="btn" id="lvBack">Back to home</button></div>
+</section>
+
+<!-- TROPHIES -->
+<section id="s-trophies" class="screen scroll" hidden>
+  <header><span class="label">Trophies</span><h2 class="h-big">Your progress</h2></header>
+  <div class="panel" id="tpLevel"></div>
+  <div class="tpstats" id="tpStats"></div>
+  <span class="label">Achievements</span>
+  <div class="tpgrid" id="tpList"></div>
+  <div class="foot"><button class="btn" id="tpBack">Back to home</button></div>
 </section>
 
 <!-- GUIDED DRAWINGS -->
@@ -512,6 +534,7 @@
 <script src="vendor/qrcode.js"></script>
 <script src="js/core.js"></script>
 <script src="js/i18n.js"></script>
+<script src="js/fx.js"></script>
 <script src="js/figures.js"></script>
 <script src="js/home.js"></script>
 <script src="js/gyro.js"></script>
@@ -530,6 +553,8 @@
 <script src="js/guided.js"></script>
 <script src="js/local-game.js"></script>
 <script src="js/multi.js"></script>
+<script src="js/game.js"></script>
+<script src="js/tutorial.js"></script>
 <script src="js/app.js"></script>
 <script src="js/nav.js"></script>
 <script src="js/profile.js"></script>

@@ -34,7 +34,7 @@ async def main():
         pg = await ctx.new_page()
         errs = []
         pg.on("pageerror", lambda e: errs.append(str(e)))
-        await pg.goto(BASE + "/index.html")
+        await pg.goto(BASE + "/index.html?rehab=1")
         await pg.evaluate(ORI)
         await pg.click("#tPractice")
         await pg.fill("#pfName", "Test patient")

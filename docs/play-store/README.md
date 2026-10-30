@@ -1,6 +1,6 @@
 # Publishing Tilt Sketch on Google Play
 
-The Android app lives in `android/`. It is a Capacitor wrapper that packs the same game files as the website, so it works offline. GitHub Actions builds it: no Android Studio needed.
+The Android app lives in `android/`. It is a Capacitor wrapper that packs the same game files as the website, so it works offline. Wrist practice and the clinician panel are hidden in the app (they only appear on the website with `?rehab=1`). GitHub Actions builds it: no Android Studio needed.
 
 - App ID: `io.github.ser2104.tiltsketch` (permanent once uploaded)
 - Store texts and graphics: [`listing.md`](listing.md) and the images in this folder
@@ -50,21 +50,20 @@ Pushes to `main` that touch the Android files make an unsigned test build only, 
 | News app | No |
 | Government app | No |
 | Financial features | None |
-| Health apps | Select the fitness or rehabilitation category Play offers that matches “wellness exercises”; describe it as a game and wellness tool, not a medical device |
+| Health apps | Not a health app (it is a game). The wrist-practice and clinician features are turned off in the app |
 | Data safety | See the table below |
 
 ### Data safety answers
 
-Does your app collect or share user data? **Yes**. Is all data encrypted in transit? **Yes**. Can users request deletion? **Yes** (in-app for donated drawings and clinician sharing; on request for rankings, through the contact on the privacy policy).
+Does your app collect or share user data? **Yes**. Is all data encrypted in transit? **Yes**. Can users request deletion? **Yes** (in-app for donated drawings; on request for rankings, through the contact on the privacy policy).
 
 | Data type | Collected | Shared with third parties | Optional | Purpose |
 |---|---|---|---|---|
 | Personal info › Name (nickname on rankings) | Yes | No | No (needed to appear on rankings) | App functionality |
 | Device or other IDs (random phone ID) | Yes | No | No | App functionality |
-| Health and fitness › Health info (practice summaries sent to a clinic) | Yes | No (sent only to the clinic the user chooses) | Yes | App functionality |
 | App activity › Other user-generated content (donated drawings, feedback answers) | Yes | No | Yes | App functionality, Analytics |
 
-Not collected: location, photos or videos (the camera view never leaves the phone), contacts, financial info, messages, audio, files, web history.
+Not collected: health info, location, photos or videos (the camera view never leaves the phone), contacts, financial info, messages, audio, files, web history.
 
 ## 5. Testing, then production
 

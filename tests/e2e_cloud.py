@@ -8,7 +8,7 @@ def mock_state():
     return json.loads(urllib.request.urlopen(req).read())
 
 
-async def page(b, name, url="/index.html"):
+async def page(b, name, url="/index.html?rehab=1"):
     ctx = await b.new_context(viewport={"width": 390, "height": 844}, device_scale_factor=2, accept_downloads=True)
     await ctx.add_init_script(f"addEventListener('DOMContentLoaded',()=>{{{CONNECT}}})")
     pg = await ctx.new_page()

@@ -8,7 +8,7 @@ const Feedback=(()=>{
   };
   const lang=()=>typeof I18N!=="undefined"?I18N.lang:"en";
   function form(id,ctx){
-    const qs=ctx==="practice"||ctx==="guided"||ctx==="general"?["ease","again","helped"]:["ease","again"];
+    const qs=ctx==="practice"||(REHAB&&(ctx==="guided"||ctx==="general"))?["ease","again","helped"]:["ease","again"];
     return`<div class="panel fb" id="${id}" data-ctx="${ctx}"><span class="label">Quick feedback · 10 seconds</span>
       ${qs.map(k=>`<div class="fbq" data-q="${k}"><span>${Q[k].text}</span><div class="fbscale" role="radiogroup" aria-label="${Q[k].text}">${[1,2,3,4,5].map(v=>`<button type="button" role="radio" aria-checked="false" data-v="${v}" aria-label="${v} of 5">${v}</button>`).join("")}</div><div class="fbends"><em>${Q[k].lo}</em><em>${Q[k].hi}</em></div></div>`).join("")}
       <textarea class="field" maxlength="500" rows="2" placeholder="Anything we should change? (optional)" aria-label="Comment"></textarea>

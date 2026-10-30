@@ -31,10 +31,17 @@ AN AI THAT REALLY GETS PHONE DRAWINGS
 • Before each drawing, see how other people drew it
 • Works without internet, and your drawings stay on your phone
 
+AN AI THAT TALKS
+• It says what it sees while you draw: "Hmm… a fish? Oh, I know! A sailboat!"
+• Sounds, vibration and confetti when you nail it
+
 PLAY YOUR WAY
-• Daily challenge with a shared leaderboard
+• Daily challenge with a shared leaderboard and a streak to keep alive
 • 40 levels on a path map across 5 worlds
 • 30 guided drawings to trace line by line, with no time limit
+• Level up, earn 14 trophies and unlock new brush colors
+• Share your drawing and score as an image: can your friends beat you?
+• A quick tutorial gets you drawing in 30 seconds
 
 PLAY WITH FRIENDS
 • Solo: everyone draws the same object, best score wins
@@ -42,17 +49,12 @@ PLAY WITH FRIENDS
 • Impostor: one player secretly gets a different object; find them
 • Pass one phone around, or join from many phones with a 4-letter code or QR
 
-WRIST PRACTICE
-• Guided tracing exercises that adapt to you
-• Track steadiness, smoothness and range of motion with progress charts
-• Optionally share your progress with your therapist using a clinic code
-
 FOR EVERYONE
 • English and Spanish
 • Larger text, high contrast, voice guidance and a bigger draw button
 • No ads and no account needed
 
-Tilt Sketch is a game and wellness exercise tool. It is not a medical device and does not diagnose or treat any condition. Stop if movement causes pain.
+Play in an open space, keep a good grip on your phone, and take a break if your wrist gets tired.
 ```
 
 ## Spanish (Latin America), es-419
@@ -84,10 +86,17 @@ UNA IA QUE DE VERDAD ENTIENDE DIBUJOS HECHOS CON EL TELÉFONO
 • Antes de cada dibujo, mira cómo lo dibujaron otras personas
 • Funciona sin internet y tus dibujos se quedan en tu teléfono
 
+UNA IA QUE HABLA
+• Te dice lo que ve mientras dibujas: "Mmm… ¿un pez? ¡Ya sé! ¡Un velero!"
+• Sonidos, vibración y confeti cuando lo logras
+
 JUEGA A TU MANERA
-• Reto diario con ranking compartido
+• Reto diario con ranking compartido y una racha que mantener
 • 40 niveles en un mapa con 5 mundos
 • 30 dibujos guiados para trazar línea por línea, sin límite de tiempo
+• Sube de nivel, gana 14 trofeos y desbloquea nuevos colores de pincel
+• Comparte tu dibujo y tu puntaje como imagen: ¿tus amigos te superan?
+• Un tutorial rápido te pone a dibujar en 30 segundos
 
 JUEGA CON AMIGOS
 • Solo: todos dibujan lo mismo y gana el mejor puntaje
@@ -95,17 +104,12 @@ JUEGA CON AMIGOS
 • Impostor: un jugador recibe en secreto otro objeto; descúbrelo
 • Pasa un solo teléfono o únanse desde varios con un código de 4 letras o un QR
 
-PRÁCTICA DE MUÑECA
-• Ejercicios guiados de trazo que se adaptan a ti
-• Sigue tu estabilidad, suavidad y rango de movimiento con gráficos de progreso
-• Si quieres, comparte tu progreso con tu terapeuta usando un código de clínica
-
 PARA TODOS
 • Inglés y español
 • Texto más grande, alto contraste, guía por voz y un botón de dibujo más grande
 • Sin anuncios y sin necesidad de cuenta
 
-Tilt Sketch es un juego y una herramienta de ejercicio de bienestar. No es un dispositivo médico y no diagnostica ni trata ninguna condición. Detente si el movimiento causa dolor.
+Juega en un espacio abierto, sujeta bien tu teléfono y descansa si se te cansa la muñeca.
 ```
 
 ## Graphics (in this folder)

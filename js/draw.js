@@ -91,7 +91,7 @@ function startDraw({who,word,strokes,dur,mark,onEnd,onError=null,template=null,s
   const a=mark||[.5,.5];D.pos={x:a[0],y:a[1]};calibrate(a[0],a[1]);
   D.state="count";cancelAnimationFrame(D.raf);D.raf=requestAnimationFrame(loop);
   let n=3;const over=$("#dOver");
-  const tick=()=>{if(n>0){over.innerHTML=`<span>${n}</span>`;say(String(n));n--;setTimeout(tick,700)}else{over.innerHTML="";say("Go");D.state="run";D.t0=performance.now()}};tick();
+  const tick=()=>{if(n>0){over.innerHTML=`<span>${n}</span>`;say(String(n));n--;setTimeout(tick,700)}else{over.innerHTML="";say("Go");SFX.go();D.state="run";D.t0=performance.now()}};tick();
 }
 function endTurn(msg){if(D.state!=="run")return;penUp();D.state="done";const m=typeof msg==="string"?msg:D.dur?"Time's up!":"Done!";$("#dOver").innerHTML=`<small>${m}</small>`;say(m);
   const last=[...D.strokes].reverse().find(s=>s.pts.length&&s.c!=="#FFFFFF");const lp=last?last.pts[last.pts.length-1]:(D.mark||null);

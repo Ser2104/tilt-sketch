@@ -8,8 +8,7 @@ function applyA11y(){
   try{localStorage.setItem("ts-a11y",JSON.stringify(A11Y))}catch(_){}
 }
 function say(text){
-  if(!A11Y.voice||!("speechSynthesis" in window))return;
-  try{speechSynthesis.cancel();const es=I18N.lang==="es",u=new SpeechSynthesisUtterance(I18N.t(text));u.lang=es?"es-US":"en-US";u.rate=1.05;speechSynthesis.speak(u)}catch(_){}
+  if(A11Y.voice)speakNow(I18N.t(text));
 }
 document.addEventListener("click",e=>{const b=e.target.closest("[data-a11y]");if(!b)return;const k=b.dataset.a11y;A11Y[k]=!A11Y[k];applyA11y();if(k==="voice"&&A11Y.voice)say("Voice guidance on")});
 applyA11y();

@@ -26,3 +26,5 @@ function nameOk(n){const t=String(n||"").toLowerCase().replace(/[0134@$!|5]/g,c=
 /* ---------- Android app: links point to the public site ---------- */
 const IS_APP=!!(window.Capacitor&&Capacitor.isNativePlatform&&Capacitor.isNativePlatform());
 const PUBLIC_URL=IS_APP?"https://ser2104.github.io/tilt-sketch/index.html":location.origin+location.pathname;
+const REHAB=(()=>{try{const q=new URLSearchParams(location.search);if(q.has("rehab")||q.has("clinic"))localStorage.setItem("ts-rehab","1");return localStorage.getItem("ts-rehab")==="1"}catch(_){return false}})();
+document.documentElement.classList.toggle("no-rehab",!REHAB);
