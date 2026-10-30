@@ -66,7 +66,7 @@ $("#sizes").onclick=e=>{const b=e.target.closest(".sz");if(!b)return;D.size=SIZE
 $("#undo").onclick=()=>{if(D.strokes&&D.strokes.length>D.base){if(D.cur)penUp();D.strokes.pop()}};
 function recenter(){const t=D.template,p=t?(t.strokes||[t.pts])[t.cur||0][0]:D.mark||[.5,.5];if(D.pen)penUp();calibrate(p[0],p[1]);const b=$("#recal");b.textContent="Centered";setTimeout(()=>b.textContent=D.template?"Back to start":"Recenter",900)}
 $("#recal").onclick=recenter;
-$("#finish").onclick=()=>{if(D.state==="run")endTurn(D.dur?undefined:"Done!")};
+$("#finish").onclick=()=>{if(D.state==="run")endTurn("Done!")};
 const pen=$("#pen");
 pen.addEventListener("pointerdown",e=>{e.preventDefault();if(S.lock){D.pen?penUp():penDown(D.pos.x,D.pos.y)}else{pen.setPointerCapture(e.pointerId);penDown(D.pos.x,D.pos.y)}});
 ["pointerup","pointercancel"].forEach(t=>pen.addEventListener(t,()=>{if(!S.lock&&D.pen)penUp()}));
@@ -85,7 +85,7 @@ function startDraw({tutorial=false,who,word,strokes,dur,mark,onEnd,onError=null,
   D.onError=onError;
   D.strokes=strokes;D.base=strokes.length;D.dur=dur;D.mark=mark||null;D.onEnd=onEnd;D.cur=null;D.pen=false;D.samples=[];D.template=template;D.steady=steady;
   $("#swatchRow").hidden=!!template;
-  $("#dWho").textContent=who;$("#dWord").textContent=up(word);$("#dClock").textContent=dur||"0:00";$("#dClock").classList.remove("low");$("#dBar").style.transform="scaleX(1)";
+  $("#dWho").textContent=who;$("#dWord").textContent=up(word);$("#dClock").textContent=dur||"0:00";$("#dClock").hidden=!!tutorial;$("#dClock").classList.remove("low");$("#dBar").style.transform="scaleX(1)";
   const g=S.input==="gyro";pen.hidden=!g;$("#recal").hidden=!g;$("#recal").textContent=template?"Back to start":"Recenter";penUp();
   const cv2=$("#camv"),useCam=S.cam&&camStream&&camStream.active;cv2.hidden=!useCam;if(useCam){cv2.srcObject=camStream;cv2.play().catch(()=>{})}
   else if(S.cam)startCam().then(ok=>{if(ok&&D.state!=="idle"&&!$("#s-draw").hidden){cv2.hidden=false;cv2.srcObject=camStream;cv2.play().catch(()=>{})}});
@@ -123,6 +123,8 @@ function handoff({who,info="",hint="",word=null,thumb=null,label="Pass the phone
   const btn=$("#hGo");btn.textContent=go;btn.disabled=!!word;
   if(word){let seen=false;const showW=e=>{e.preventDefault();$("#hWord").textContent=up(word);seen=true;btn.disabled=false};const hide=()=>{$("#hWord").textContent=seen?"• • •":""};
     rv.onpointerdown=showW;rv.onpointerup=rv.onpointerleave=rv.onpointercancel=hide}
+  /* Ignore the second tap of a double tap that started on the previous screen's button */
+  if(!word){btn.disabled=true;clearTimeout(btn._t);btn._t=setTimeout(()=>{btn.disabled=false},400)}
   btn.onclick=()=>{rv.onpointerdown=null;onGo()};
   show("s-hand");
 }

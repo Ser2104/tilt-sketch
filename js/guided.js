@@ -21,14 +21,17 @@ function playGuided(k){
       onEnd:()=>finishGuided(k,tpl),onError:()=>openGuided()})});
 }
 async function finishGuided(k,tpl){
-  const tr=Motor.trace(D.strokes,tpl),st=guidedState(),s=gStars(tr.score),img=snapshotWithTemplate(D.strokes,tpl);
+  const tr=Motor.trace(D.strokes,tpl);
+  /* Missing lines cost points: below 85% coverage the score drops fast, so half a figure earns no star */
+  tr.score=Math.round(tr.score*Math.min(1,(tr.coverage/85)**1.5));
+  const st=guidedState(),s=gStars(tr.score),img=snapshotWithTemplate(D.strokes,tpl);
   st.best[k]=Math.max(st.best[k]||0,tr.score);if(s>=1&&st.unlocked===k)st.unlocked=Math.min(GUIDED.length,k+1);store.set("ts-guided",st);
   const n=playerName();let sync="";if(s>=1&&Rank.on()&&n)sync=(await Rank.submit("guided",n,0,st.unlocked,guidedStars(st)))?" Ranking updated.":"";
   const actions=[];if(s>=1&&k+1<GUIDED.length)actions.push({text:`Next: ${FIG.F[GUIDED[k+1].key].name}`,fn:()=>playGuided(k+1)});
   actions.push({text:"All guided drawings",fn:openGuided},{text:s>=3?"Play again":"Try for more stars",fn:()=>playGuided(k)},{text:"Guided ranking",fn:()=>openRanking("guided")});
   if(s<1)actions.unshift(actions.splice(1,1)[0]);
-  showChallengeResult({label:`Guided ${k+1} · ${FIG.F[GUIDED[k].key].name}`,title:s>=1?(k+1===GUIDED.length?"You traced every figure!":"Figure complete"):`Need ${GSTARS[0]} for a star`,score:tr.score,img,
-    info:(tr.score>=95?"":`Covered ${tr.coverage}% of the lines, ${tr.accuracy}% of your ink on the lines.`+(s<1?" Go slower and stay inside the light band.":""))+sync,starsN:s,actions});
+  showChallengeResult({label:`Guided ${k+1} · ${FIG.F[GUIDED[k].key].name}`,title:s>=1?(k+1===GUIDED.length?"You traced every figure!":tr.coverage<85?"Some lines are missing":"Figure complete"):`Need ${GSTARS[0]} for a star`,score:tr.score,img,
+    info:(tr.score>=95?"":`Covered ${tr.coverage}% of the lines, ${tr.accuracy}% of your ink on the lines.`+(tr.coverage<85?" Trace every line, from its green dot to its orange ring.":s<1?" Go slower and stay inside the light band.":""))+sync,starsN:s,actions});
 }
 $("#gdBack").onclick=()=>{renderChallengeCards();show("s-home")};
 $("#gdRank").onclick=()=>openRanking("guided");

@@ -298,3 +298,13 @@ details.panel[open]>summary::after{content:"−"}
 .rkreport{margin-left:6px;border:0;background:transparent;color:var(--muted);font-size:14px;min-width:32px;min-height:32px;border-radius:8px;cursor:pointer}
 .rkreport[data-confirm="1"]{background:var(--chip);color:var(--accent);font-weight:800;font-size:12px}
 #s-cres .foot{position:sticky;bottom:0;z-index:3;background:linear-gradient(rgba(0,0,0,0),var(--bg) 22px);padding-top:22px;padding-bottom:max(8px,env(safe-area-inset-bottom))}
+/* Playtest fixes: coach at the bottom of the sheet so the cross and countdown stay visible; one-row tools; narrow headers; ranking names */
+.coach{top:auto;bottom:10px;padding:10px 12px}
+.stage:has(.coach:not([hidden])) .liveai{bottom:auto;top:10px;max-width:calc(100% - 110px)}
+@media (max-height:700px){.coach b{font-size:15px}.coach span{font-size:13px}.coach .linkbtn{min-height:28px}}
+.swatches{flex-wrap:nowrap;min-width:0;flex:1 1 auto}
+.sw{flex:0 1 32px;width:auto;height:auto;aspect-ratio:1;min-width:22px}
+.headbtns{min-width:0;flex-shrink:1}
+.profchip{min-width:0;flex-shrink:1}
+@media (max-width:380px){#profName{display:none}.profchip{padding-right:8px}}
+.ranklist .who{font-family:inherit;font-size:inherit;line-height:inherit;color:inherit}

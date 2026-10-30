@@ -81,7 +81,7 @@ function cleanFor(strokes){const c=AI.spec&&AI.spec.input&&AI.spec.input.clean;i
 function gameWords(){const p=AI.per;if(!p)return WORDS;const good=WORDS.filter(w=>p[w]==null||p[w]>=.8);return good.length?good:WORDS}
 function topList(r){return(r&&r.top||[]).filter(t=>t.p>=.02)}
 function explainShort(r){const t=topList(r);if(!t.length)return"";
-  return(t[0].p<.45?"Not sure · ":"")+t.map(x=>`${x.w} ${Math.round(100*x.p)}%`).join(", ")}
+  return(t[0].p<.45?"Not sure · ":"")+t.map(x=>`${typeof I18N!=="undefined"?I18N.t(x.w):x.w} ${Math.round(100*x.p)}%`).join(", ")}
 function explainHTML(r){const t=topList(r);if(!t.length)return"";
   return`<div class="aitop" role="group" aria-label="The AI's top guesses"><span class="label">${r.scribble?"Looks like a scribble. ":""}${t[0].p<.45?"The AI is not sure. ":""}Its top guesses</span>${r.detail!=null&&r.recog!=null?`<div class="aiscore">Recognized ${r.recog}% · detail ${r.detail}%${r.detail<80?" · add the parts people usually draw":""}</div>`:""}${t.map(x=>`<div class="aibar"><span>${esc(x.w)}</span><i style="width:${Math.max(2,Math.round(100*x.p))}%"></i><b>${Math.round(100*x.p)}%</b></div>`).join("")}</div>`}
 function inkStats(strokes){

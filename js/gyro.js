@@ -1,7 +1,7 @@
 /* ---------- Gyroscope ---------- */
 const ori={a:null,b:null,g:null,t:0};
 addEventListener("deviceorientation",e=>{if(e.beta==null||e.gamma==null)return;ori.a=e.alpha;ori.b=e.beta;ori.g=e.gamma;ori.t=performance.now();
-  if(S.gyro!=="ok"){S.gyro="ok";gyroMsg("ok","Gyroscope on. Aim your phone to move the sheet under the brush.");refreshStart()}});
+  if(S.gyro!=="ok"){S.gyro="ok";gyroMsg("ok","Gyroscope on. Aim your phone to move the sheet under the brush.");refreshStart();$("#testGyro").textContent="Test gyroscope"}});
 function gyroMsg(cls,txt){$("#gyroStatus").innerHTML=`<span class="dot ${cls}"></span><span>${txt}</span>`}
 async function testGyro(){
   let denied=false;
@@ -10,7 +10,7 @@ async function testGyro(){
   try{if(ask&&(await ask)!=="granted")denied=true}catch(_){denied=true}
   const t0=performance.now();
   await new Promise(r=>setTimeout(r,1200));
-  if(ori.t>=t0-1500&&ori.b!=null){S.gyro="ok";gyroMsg("ok","Gyroscope on. Aim your phone to move the sheet under the brush.")}
+  if(ori.t>=t0-1500&&ori.b!=null){S.gyro="ok";gyroMsg("ok","Gyroscope on. Aim your phone to move the sheet under the brush.");$("#testGyro").textContent="Test gyroscope"}
   else{S.gyro="no";gyroMsg("bad",denied?"Motion access was denied. On iPhone, close the tab, reopen the game and tap \"Allow\".":location.protocol!=="https:"&&location.hostname!=="localhost"?"The gyroscope only works when the game is opened from an https address.":window.top!==window?"This view blocks the gyroscope. Open the game from its own link in your phone's browser.":"No gyroscope data is coming in. Use a phone and check that the browser has motion access.")}
   refreshStart();return S.gyro==="ok";
 }

@@ -103,7 +103,7 @@ function reveal(){
   $("#vvLabel").textContent=out?`Eliminated: ${out}`:"The vote is tied";
   $("#vvTitle").textContent=caught?"You caught the impostor!":"The impostor wins";
   $("#vvInfo").textContent=`The impostor was ${G.names[G.imp]}. The object was "${G.main}" and the impostor drew "${G.decoy}".`;
-  $("#vvCards").innerHTML=G.order.map(p=>`<div class="card${p===G.imp?" win":""}"><img alt="${esc(G.names[p])}'s drawing" src="${snapshot(G.draws[p],256,undefined,true)}"><div style="min-width:0"><div class="nm">${esc(G.names[p])}${p===G.imp?" · impostor":""}</div><div class="gs">Drew: ${esc(p===G.imp?G.decoy:G.main)}</div></div><div class="pc">${count[p]}<span class="gs"> vote${count[p]===1?"":"s"}</span></div></div>`).join("");
+  $("#vvCards").innerHTML=G.order.map(p=>`<div class="card${p===G.imp?" win":""}"><img alt="${esc(G.names[p])}'s drawing" src="${snapshot(G.draws[p],256,undefined,true)}"><div style="min-width:0"><div class="nm">${esc(G.names[p])}${p===G.imp?" · impostor":""}</div><div class="gs">Drew: ${esc(p===G.imp?G.decoy:G.main)}</div></div><div class="pc">${count[p]}<span class="gs"> ${count[p]===1?"vote":"votes"}</span></div></div>`).join("");
   show("s-rev");
 }
 $("#vvAgain").onclick=()=>newMatch();$("#vvHome").onclick=()=>show("s-play");

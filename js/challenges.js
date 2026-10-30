@@ -2,9 +2,9 @@
 const WORLDS=[
   {name:"First lines",time:25,pass:35,items:["house", "smiley face", "snowman", "rainbow", "umbrella", "ice cream", "sailboat", "ladder"]},
   {name:"Around the house",time:20,pass:40,items:["hourglass", "eyeglasses", "crown", "hamburger", "camera", "scissors", "headphones", "television"]},
-  {name:"Animals",time:18,pass:45,items:["fish", "snail", "cat", "octopus", "giraffe", "rabbit", "bee", "spider"]},
-  {name:"Adventure",time:16,pass:50,items:["castle", "skull", "lighthouse", "diamond", "helicopter", "snowflake", "guitar", "train"]},
-  {name:"Masters",time:15,pass:55,items:["cactus", "bicycle", "car", "Eiffel Tower", "pineapple", "angel", "butterfly", "penguin"]}
+  {name:"Animals",time:20,pass:45,items:["fish", "snail", "cat", "octopus", "giraffe", "rabbit", "bee", "spider"]},
+  {name:"Adventure",time:20,pass:50,items:["castle", "skull", "lighthouse", "diamond", "helicopter", "snowflake", "guitar", "train"]},
+  {name:"Masters",time:20,pass:55,items:["cactus", "bicycle", "car", "Eiffel Tower", "pineapple", "angel", "butterfly", "penguin"]}
 ];
 const PASS_OVERRIDE={"crown":70,"snowflake":70,"smiley face":45,"scissors":50};
 const LEVEL_LIST=WORLDS.flatMap((w,wi)=>w.items.map((word,i)=>({word,world:wi,index:i,time:w.time,pass:PASS_OVERRIDE[word]||w.pass})));
@@ -54,7 +54,7 @@ async function startDaily(){
     store.set("ts-daily-"+date,{word,score:best,tries,date});
     let info=prev?(better?`New best today: ${best}%.`:`Your best today is still ${best}%. Keep trying!`):"";const n=playerName();
     if(better){if(Rank.on()&&n){const ok=await Rank.submit("daily-"+date,n,best);info+=ok?" Your best score is on today's ranking.":" Could not reach the ranking. Your score is saved on this phone."}
-      else info+=Rank.on()?" Add your name in the ranking screen to appear on it.":" Saved on this phone. Shared ranking is not connected yet."}
+      else info+=Rank.on()?" Add your name in Settings to appear on it.":" Saved on this phone. Shared ranking is not connected yet."}
     showChallengeResult({label:"Daily challenge · "+date,title:`The AI sees: ${r.guess}`,score:r.acc,img,info:info.trim(),starsN:null,actions:[
       {text:"Try again",fn:()=>startDaily()},{text:"See today's ranking",fn:()=>openRanking("daily")},{text:"Back to home",fn:()=>{renderChallengeCards();show("s-home")}}]})}});
 }
@@ -79,7 +79,7 @@ function openLevels(){
 $("#lvWorlds").onclick=async e=>{const b=e.target.closest(".lv");if(!b||b.disabled)return;if(!(await readyToDraw()))return;playLevel(+b.dataset.k)};
 function playLevel(k){
   const L=LEVEL_LIST[k];
-  playChallenge({word:L.word,time:L.time,label:`Level ${k+1} · ${WORLDS[L.world].name}`,onScore:async(r,img)=>{
+  playChallenge({word:L.word,time:L.time,label:`Level ${k+1} · need ${L.pass}%`,onScore:async(r,img)=>{
     const st=levelState(),prevBest=st.best[k]||0;st.best[k]=Math.max(prevBest,r.acc);
     const passed=r.acc>=L.pass;if(passed&&st.unlocked===k)st.unlocked=Math.min(LEVEL_LIST.length,k+1);store.set("ts-levels",st);
     const n=playerName();let sync="";
@@ -105,7 +105,7 @@ async function openRanking(tab=rankTab){
   if(!rows){$("#rkStatus").textContent="Could not reach the ranking. Showing your result on this phone.";render(local);return}
   $("#rkStatus").textContent=rows.length?"":"No one is on the board yet. Be the first!";render(rows);
   function render(rows){const hid=store.get("ts-reported",[]);rows=rows.filter(r=>!hid.includes(r.player));
-    list.innerHTML=rows.map((r,i)=>`<li class="${r.player===me?"me":""}"><span class="pos">${i+1}</span><span class="who">${esc(r.player)}</span><span class="val">${tab==="daily"?pct(r.score)+"%":tab==="guided"?`${+r.level||0} figures · ${+r.stars||0} ★`:`Level ${+r.level||0} · ${+r.stars||0} ★`}</span>${r.player!==me&&Rank.on()?`<button class="rkreport" data-p="${esc(r.player)}" aria-label="Report this name">⚑</button>`:""}</li>`).join("")}
+    list.innerHTML=rows.map((r,i)=>`<li class="${r.player===(me||"You")?"me":""}"><span class="pos">${i+1}</span><span class="who">${esc(r.player)}</span><span class="val">${tab==="daily"?pct(r.score)+"%":tab==="guided"?`${+r.level||0} figures · ${+r.stars||0} ★`:`Level ${+r.level||0} · ${+r.stars||0} ★`}</span>${r.player!==(me||"You")&&Rank.on()?`<button class="rkreport" data-p="${esc(r.player)}" aria-label="Report this name">⚑</button>`:""}</li>`).join("")}
 }
 $("#rkTabs").onclick=e=>{const t=e.target.dataset.tab;if(t)openRanking(t)};
 $("#rkList").onclick=async e=>{const b=e.target.closest(".rkreport");if(!b)return;

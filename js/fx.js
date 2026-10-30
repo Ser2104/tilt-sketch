@@ -51,6 +51,7 @@ const toastQ=[];let toastOn=false;
 function toast(html){toastQ.push(html);if(!toastOn)nextToast()}
 function nextToast(){
   const h=toastQ.shift();if(h==null){toastOn=false;return}toastOn=true;
+  if(typeof D!=="undefined"&&(D.state==="count"||D.state==="run")){toastQ.unshift(h);setTimeout(nextToast,500);return}
   let t=$("#toast");if(!t){t=document.createElement("div");t.id="toast";t.className="toast";t.setAttribute("role","status");document.body.append(t)}
   t.innerHTML=h;t.classList.add("on");let done=false;const hide=()=>{if(done)return;done=true;t.classList.remove("on");setTimeout(nextToast,350)};
   t.onclick=hide;setTimeout(hide,toastQ.length?2000:2600)}

@@ -46,14 +46,16 @@ const Game=(()=>{
       UNLOCKS.filter(([lv])=>n>=lv).map(([lv,c,name])=>`<button class="sw" style="background:${c}" data-c="${c}" aria-label="${name}" aria-pressed="${c===cur}"></button>`).join("")+
       ((u=>u?`<button class="sw locked" data-lock="${u[0]}" aria-label="${u[2]}: unlocks at level ${u[0]}">🔒</button>`:"")(UNLOCKS.find(([lv])=>n<lv)))+
       `<button class="sw eraser" data-c="eraser" aria-label="Eraser" aria-pressed="${cur==="eraser"}"></button>`}
-  $("#swatches").addEventListener("click",e=>{const b=e.target.closest("[data-lock]");if(b)toast(`<i>🔒</i><b>Level ${b.dataset.lock}</b><span>Keep drawing to unlock this color.</span>`)});
+  $("#swatches").addEventListener("click",e=>{const b=e.target.closest("[data-lock]");if(!b)return;
+    if(D.state==="run"||D.state==="count"){const w=$("#dWho"),old=w.textContent;w.textContent=`🔒 Player level ${b.dataset.lock} unlocks this color`;clearTimeout(w._t);w._t=setTimeout(()=>{if(w.textContent.startsWith("🔒"))w.textContent=old},2200)}
+    else toast(`<i>🔒</i><b>Player level ${b.dataset.lock}</b><span>Keep drawing to unlock this color.</span>`)});
 
   function renderLevelChip(){const b=$("#profLv");b.textContent="Lv "+levelOf(st().xp).n;b.hidden=false}
 
   function xpHTML(r,daily){
     const L=levelOf(r.s.xp),k=streakNow(r.s);
     return`<div class="xprow"><b>+${r.gain} XP</b><span>Level ${L.n}</span></div><div class="xpbar"><i style="width:${Math.round(L.into/L.need*100)}%"></i></div>`+
-      `<p class="hint" style="margin:0">${L.need-L.into} XP to level ${L.n+1}${daily&&k?` · 🔥 ${k}-day streak`:""}</p>`}
+      `<p class="hint" style="margin:0">${L.need-L.into} XP to level ${L.n+1}${daily&&k?` · 🔥 ${k===1?"1-day streak":`${k}-day streak`}`:""}</p>`}
 
   async function shareDrawing({word,score,strokes,img,label}){
     const W=1080,H=1350,c=document.createElement("canvas");c.width=W;c.height=H;const x=c.getContext("2d");
@@ -108,7 +110,7 @@ const Game=(()=>{
 
   const _cards=renderChallengeCards;
   renderChallengeCards=function(){_cards();const k=streakNow(),s=st();if(!k)return;
-    const played=s.last===todayUTC();$("#cDaily").insertAdjacentHTML("beforeend",`<span class="streak">🔥 ${k}-day streak${played?"":" · play today to keep it"}</span>`)};
+    const played=s.last===todayUTC();$("#cDaily").insertAdjacentHTML("beforeend",`<span class="streak">🔥 ${k===1?"1-day streak":`${k}-day streak`}${played?"":" · play today to keep it"}</span>`)};
 
   const _final=finalScreen;finalScreen=function(...a){const r=_final.apply(this,a);award({party:true,xp:40});return r};
   const _reveal=reveal;reveal=function(...a){const r=_reveal.apply(this,a);award({party:true,xp:40});return r};

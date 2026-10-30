@@ -26,6 +26,7 @@ addEventListener("popstate",e=>{
   navPopping=true;
   try{
     if(typeof D!=="undefined"&&D.state&&D.state!=="idle")abortDraw();
+    if(typeof galTimer!=="undefined")clearInterval(galTimer);
     if(cur&&!NAV_SCREENS[cur.id]&&typeof NET!=="undefined"&&NET.code)leaveRoom("");
     (NAV_SCREENS[target]||NAV_SCREENS["s-home"])();
   }finally{navPopping=false}

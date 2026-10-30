@@ -52,7 +52,7 @@ $("#prBack").onclick=()=>(PBACK||openPractice)();
 function openReport(){
   const p=PV;if(!p)return;const ss=p.sessions;
   const first=ss[0],last=ss[ss.length-1];
-  $("#rpMeta").textContent=`${p.name} · ${ss.length} session${ss.length===1?"":"s"}${first?` · ${new Date(first.date).toLocaleDateString()} to ${new Date(last.date).toLocaleDateString()}`:""} · generated ${new Date().toLocaleDateString()}`;
+  $("#rpMeta").textContent=(d=>`${p.name} · ${ss.length===1?"1 session":`${ss.length} sessions`}${first?` · from ${d(first.date)} to ${d(last.date)}`:""} · generated ${d(Date.now())}`)(x=>new Date(x).toLocaleDateString(typeof I18N!=="undefined"?I18N.lang:undefined));
   const rows=CHARTS.map(c=>{const v=ss.map(s=>sessionValue(s,c.key)).filter(x=>x!=null);return`<tr><td>${c.title}</td><td>${v.length?fmt(v[0]):"–"}${c.unit}</td><td>${v.length?fmt(v[v.length-1]):"–"}${c.unit}</td><td>${trendText(ss.map(s=>sessionValue(s,c.key)))||"–"}</td></tr>`}).join("");
   $("#rpSummary").innerHTML=`<table><thead><tr><th>Measure</th><th>First session</th><th>Latest session</th><th>Trend</th></tr></thead><tbody>${rows}</tbody></table>`;
   $("#rpCharts").innerHTML=CHARTS.map(c=>`<figure class="chart"><figcaption><span>${c.title}</span></figcaption><canvas id="rc-${c.key}"></canvas></figure>`).join("");
