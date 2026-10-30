@@ -1,0 +1,37 @@
+name: signing-check
+on:
+  push:
+    branches: [ci-signing-check]
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v5
+      - uses: actions/setup-node@v5
+        with:
+          node-version: "22"
+      - uses: actions/setup-java@v5
+        with:
+          distribution: temurin
+          java-version: "21"
+      - run: |
+          npm ci --no-audit --no-fund
+          npm run android:sync
+          keytool -genkeypair -storetype PKCS12 -keystore "$RUNNER_TEMP/t.jks" -alias upload -keyalg RSA -keysize 2048 -validity 10000 -storepass testpass123 -keypass testpass123 -dname "CN=Test"
+      - working-directory: android
+        env:
+          ANDROID_KEYSTORE_PATH: ${{ runner.temp }}/t.jks
+          ANDROID_KEYSTORE_PASSWORD: testpass123
+          ANDROID_KEY_ALIAS: upload
+          ANDROID_KEY_PASSWORD: testpass123
+          VERSION_CODE: "7"
+          VERSION_NAME: "1.0-check"
+        run: |
+          chmod +x gradlew
+          ./gradlew --no-daemon bundleRelease assembleRelease
+          ls -la app/build/outputs/bundle/release app/build/outputs/apk/release
+          "$ANDROID_HOME/build-tools/$(ls $ANDROID_HOME/build-tools | sort -V | tail -1)/apksigner" verify --print-certs app/build/outputs/apk/release/app-release.apk | head -3
+          "$ANDROID_HOME/build-tools/$(ls $ANDROID_HOME/build-tools | sort -V | tail -1)/aapt2" dump badging app/build/outputs/apk/release/app-release.apk | grep -E "package:|sdkVersion|targetSdk|uses-permission|uses-feature|application-label:" 
+          unzip -l app/build/outputs/bundle/release/app-release.aab | grep -E "assets/public/(index.html|privacy.html|models/tiltsketch/weights.bin)"
+          echo "::notice::$(aapt2 2>/dev/null; "$ANDROID_HOME/build-tools/$(ls $ANDROID_HOME/build-tools | sort -V | tail -1)/aapt2" dump badging app/build/outputs/apk/release/app-release.apk | grep -E "^package:|targetSdk" | tr '\n' ' ')"
