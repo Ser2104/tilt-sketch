@@ -10,4 +10,8 @@ $("#cInstall").onclick=async()=>{
   $("#installMsg").textContent="On iPhone: tap the Share button in Safari, then “Add to Home Screen”. Practice and games on one phone then work without internet.";$("#installMsg").hidden=false};
 function netNote(){if(navigator.onLine)return;$("#installMsg").hidden=false;$("#installMsg").textContent="You are offline. Practice, guided drawings and one-phone games still work; rankings and sharing sync when you are back online."}
 addEventListener("offline",netNote);addEventListener("online",()=>{$("#installMsg").hidden=true});netNote();
+if(IS_APP){const A=window.Capacitor&&Capacitor.Plugins&&Capacitor.Plugins.App;
+  if(A)A.addListener("backButton",({canGoBack})=>{if(typeof D!=="undefined"&&D.state==="run"&&!$("#s-draw").hidden)return;canGoBack?history.back():A.minimizeApp()});
+  $("#privacyLink").href=PUBLIC_URL.replace("index.html","privacy.html")}
 I18N.start();
+try{if(sessionStorage.getItem("ts-return")==="s-settings"){sessionStorage.removeItem("ts-return");openSettings()}}catch(_){}

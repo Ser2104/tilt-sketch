@@ -283,3 +283,81 @@ begin
 end; $$;
 
 delete from public.scores where not public.name_ok(player);
+
+-- ---------- Update 2026-10-30: report names, stricter name filter, score limits, delete my rankings ----------
+create extension if not exists unaccent with schema extensions;
+
+create or replace function public.name_ok(n text) returns boolean language sql stable set search_path = public, extensions as $$
+  select coalesce(n, '') !~ '[\x01-\x1f\x7f\u200b-\u200f\u202a-\u202e\u2066-\u2069]'
+    and regexp_replace(translate(lower(extensions.unaccent(translate(coalesce(n, ''), 'аеіјорсухкмтвнАЕІЈОРСУХКМТВН', 'aeijopcyxkmtbhAEIJOPCYXKMTBH'))),
+          '0134@$!|5', 'oieaasiis'), '[^a-z]', '', 'g')
+    !~ '(n+i+g{2,}|n+[iy]+g+r|n+[iy]+g+[ea]+r+[sz]*$|n+[iy]+g+u+h|f+a+g+|k+i+k+e|c+h+i+n+k|r+e+t+a+r+d|n+a+z+i|h+i+t+l+e+r|w+h+o+r+e|s+l+u+t|c+u+n+t|r+a+p+i+s+t|p+u+t+[ao]|m+a+r+i+c+[ao]|m+a+r+i+c+o+n|z+o+r+r+a|v+e+r+g+a|c+u+l+e+r+o|p+e+n+d+e+j|c+o+n+c+h+a+t+u|c+h+u+p+a+m)'
+$$;
+revoke all on function public.name_ok(text) from public, anon, authenticated;
+
+alter table public.scores add column if not exists hidden boolean not null default false;
+grant select (hidden) on public.scores to anon;
+create or replace view public.leaderboard with (security_invoker = true) as
+  select board, player, score, level, stars, updated_at from public.scores where not hidden;
+grant select on public.leaderboard to anon, authenticated;
+
+create table if not exists public.name_reports (
+  board      text        not null,
+  player     text        not null,
+  reporter   uuid        not null,
+  created_at timestamptz not null default now(),
+  primary key (board, player, reporter)
+);
+alter table public.name_reports enable row level security;
+revoke all on public.name_reports from anon, authenticated;
+
+create or replace function public.report_name(p_board text, p_player text, p_device uuid)
+returns void language plpgsql security definer set search_path = public as $$
+begin
+  if (select count(*) from name_reports where reporter = p_device and created_at > now() - interval '1 day') >= 20 then
+    raise exception 'too many reports today';
+  end if;
+  insert into name_reports (board, player, reporter) values (left(p_board, 40), left(p_player, 24), p_device) on conflict do nothing;
+  update scores set hidden = true
+   where player = left(p_player, 24)
+     and (not public.name_ok(player) or (select count(distinct reporter) from name_reports r where r.player = scores.player) >= 3);
+end; $$;
+grant execute on function public.report_name(text, text, uuid) to anon;
+
+create or replace function public.delete_my_scores(p_device uuid)
+returns int language plpgsql security definer set search_path = public as $$
+declare n int;
+begin
+  delete from scores where device = p_device;
+  get diagnostics n = row_count;
+  return n;
+end; $$;
+grant execute on function public.delete_my_scores(uuid) to anon;
+
+create or replace function public.submit_score(
+  p_board text, p_device uuid, p_player text, p_score int, p_level int default 0, p_stars int default 0)
+returns void language plpgsql security definer set search_path = public as $$
+declare
+  today text := to_char(now() at time zone 'utc', 'YYYY-MM-DD');
+  yesterday text := to_char((now() at time zone 'utc') - interval '1 day', 'YYYY-MM-DD');
+  max_level int := case p_board when 'levels' then 40 when 'guided' then 30 else 0 end;
+begin
+  if p_board not in ('levels', 'guided') and p_board not in ('daily-' || today, 'daily-' || yesterday) then
+    raise exception 'unknown or closed board';
+  end if;
+  if char_length(trim(p_player)) = 0 then raise exception 'empty name'; end if;
+  if not public.name_ok(p_player) then raise exception 'name not allowed'; end if;
+  insert into scores (board, device, player, score, level, stars)
+  values (p_board, p_device, left(trim(p_player), 24), least(greatest(p_score, 0), 100),
+          least(greatest(p_level, 0), max_level), least(greatest(p_stars, 0), max_level * 3))
+  on conflict (board, device) do update set
+    hidden = scores.hidden and scores.player = excluded.player,
+    player = excluded.player,
+    score = greatest(scores.score, excluded.score),
+    level = greatest(scores.level, excluded.level),
+    stars = greatest(scores.stars, excluded.stars),
+    updated_at = now();
+end; $$;
+grant execute on function public.submit_score(text, uuid, text, int, int, int) to anon, authenticated;
+
+update public.scores set hidden = true where not public.name_ok(player);

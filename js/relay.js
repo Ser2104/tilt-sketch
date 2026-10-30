@@ -17,7 +17,8 @@ const Relay=(()=>{
     ch.on("presence",{event:"leave"},({key})=>{const c=conns.get(key);if(!c||gone.has(key))return;
       gone.set(key,setTimeout(()=>{gone.delete(key);conns.delete(key);c.close()},12000))});
     ch.on("presence",{event:"join"},({key})=>{if(gone.has(key)){clearTimeout(gone.get(key));gone.delete(key)}});
-    ch.subscribe(async s=>{if(s==="SUBSCRIBED"){try{await ch.track({role:"host"})}catch(_){}if(!opened){opened=true;onOpen()}}
+    ch.subscribe(async s=>{if(s==="SUBSCRIBED"){if(!opened){await new Promise(r=>setTimeout(r,900));if(ch.presenceState().host){end(ch);onError("TAKEN");return}}
+        try{await ch.track({role:"host"})}catch(_){}if(!opened){opened=true;onOpen()}}
       else if((s==="CHANNEL_ERROR"||s==="TIMED_OUT")&&!opened)onError(s)});
     return{destroyed:false,destroy(){this.destroyed=true;conns.forEach(c=>c.open=false);end(ch)}}}
   function guest(code,{onOpen,onNotFound,onError}){

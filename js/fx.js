@@ -28,7 +28,7 @@ const AI_LINES={
 let aiKey="",aiT=0;
 function aiResetVoice(){aiKey="";aiT=0}
 function aiComment(r,word){
-  if(r.scribble)return;
+  if(r.scribble||r.guess==="something else")return;
   const hit=r.guess===word&&r.acc>=50,key=(hit?"!":"")+r.guess,now=Date.now();
   if(key===aiKey||(!hit&&now-aiT<2200))return;
   aiKey=key;aiT=now;
@@ -52,7 +52,7 @@ function toast(html){toastQ.push(html);if(!toastOn)nextToast()}
 function nextToast(){
   const h=toastQ.shift();if(h==null){toastOn=false;return}toastOn=true;
   let t=$("#toast");if(!t){t=document.createElement("div");t.id="toast";t.className="toast";t.setAttribute("role","status");document.body.append(t)}
-  t.innerHTML=h;t.classList.add("on");setTimeout(()=>{t.classList.remove("on");setTimeout(nextToast,350)},2900)}
+  t.innerHTML=h;t.classList.add("on");setTimeout(()=>{t.classList.remove("on");setTimeout(nextToast,350)},toastQ.length?2000:2600)}
 
 function renderFx(){document.querySelectorAll("[data-fx]").forEach(b=>b.setAttribute("aria-pressed",!!FX[b.dataset.fx]))}
 document.addEventListener("click",e=>{const b=e.target.closest("[data-fx]");if(!b)return;const k=b.dataset.fx;FX[k]=!FX[k];try{localStorage.setItem("ts-fx",JSON.stringify(FX))}catch(_){}renderFx();

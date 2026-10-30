@@ -25,20 +25,24 @@ const Game=(()=>{
   function markDaily(s){const d=todayUTC();if(s.last===d)return;s.streak=s.last&&dayDiff(s.last,d)===1?s.streak+1:1;s.last=d;s.streakBest=Math.max(s.streakBest,s.streak)}
 
   function award({score=0,xp=null,daily=false,party=false,share=false}){
-    const s=st(),before=levelOf(s.xp).n,gain=xp!=null?xp:10+Math.round(score*.9);
+    const s=st(),before=levelOf(s.xp).n,today=todayUTC(),repeat=daily&&s.dailyDay===today,gain=xp!=null?xp:repeat?5:10+Math.round(score*.9);
+    if(daily)s.dailyDay=today;
     if(party)s.party++;else if(share)s.shares++;else{s.draws++;s.best=Math.max(s.best,score)}
     if(daily)markDaily(s);
     s.xp+=gain;const after=levelOf(s.xp).n;
     const fresh=ACH.filter(a=>!s.got.includes(a[0])&&a[4](s));s.got.push(...fresh.map(a=>a[0]));save(s);
-    if(after>before){const u=UNLOCKS.find(x=>x[0]===after);toast(`<i>⭐</i><b>Level ${after}!</b>${u?`<span>New brush color: ${u[2]}</span>`:""}`);setTimeout(()=>{SFX.win();confetti()},250)}
-    fresh.forEach(a=>{toast(`<i>${a[1]}</i><b>${a[2]}</b><span>${a[3]}</span>`);setTimeout(()=>{SFX.badge();buzz([40,60,40])},400)});
+    const parts=[];if(after>before){const u=UNLOCKS.find(x=>x[0]===after);parts.push({i:"⭐",b:`Level ${after}!`,s:u?`New brush color: ${u[2]}`:""});setTimeout(()=>{SFX.win();confetti()},250)}
+    fresh.forEach(a=>parts.push({i:a[1],b:a[2],s:a[3]}));if(fresh.length)setTimeout(()=>{SFX.badge();buzz([40,60,40])},400);
+    if(parts.length===1)toast(`<i>${parts[0].i}</i><b>${parts[0].b}</b>${parts[0].s?`<span>${parts[0].s}</span>`:""}`);
+    else if(parts.length)toast(`<i>${parts[0].i}</i><b>${parts[0].b}</b><span>${parts.slice(1).map(p=>p.i+" "+p.b).join(" · ")}</span>`);
     renderSwatches();renderLevelChip();
     return{gain,after,s}}
 
   function renderSwatches(){
     const n=levelOf(st().xp).n,cur=D.color;
     $("#swatches").innerHTML=COLORS.map((c,i)=>`<button class="sw" style="background:${c}" data-c="${c}" aria-label="Color ${i+1}" aria-pressed="${c===cur}"></button>`).join("")+
-      UNLOCKS.map(([lv,c,name])=>n>=lv?`<button class="sw" style="background:${c}" data-c="${c}" aria-label="${name}" aria-pressed="${c===cur}"></button>`:`<button class="sw locked" data-lock="${lv}" aria-label="${name}: unlocks at level ${lv}">🔒</button>`).join("")+
+      UNLOCKS.filter(([lv])=>n>=lv).map(([lv,c,name])=>`<button class="sw" style="background:${c}" data-c="${c}" aria-label="${name}" aria-pressed="${c===cur}"></button>`).join("")+
+      ((u=>u?`<button class="sw locked" data-lock="${u[0]}" aria-label="${u[2]}: unlocks at level ${u[0]}">🔒</button>`:"")(UNLOCKS.find(([lv])=>n<lv)))+
       `<button class="sw eraser" data-c="eraser" aria-label="Eraser" aria-pressed="${cur==="eraser"}"></button>`}
   $("#swatches").addEventListener("click",e=>{const b=e.target.closest("[data-lock]");if(b)toast(`<i>🔒</i><b>Level ${b.dataset.lock}</b><span>Keep drawing to unlock this color.</span>`)});
 
@@ -67,7 +71,7 @@ const Game=(()=>{
     x.fillStyle="#8FA3BA";x.font="600 32px Figtree, Arial, sans-serif";x.fillText(I18N.t("Can you beat me?")+" ser2104.github.io/tilt-sketch",W/2,1305);
     const blob=await new Promise(r=>c.toBlob(r,"image/png"));
     const text=I18N.t(`I drew "${word}" in Tilt Sketch and scored ${score}%. Can you beat me?`)+" "+PUBLIC_URL;
-    const ok=await shareBlob(blob,text);if(ok)award({share:true,xp:15});return ok}
+    const ok=await shareBlob(blob,text);if(ok){const s=st(),d=todayUTC();if(s.shareDay!==d){s.shareDay=d;save(s);award({share:true,xp:15})}}return ok}
 
   async function shareBlob(blob,text){
     const name="tilt-sketch.png";
@@ -105,7 +109,9 @@ const Game=(()=>{
     const played=s.last===todayUTC();$("#cDaily").insertAdjacentHTML("beforeend",`<span class="streak">🔥 ${k}-day streak${played?"":" · play today to keep it"}</span>`)};
 
   const _final=finalScreen;finalScreen=function(...a){const r=_final.apply(this,a);award({party:true,xp:40});return r};
-  const _board=showBoard;showBoard=function(d){_board(d);award({party:true,xp:15})};
+  const _reveal=reveal;reveal=function(...a){const r=_reveal.apply(this,a);award({party:true,xp:40});return r};
+  let lastBoard="";
+  const _board=showBoard;showBoard=function(d){_board(d);const key=(NET.code||"")+"|"+(d&&d.title)+"|"+(d&&d.label);if(d&&d.banner&&key!==lastBoard){lastBoard=key;award({party:true,xp:40})}};
 
   renderSwatches();renderLevelChip();renderChallengeCards();
   return{award,levelOf,streakNow,state:st,shareDrawing,openTrophies,ACH,UNLOCKS}

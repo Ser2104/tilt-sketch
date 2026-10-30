@@ -17,6 +17,6 @@ async function liveTick(){
     if(D.state!=="run")return;
     liveGuess=r.scribble?"":r.guess;aiComment(r,D.word);
     const box=$("#liveAI"),hit=r.guess===D.word;box.hidden=false;box.classList.toggle("hit",hit);
-    box.textContent=r.scribble?"AI sees: a scribble":hit&&r.detail<80?`AI sees: ${r.guess} · add more detail`:`AI sees: ${r.guess} · ${r.acc}%`;
+    box.textContent=r.scribble?"AI sees: a scribble":r.guess==="something else"?"AI: not sure yet":hit&&r.detail<80?`AI sees: ${r.guess} · add more detail`:`AI sees: ${r.guess} · ${r.acc}%`;
   }catch(_){}finally{liveBusy=false}
 }

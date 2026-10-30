@@ -10,8 +10,8 @@
 <link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="mobile-web-app-capable" content="yes">
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bungee&family=Figtree:wght@400;600;800&family=JetBrains+Mono:wght@600&display=swap">
+<link rel="preload" href="fonts/bungee-latin-400-normal.woff2" as="font" type="font/woff2" crossorigin>
+<link rel="preload" href="fonts/figtree-latin-400-normal.woff2" as="font" type="font/woff2" crossorigin>
 <link rel="stylesheet" href="css/app.css">
 </head>
 <body>
@@ -97,9 +97,11 @@
   <header><span class="label">Settings</span><h2 class="h-big">Settings</h2></header>
   <div class="panel" id="profPanel">
     <span class="label">Your profile</span>
-    <p class="hint" style="text-align:left;margin:0">Your name appears on rankings and in rooms with friends.</p>
+    <p class="hint" style="text-align:left;margin:0">Your name appears on rankings and in rooms with friends. Keep it friendly: offensive names are hidden, and players can report them.</p>
     <div class="row" style="flex-wrap:nowrap"><input class="field" id="profInput" maxlength="14" placeholder="Your name" autocomplete="nickname" style="flex:1;min-width:0"><button class="btn" id="profSave">Save</button></div>
     <div class="setting rehab-only"><span>Practice profile</span><select class="field" id="profPractice" aria-label="Practice profile" style="max-width:55%"></select></div>
+    <button class="linkbtn" id="profDelScores">Delete my rankings</button>
+    <p class="hint" id="profDelMsg" style="text-align:left;margin:0" hidden></p>
     <button class="linkbtn rehab-only" id="profManage">Manage practice profiles</button>
     <p class="hint" id="profMsg" style="text-align:left;margin:0" aria-live="polite"></p>
   </div>

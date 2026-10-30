@@ -29,7 +29,7 @@ AN AI THAT REALLY GETS PHONE DRAWINGS
 • Watch its live guess while you draw
 • See its top 3 guesses and why you got your score
 • Before each drawing, see how other people drew it
-• Works without internet, and your drawings stay on your phone
+• The AI runs on your phone and works without internet
 
 AN AI THAT TALKS
 • It says what it sees while you draw: "Hmm… a fish? Oh, I know! A sailboat!"
@@ -84,7 +84,7 @@ UNA IA QUE DE VERDAD ENTIENDE DIBUJOS HECHOS CON EL TELÉFONO
 • Mira lo que adivina mientras dibujas
 • Ve sus 3 mejores opciones y por qué sacaste tu puntaje
 • Antes de cada dibujo, mira cómo lo dibujaron otras personas
-• Funciona sin internet y tus dibujos se quedan en tu teléfono
+• La IA corre en tu teléfono y funciona sin internet
 
 UNA IA QUE HABLA
 • Te dice lo que ve mientras dibujas: "Mmm… ¿un pez? ¡Ya sé! ¡Un velero!"

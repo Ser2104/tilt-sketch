@@ -32,6 +32,9 @@ def clinic(code, key=None):
     return c
 
 
+REPORTS = {}
+
+
 def rpc(name, d):
     if name == "donate_drawing":
         if d["p_word"] not in WORDS:
@@ -87,6 +90,17 @@ def rpc(name, d):
             raise Err("empty feedback")
         FEEDBACK.append({k[2:]: v for k, v in d.items()})
         return None
+    if name == "report_name":
+        REPORTS.setdefault(d["p_player"], set()).add(d["p_device"])
+        for r in ROWS.values():
+            if r["player"] == d["p_player"] and len(REPORTS[d["p_player"]]) >= 3:
+                r["hidden"] = True
+        return None
+    if name == "delete_my_scores":
+        mine = [k for k in ROWS if k[1] == d["p_device"]]
+        for k in mine:
+            del ROWS[k]
+        return len(mine)
     if name == "feedback_summary":
         avg = lambda k: round(sum(f[k] for f in FEEDBACK if f[k]) / max(1, sum(1 for f in FEEDBACK if f[k])), 2)
         return {"answers": len(FEEDBACK), "people": len({f["device"] for f in FEEDBACK}), "ease": avg("ease"), "again": avg("again"), "helped": avg("helped")}
@@ -142,7 +156,7 @@ class H(BaseHTTPRequestHandler):
             return self.reply(404, {"message": "not found"})
         q = parse_qs(u.query)
         board = q["board"][0].removeprefix("eq.")
-        rows = [r for r in ROWS.values() if r["board"] == board]
+        rows = [r for r in ROWS.values() if r["board"] == board and not r.get("hidden")]
         rows.sort(key=lambda r: (-r["level"], -r["stars"], r["t"]) if board in ("levels", "guided") else (-r["score"], r["t"]))
         self.reply(200, [{k: r[k] for k in ("player", "score", "level", "stars")} for r in rows[: int(q.get("limit", ["25"])[0])]])
 

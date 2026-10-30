@@ -2,7 +2,7 @@
 const GUIDED=FIG.WORLDS.flatMap((w,wi)=>w.items.map((key,i)=>({key,world:wi,index:i,tol:w.tol})));
 const GSTARS=[55,72,86];
 function gStars(score){return GSTARS.filter(t=>score>=t).length}
-function guidedState(){return store.get("ts-guided",{unlocked:0,best:{}})}
+function guidedState(){const s=store.get("ts-guided",null);return{unlocked:Math.max(0,+(s&&s.unlocked)||0),best:s&&typeof s.best==="object"&&s.best?s.best:{}}}
 function guidedStars(st){return GUIDED.reduce((s,_,i)=>s+gStars(st.best[i]||0),0)}
 function openGuided(){
   const st=guidedState();

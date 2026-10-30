@@ -78,7 +78,8 @@ cv.addEventListener("pointermove",e=>{if(S.input!=="finger"||!drag)return;D.pos.
 
 let wake=null;async function keepAwake(){try{wake=await navigator.wakeLock.request("screen")}catch(_){}}
 
-function startDraw({who,word,strokes,dur,mark,onEnd,onError=null,template=null,steady=false,hud=null,autoFinish=false,ref=null,zoom=null,live=false,liveFinish=false}){
+function startDraw({tutorial=false,who,word,strokes,dur,mark,onEnd,onError=null,template=null,steady=false,hud=null,autoFinish=false,ref=null,zoom=null,live=false,liveFinish=false}){
+  if(!tutorial&&typeof tutActive!=="undefined"&&tutActive)tutActive.cancel();
   D.zoom=zoom;D.word=word;D.live=live;D.liveFinish=liveFinish;liveReset();
   D.tplHud=hud;D.autoFinish=autoFinish;$("#dRef").textContent=ref||"";$("#dRef").hidden=!ref;$("#dBar").parentElement.hidden=!dur;
   D.onError=onError;
@@ -87,17 +88,19 @@ function startDraw({who,word,strokes,dur,mark,onEnd,onError=null,template=null,s
   $("#dWho").textContent=who;$("#dWord").textContent=up(word);$("#dClock").textContent=dur||"0:00";$("#dClock").classList.remove("low");$("#dBar").style.transform="scaleX(1)";
   const g=S.input==="gyro";pen.hidden=!g;$("#recal").hidden=!g;$("#recal").textContent=template?"Back to start":"Recenter";penUp();
   const cv2=$("#camv"),useCam=S.cam&&camStream&&camStream.active;cv2.hidden=!useCam;if(useCam){cv2.srcObject=camStream;cv2.play().catch(()=>{})}
+  else if(S.cam)startCam().then(ok=>{if(ok&&D.state!=="idle"&&!$("#s-draw").hidden){cv2.hidden=false;cv2.srcObject=camStream;cv2.play().catch(()=>{})}});
   show("s-draw");fit();
   const a=mark||[.5,.5];D.pos={x:a[0],y:a[1]};calibrate(a[0],a[1]);
   D.state="count";cancelAnimationFrame(D.raf);D.raf=requestAnimationFrame(loop);
   let n=3;const over=$("#dOver");
   const tick=()=>{if(n>0){over.innerHTML=`<span>${n}</span>`;say(String(n));n--;setTimeout(tick,700)}else{over.innerHTML="";say("Go");SFX.go();D.state="run";D.t0=performance.now()}};tick();
 }
-function endTurn(msg){if(D.state!=="run")return;penUp();D.state="done";const m=typeof msg==="string"?msg:D.dur?"Time's up!":"Done!";$("#dOver").innerHTML=`<small>${m}</small>`;say(m);
+function endTurn(msg){if(D.state!=="run")return;clearInterval(liveT);penUp();D.state="done";const m=typeof msg==="string"?msg:D.dur?"Time's up!":"Done!";$("#dOver").innerHTML=`<small>${m}</small>`;say(m);
   const last=[...D.strokes].reverse().find(s=>s.pts.length&&s.c!=="#FFFFFF");const lp=last?last.pts[last.pts.length-1]:(D.mark||null);
-  setTimeout(()=>{$("#dOver").innerHTML="";cancelAnimationFrame(D.raf);D.state="idle";try{$("#camv").pause()}catch(_){}
+  setTimeout(()=>{$("#dOver").innerHTML="";cancelAnimationFrame(D.raf);D.state="idle";camStop()
     try{D.onEnd&&D.onEnd(lp)}catch(e){console.error(e);D.onError?D.onError(e):show("s-home")}},900)}
-function abortDraw(){clearInterval(autoGo);if(D.state==="idle")return;penUp();cancelAnimationFrame(D.raf);D.state="idle";$("#dOver").innerHTML="";try{$("#camv").pause()}catch(_){}}
+function camStop(){try{$("#camv").pause()}catch(_){}if(camStream){camStream.getTracks().forEach(t=>t.stop());camStream=null}}
+function abortDraw(){clearInterval(autoGo);clearInterval(liveT);if(typeof tutActive!=="undefined"&&tutActive)tutActive.cancel();if(D.state==="idle")return;penUp();cancelAnimationFrame(D.raf);D.state="idle";$("#dOver").innerHTML="";camStop()}
 
 function snapshot(strokes,n=512,type="dataURL"){const c=document.createElement("canvas");c.width=c.height=n;const x=c.getContext("2d");paintPaper(x,n,false);strokes.forEach(s=>drawStroke(x,s,n));
   return type==="blob"?new Promise(r=>c.toBlob(r,"image/png")):type==="jpeg"?c.toDataURL("image/jpeg",.72):c.toDataURL("image/png")}

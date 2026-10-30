@@ -1,6 +1,6 @@
 /* ---------- Solo and Teams ---------- */
 function newMatch(){
-  const names=S.players.map((p,i)=>p.trim()||"Player "+(i+1));
+  const names=[];S.players.forEach((p,i)=>{const b=(p.trim()&&nameOk(p)?p.trim():"Player "+(i+1)).slice(0,14);let n=b,k=2;while(names.includes(n))n=b.slice(0,12)+" "+k++;names.push(n)});
   if(S.mode==="impostor")return newImpostor(names);
   const units=S.mode==="solo"?names.map((n,i)=>({name:n,members:[i],total:0,hist:[]})):teamsOf(names).map((t,i)=>({name:"Team "+(i+1),members:t,total:0,hist:[]}));
   G={mode:S.mode,names,units,round:0,words:shuffle(gameWords()).slice(0,S.rounds),items:[],queue:[]};
@@ -20,7 +20,7 @@ function nextTurn(){
     info:cont?`You continue ${prev}'s drawing. The orange circle marks where they stopped, and your brush starts there.`:(team?`${t.it.u.name} · ${rl}. You start the drawing.`:rl),
     hint:cont?S.ctrl==="look"?"Hold the phone up like a camera before tapping. Where you aim becomes the spot where they stopped.":"Hold the phone comfortably before tapping. That tilt becomes the spot where they stopped.":(S.input==="gyro"?S.ctrl==="look"?"Hold the phone up like a camera. Where you aim during the 3-2-1 countdown becomes the center of the sheet.":"During the 3-2-1 countdown, hold the phone comfortably. That position becomes the center.":"Mouse test mode: drag on the sheet to draw. The brush stays in the center."),
     thumb:cont?thumbWithMark(t.it.strokes,t.it.last):null,
-    onGo:()=>startDraw({who:`${who}${team?" · "+t.it.u.name:""} · ${rl}`,word:w,ref:refFor(w)?.emoji,live:true,strokes:t.it.strokes,dur:S.time[G.mode],mark:cont?t.it.last:null,
+    onGo:()=>startDraw({who:`${who}${team?" · "+t.it.u.name:""} · ${rl}`,word:w,ref:refFor(w)?.emoji,live:true,strokes:t.it.strokes,dur:team?Math.round(S.time.teams*2/Math.max(2,t.it.u.members.length)):S.time[G.mode],mark:cont?t.it.last:null,
       onEnd:lp=>{t.it.last=lp;nextTurn()}})});
 }
 async function judge(){
@@ -47,9 +47,9 @@ function humanJudge(){
 }
 function showRound(){
   const w=G.words[G.round];G.items.forEach(it=>{it.u.total+=it.acc;it.u.hist.push(it.acc)});
-  const sorted=[...G.items].sort((a,b)=>b.acc-a.acc);
+  const sorted=[...G.items].sort((a,b)=>b.acc-a.acc),top=sorted[0]&&sorted[0].acc>0&&(!sorted[1]||sorted[0].acc>sorted[1].acc);
   $("#rLabel").textContent=`Round ${G.round+1} of ${G.words.length} · object`;$("#rTitle").textContent=up(w);
-  $("#rCards").innerHTML=sorted.map((it,i)=>`<div class="card${i===0?" win":""}"><img alt="${esc(it.u.name)}'s drawing" src="${snapshot(it.strokes,256)}"><div style="min-width:0"><div class="nm">${esc(it.u.name)}${i===0?" · wins the round":""}</div>${it.guess?`<div class="gs">The AI sees: ${esc(it.guess)}</div>`:""}${it.why?`<div class="gs why">${esc(it.why)}</div>`:""}<div class="meter"><i style="width:${it.acc}%"></i></div></div><div class="pc">${it.acc}%</div></div>`).join("");
+  $("#rCards").innerHTML=sorted.map((it,i)=>`<div class="card${i===0&&top?" win":""}"><img alt="${esc(it.u.name)}'s drawing" src="${snapshot(it.strokes,256)}"><div style="min-width:0"><div class="nm">${esc(it.u.name)}${i===0&&top?" · wins the round":""}</div>${it.guess?`<div class="gs">The AI sees: ${esc(it.guess)}</div>`:""}${it.why?`<div class="gs why">${esc(it.why)}</div>`:""}<div class="meter"><i style="width:${it.acc}%"></i></div></div><div class="pc">${it.acc}%</div></div>`).join("");
   const tot=[...G.units].sort((a,b)=>b.total-a.total);
   $("#rTotals").hidden=false;$("#rTotals").innerHTML=`<span class="label">Running average</span>`+tot.map(u=>`<div class="setting"><span>${esc(u.name)}</span><span class="clock" style="font-size:18px">${Math.round(u.total/u.hist.length)}%</span></div>`).join("");
   const last=G.round>=G.words.length-1;$("#rNext").textContent=last?"See final results":"Next round";

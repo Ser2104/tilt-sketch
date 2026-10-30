@@ -1,0 +1,46 @@
+name: playtest
+on:
+  schedule:
+    - cron: "23 */6 * * *"
+  workflow_dispatch:
+    inputs:
+      monkey_minutes:
+        description: "Minutes the tapping bot plays"
+        default: "4"
+permissions:
+  contents: read
+  issues: write
+concurrency:
+  group: playtest
+  cancel-in-progress: false
+jobs:
+  play:
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    steps:
+      - uses: actions/checkout@v5
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Install the browser
+        run: |
+          pip install playwright==1.48.0
+          python -m playwright install --with-deps chromium
+      - name: Bots play the published game
+        env:
+          SITE: https://ser2104.github.io/tilt-sketch/index.html
+          OUT: playtest-out
+          MONKEY_MINUTES: ${{ github.event.inputs.monkey_minutes || '4' }}
+        run: python tests/bots/playtest.py
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: playtest-${{ github.run_number }}
+          path: playtest-out
+          retention-days: 14
+      - name: Send the feedback
+        if: always()
+        env:
+          GH_TOKEN: ${{ github.token }}
+          RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+        run: bash tests/bots/report.sh

@@ -17,11 +17,15 @@ let G=null;
 
 const shuffle=a=>{a=a.slice();for(let i=a.length-1;i>0;i--){const j=Math.random()*(i+1)|0;[a[i],a[j]]=[a[j],a[i]]}return a};
 const up=w=>w.toUpperCase();
-const esc=t=>String(t).replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
+const esc=t=>String(t).replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+const imgOk=u=>typeof u==="string"&&/^data:image\/(png|jpeg);base64,[A-Za-z0-9+/=]+$/.test(u)?u:"";
+const pct=v=>Math.max(0,Math.min(100,Math.round(+v)||0));
 function show(id){document.querySelectorAll(".screen").forEach(s=>s.hidden=s.id!==id);const s=$("#"+id);if(s)s.scrollTop=0}
 
-const BAD_NAME=/(n+i+g{2,}|n+[iy]+g+r|n+[iy]+g+[ea]+r+[sz]*$|n+[iy]+g+u+h|f+a+g+|k+i+k+e|c+h+i+n+k|r+e+t+a+r+d|n+a+z+i|h+i+t+l+e+r|w+h+o+r+e|s+l+u+t|c+u+n+t|r+a+p+i+s+t)/;
-function nameOk(n){const t=String(n||"").toLowerCase().replace(/[0134@$!|5]/g,c=>({"0":"o","1":"i","3":"e","4":"a","@":"a","$":"s","!":"i","|":"i","5":"s"})[c]).replace(/[^a-z]/g,"");return!BAD_NAME.test(t)}
+const BAD_NAME=/(n+i+g{2,}|n+[iy]+g+r|n+[iy]+g+[ea]+r+[sz]*$|n+[iy]+g+u+h|f+a+g+|k+i+k+e|c+h+i+n+k|r+e+t+a+r+d|n+a+z+i|h+i+t+l+e+r|w+h+o+r+e|s+l+u+t|c+u+n+t|r+a+p+i+s+t|p+u+t+[ao]|m+a+r+i+c+[ao]|m+a+r+i+c+o+n|z+o+r+r+a|v+e+r+g+a|c+u+l+e+r+o|p+e+n+d+e+j|c+o+n+c+h+a+t+u|c+h+u+p+a+m)/;
+const HOMO={"а":"a","е":"e","і":"i","ј":"j","о":"o","р":"p","с":"c","у":"y","х":"x","к":"k","м":"m","т":"t","в":"b","н":"h"};
+function nameOk(n){n=String(n||"");if(/[\u0000-\u001f\u007f\u200b-\u200f\u202a-\u202e\u2066-\u2069]/.test(n))return false;
+  const t=n.replace(/[а-яіј]/gi,c=>HOMO[c.toLowerCase()]||c).normalize("NFKD").replace(/[\u0300-\u036f]/g,"").toLowerCase().replace(/[0134@$!|5]/g,c=>({"0":"o","1":"i","3":"e","4":"a","@":"a","$":"s","!":"i","|":"i","5":"s"})[c]).replace(/[^a-z]/g,"");return!BAD_NAME.test(t)}
 
 /* ---------- Android app: links point to the public site ---------- */
 const IS_APP=!!(window.Capacitor&&Capacitor.isNativePlatform&&Capacitor.isNativePlatform());

@@ -12,7 +12,7 @@ const store={get(k,d){try{const v=localStorage.getItem(k);return v==null?d:JSON.
 function todayUTC(){return new Date().toISOString().slice(0,10)}
 function dailyWord(date=todayUTC()){let h=2166136261;for(const c of"tilt-"+date)h=Math.imul(h^c.charCodeAt(0),16777619)>>>0;const L=LEVEL_LIST.map(l=>l.word);return L[h%L.length]}
 function starsFor(score,pass){return score>=Math.min(95,pass+35)?3:score>=pass+20?2:score>=pass?1:0}
-function levelState(){return store.get("ts-levels",{unlocked:0,best:{}})}
+function levelState(){const s=store.get("ts-levels",null);return{unlocked:Math.max(0,Math.min(LEVEL_LIST.length,+(s&&s.unlocked)||0)),best:s&&typeof s.best==="object"&&s.best?s.best:{}}}
 function totalStars(st){return LEVEL_LIST.reduce((s,l,i)=>s+starsFor(st.best[i]||0,l.pass),0)}
 function playerName(){return store.get("ts-rank-name","")||($("#myName")&&$("#myName").value.trim())||Profiles.cur()?.name||""}
 function stars(n){return"★".repeat(n)+"☆".repeat(3-n)}
@@ -20,7 +20,7 @@ function stars(n){return"★".repeat(n)+"☆".repeat(3-n)}
 function renderChallengeCards(){
   const d=store.get("ts-daily-"+todayUTC(),null),st=levelState(),lv=Math.min(st.unlocked,LEVEL_LIST.length-1),L=LEVEL_LIST[lv];
   $("#cDaily").innerHTML=`<b>Daily challenge</b><span>${d?`Best today: ${d.score}% on ${esc(d.word)} · ${d.tries||1} ${(d.tries||1)===1?"try":"tries"}`:`Today's object is the same for everyone. Your best try counts.`}</span>`;
-  const gs=store.get("ts-guided",{unlocked:0,best:{}});
+  const gs=guidedState();
   $("#cGuided").innerHTML=`<b>Guided drawings</b><span>Trace heroes, rockets, animals… No time limit · ${GUIDED.reduce((s,_,i)=>s+gStars(gs.best[i]||0),0)} ★</span>`;
   $("#cLevels").innerHTML=`<b>Levels</b><span>${st.unlocked>=LEVEL_LIST.length?"All levels complete":`${esc(WORLDS[L.world].name)} · level ${L.world*8+L.index+1} of ${LEVEL_LIST.length}`} · ${totalStars(st)} ★</span>`;
 }
@@ -102,9 +102,15 @@ async function openRanking(tab=rankTab){
   const rows=await Rank.top(tab==="daily"?"daily-"+todayUTC():tab);
   if(!rows){$("#rkStatus").textContent="Could not reach the ranking. Showing your result on this phone.";render(local);return}
   $("#rkStatus").textContent=rows.length?"":"No one is on the board yet. Be the first!";render(rows);
-  function render(rows){list.innerHTML=rows.map((r,i)=>`<li class="${r.player===me?"me":""}"><span class="pos">${i+1}</span><span class="who">${esc(r.player)}</span><span class="val">${tab==="daily"?r.score+"%":tab==="guided"?`${r.level} figures · ${r.stars} ★`:`Level ${r.level} · ${r.stars} ★`}</span></li>`).join("")}
+  function render(rows){const hid=store.get("ts-reported",[]);rows=rows.filter(r=>!hid.includes(r.player));
+    list.innerHTML=rows.map((r,i)=>`<li class="${r.player===me?"me":""}"><span class="pos">${i+1}</span><span class="who">${esc(r.player)}</span><span class="val">${tab==="daily"?pct(r.score)+"%":tab==="guided"?`${+r.level||0} figures · ${+r.stars||0} ★`:`Level ${+r.level||0} · ${+r.stars||0} ★`}</span>${r.player!==me&&Rank.on()?`<button class="rkreport" data-p="${esc(r.player)}" aria-label="Report this name">⚑</button>`:""}</li>`).join("")}
 }
 $("#rkTabs").onclick=e=>{const t=e.target.dataset.tab;if(t)openRanking(t)};
+$("#rkList").onclick=async e=>{const b=e.target.closest(".rkreport");if(!b)return;
+  if(b.dataset.confirm!=="1"){b.dataset.confirm="1";b.textContent=I18N.t("Report?");setTimeout(()=>{if(b.isConnected){b.dataset.confirm="";b.textContent="⚑"}},4000);return}
+  const p=b.dataset.p,board=rankTab==="daily"?"daily-"+todayUTC():rankTab;await Rank.rpc("report_name",{p_board:board,p_player:p,p_device:Rank.device});
+  const hid=store.get("ts-reported",[]);if(!hid.includes(p))store.set("ts-reported",[...hid,p].slice(-200));b.closest("li").remove();
+  $("#rkStatus").textContent=I18N.t("Thanks. We hid that name for you and will review it.")};
 $("#rkSave").onclick=async()=>{const n=$("#rkName").value.trim().slice(0,24);if(!n){$("#rkName").focus();return}if(!nameOk(n)){$("#rkStatus").textContent=I18N.t("Please choose another name.");return}store.set("ts-rank-name",n);if($("#myName")&&!$("#myName").value)$("#myName").value=n;
   const d=store.get("ts-daily-"+todayUTC(),null),st=levelState();
   const gst=guidedState();

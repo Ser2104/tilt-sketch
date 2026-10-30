@@ -32,11 +32,11 @@ function openProgress(p=Profiles.cur(),back=openPractice){
   if(!p)return openPractice();PV=p;PBACK=back;$("#prBack").textContent=back===openPractice?"Back to practice":"Back to patients";
   $("#prName").textContent=p.name;
   const ss=p.sessions;
-  $("#prKpis").innerHTML=[[ss.length,"Sessions"],[p.level,"Current level"],[ss.length?Math.round(Math.max(...ss.map(s=>s.avg.score||0))):"–","Best score"],[p.rom?`${fmt(p.rom.x)}° × ${fmt(p.rom.y)}°`:"Not set","Comfortable range"]].map(([a,b])=>`<div class="kpi"><b>${a}</b><span>${b}</span></div>`).join("");
+  $("#prKpis").innerHTML=[[ss.length,"Sessions"],[fmt(p.level),"Current level"],[ss.length?Math.round(Math.max(...ss.map(s=>s.avg.score||0))):"–","Best score"],[p.rom?`${fmt(p.rom.x)}° × ${fmt(p.rom.y)}°`:"Not set","Comfortable range"]].map(([a,b])=>`<div class="kpi"><b>${a}</b><span>${b}</span></div>`).join("");
   $("#prCharts").innerHTML=CHARTS.map(c=>`<figure class="chart"><figcaption><span>${c.title}</span><em id="tr-${c.key}"></em></figcaption><canvas id="ch-${c.key}" aria-label="${c.title} by session"></canvas></figure>`).join("");
   show("s-prog");
   CHARTS.forEach(c=>{const vals=ss.map(s=>sessionValue(s,c.key));lineChart($("#ch-"+c.key),vals,c);$("#tr-"+c.key).textContent=trendText(vals)});
-  $("#prTable").innerHTML=ss.length?`<table><thead><tr><th>Date</th><th>Score</th><th>Level</th><th>Steadiness</th><th>Smoothness</th><th>Range</th></tr></thead><tbody>${ss.slice().reverse().slice(0,20).map(s=>`<tr><td>${new Date(s.date).toLocaleDateString()}</td><td>${fmt(s.avg.score)}</td><td>${s.level0}→${s.level1}</td><td>${fmt(sessionValue(s,"steady"))}</td><td>${fmt(s.avg.smooth)}</td><td>${fmt(sessionValue(s,"rom"))}°</td></tr>`).join("")}</tbody></table>`:`<p class="hint">Complete a practice session to see your progress here.</p>`;
+  $("#prTable").innerHTML=ss.length?`<table><thead><tr><th>Date</th><th>Score</th><th>Level</th><th>Steadiness</th><th>Smoothness</th><th>Range</th></tr></thead><tbody>${ss.slice().reverse().slice(0,20).map(s=>`<tr><td>${new Date(s.date).toLocaleDateString()}</td><td>${fmt(s.avg.score)}</td><td>${fmt(s.level0)}→${fmt(s.level1)}</td><td>${fmt(sessionValue(s,"steady"))}</td><td>${fmt(s.avg.smooth)}</td><td>${fmt(sessionValue(s,"rom"))}°</td></tr>`).join("")}</tbody></table>`:`<p class="hint">Complete a practice session to see your progress here.</p>`;
 }
 function toCSV(p){
   const cols=["date","exercise","level","score","path_covered_pct","accuracy_pct","tremor_rms_deg","tremor_peak_hz","smoothness","ldlj","angular_speed_deg_s","range_x_deg","range_y_deg","active_s"];

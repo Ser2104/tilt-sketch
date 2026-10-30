@@ -37,6 +37,7 @@ async function startCam(){
   catch(e){camStream=null;camMsg(e&&e.name==="NotAllowedError"?"Camera access was denied. Allow it in your browser settings to use this option.":"The camera is not available on this device or browser.");return false}
 }
 $("#camOn").onclick=async()=>{if(await startCam()){S.cam=true;camMsg("Camera on. You will draw over what your camera sees; the sheet stays fixed in the room as you aim.")}else S.cam=false;syncSettings()};
+document.addEventListener("visibilitychange",()=>{if(document.hidden&&camStream){camStream.getTracks().forEach(t=>t.stop());camStream=null}});
 $("#camOff").onclick=()=>{S.cam=false;camMsg("");if(camStream){camStream.getTracks().forEach(t=>t.stop());camStream=null}syncSettings()};
 $("#devMode").onclick=()=>{S.input=S.input==="finger"?"gyro":"finger";$("#devMode").textContent=S.input==="finger"?"Mouse test mode on · switch back to gyroscope":"Test on a computer without a gyroscope (mouse)";refreshStart()};
 function refreshStart(){const ok=S.players.length>=MIN[S.mode];$("#start").disabled=!ok;$("#start").textContent=S.input==="gyro"&&S.gyro!=="ok"?"Enable gyroscope and start":"Start"}

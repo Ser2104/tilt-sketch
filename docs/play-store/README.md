@@ -55,13 +55,14 @@ Pushes to `main` that touch the Android files make an unsigned test build only, 
 
 ### Data safety answers
 
-Does your app collect or share user data? **Yes**. Is all data encrypted in transit? **Yes**. Can users request deletion? **Yes** (in-app for donated drawings; on request for rankings, through the contact on the privacy policy).
+Does your app collect or share user data? **Yes**. Is all data encrypted in transit? **Yes**. Can users request deletion? **Yes** (in the app: Settings › Delete my rankings, and Help train the AI › Delete the drawings I shared).
 
 | Data type | Collected | Shared with third parties | Optional | Purpose |
 |---|---|---|---|---|
-| Personal info › Name (nickname on rankings) | Yes | No | No (needed to appear on rankings) | App functionality |
+| Personal info › Name (nickname on rankings and in rooms) | Yes | No | Yes (only to appear on rankings or in rooms) | App functionality |
 | Device or other IDs (random phone ID) | Yes | No | No | App functionality |
-| App activity › Other user-generated content (donated drawings, feedback answers) | Yes | No | Yes | App functionality, Analytics |
+| App activity › Other user-generated content (donated drawings, feedback answers, name reports) | Yes | No | Yes | App functionality, Analytics |
+| App activity › Other user-generated content (drawings and nicknames passed between phones in a room) | Yes, **processed ephemerally** (not stored) | No | Yes | App functionality |
 
 Not collected: health info, location, photos or videos (the camera view never leaves the phone), contacts, financial info, messages, audio, files, web history.
 
