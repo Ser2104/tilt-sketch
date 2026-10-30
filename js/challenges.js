@@ -54,7 +54,7 @@ async function startDaily(){
     if(better){if(Rank.on()&&n){const ok=await Rank.submit("daily-"+date,n,best);info+=ok?" Your best score is on today's ranking.":" Could not reach the ranking. Your score is saved on this phone."}
       else info+=Rank.on()?" Add your name in the ranking screen to appear on it.":" Saved on this phone. Shared ranking is not connected yet."}
     showChallengeResult({label:"Daily challenge · "+date,title:`The AI sees: ${r.guess}`,score:r.acc,img,info:info.trim(),starsN:null,actions:[
-      {text:"Try again",fn:()=>startDaily()},{text:"See today's ranking",fn:()=>openRanking("daily")},{text:"Share result",fn:()=>shareText(`Tilt Sketch daily ${date}: I drew "${word}" and scored ${best}%. Can you beat it? ${location.origin+location.pathname}`)},{text:"Back to home",fn:()=>{renderChallengeCards();show("s-home")}}]})}});
+      {text:"Try again",fn:()=>startDaily()},{text:"See today's ranking",fn:()=>openRanking("daily")},{text:"Share result",fn:()=>shareText(`Tilt Sketch daily ${date}: I drew "${word}" and scored ${best}%. Can you beat it? ${PUBLIC_URL}`)},{text:"Back to home",fn:()=>{renderChallengeCards();show("s-home")}}]})}});
 }
 async function shareText(t){t=I18N.t(t);try{if(navigator.share){await navigator.share({text:t});return}}catch(_){return}try{await navigator.clipboard.writeText(t);alertMsg("Copied to clipboard")}catch(_){alertMsg(t)}}
 function alertMsg(t){$("#crInfo").textContent=t}

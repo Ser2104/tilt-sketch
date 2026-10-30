@@ -1,7 +1,7 @@
 /* ---------- Clinician sharing: patients send practice summaries to a clinic; clinicians see them with a private key ---------- */
 const uuid=()=>crypto.randomUUID?crypto.randomUUID():"10000000-1000-4000-8000-100000000000".replace(/[018]/g,c=>(c^crypto.getRandomValues(new Uint8Array(1))[0]&15>>c/4).toString(16));
 const cleanCode=v=>String(v||"").toUpperCase().replace(/[^A-Z0-9]/g,"").slice(0,6);
-const joinLink=code=>`${location.origin}${location.pathname}?clinic=${code}`;
+const joinLink=code=>`${PUBLIC_URL}?clinic=${code}`;
 function twoTap(b,label,ask,fn){if(b.dataset.confirm!=="1"){b.dataset.confirm="1";b.textContent=ask;setTimeout(()=>{b.dataset.confirm="";b.textContent=label},4000);return}b.dataset.confirm="";b.textContent=label;fn()}
 
 /* Patient side, inside Practice */

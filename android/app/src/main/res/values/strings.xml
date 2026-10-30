@@ -1,0 +1,7 @@
+<?xml version='1.0' encoding='utf-8'?>
+<resources>
+    <string name="app_name">Tilt Sketch</string>
+    <string name="title_activity_main">Tilt Sketch</string>
+    <string name="package_name">io.github.ser2104.tiltsketch</string>
+    <string name="custom_url_scheme">io.github.ser2104.tiltsketch</string>
+</resources>

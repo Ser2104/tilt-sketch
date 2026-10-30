@@ -22,3 +22,7 @@ function show(id){document.querySelectorAll(".screen").forEach(s=>s.hidden=s.id!
 
 const BAD_NAME=/(n+i+g{2,}|n+[iy]+g+r|n+[iy]+g+[ea]+r+[sz]*$|n+[iy]+g+u+h|f+a+g+|k+i+k+e|c+h+i+n+k|r+e+t+a+r+d|n+a+z+i|h+i+t+l+e+r|w+h+o+r+e|s+l+u+t|c+u+n+t|r+a+p+i+s+t)/;
 function nameOk(n){const t=String(n||"").toLowerCase().replace(/[0134@$!|5]/g,c=>({"0":"o","1":"i","3":"e","4":"a","@":"a","$":"s","!":"i","|":"i","5":"s"})[c]).replace(/[^a-z]/g,"");return!BAD_NAME.test(t)}
+
+/* ---------- Android app: links point to the public site ---------- */
+const IS_APP=!!(window.Capacitor&&Capacitor.isNativePlatform&&Capacitor.isNativePlatform());
+const PUBLIC_URL=IS_APP?"https://ser2104.github.io/tilt-sketch/index.html":location.origin+location.pathname;

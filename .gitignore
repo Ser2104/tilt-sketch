@@ -5,3 +5,10 @@ training/data/
 training/out/
 
 !icons/*.png
+node_modules/
+www/
+android/app/release/
+android/keystore.properties
+*.jks
+*.keystore
+!android/app/src/main/res/**/*.png

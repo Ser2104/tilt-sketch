@@ -6,7 +6,7 @@ function peerOpts(){const q=new URLSearchParams(location.search),h=q.get("peerho
   return h?{host:h,port:+(q.get("peerport")||9000),path:q.get("peerpath")||"/",secure:q.get("peersecure")==="1",debug:0}:{debug:0}}
 function newCode(){const A="ABCDEFGHJKLMNPQRSTUVWXYZ";return Array.from({length:4},()=>A[Math.random()*A.length|0]).join("")}
 function netMsg(t){$("#netMsg").textContent=t}
-function inviteLink(){const u=new URL(location.href);u.search="";const q=new URLSearchParams(location.search);["peerhost","peerport","peerpath","peersecure"].forEach(k=>q.get(k)&&u.searchParams.set(k,q.get(k)));u.searchParams.set("room",NET.code);return u.toString()}
+function inviteLink(){const u=new URL(PUBLIC_URL);const q=new URLSearchParams(location.search);["peerhost","peerport","peerpath","peersecure"].forEach(k=>q.get(k)&&u.searchParams.set(k,q.get(k)));u.searchParams.set("room",NET.code);return u.toString()}
 function setPlay(p){S.play=p;document.querySelectorAll("#playSeg button").forEach(b=>b.setAttribute("aria-pressed",b.dataset.play===p));
   $("#multiBox").hidden=p!=="multi";$("#playersPanel").hidden=p==="multi";$("#oneFoot").hidden=p==="multi"}
 $("#playSeg").onclick=e=>{const p=e.target.dataset.play;if(p==="practice")return openPractice();if(p)setPlay(p)};

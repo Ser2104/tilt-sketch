@@ -1,10 +1,10 @@
 /* ---------- Installable app and offline support ---------- */
 let installEvt=null;
-if("serviceWorker" in navigator&&location.protocol!=="file:")addEventListener("load",()=>navigator.serviceWorker.register("sw.js").catch(()=>{}));
-addEventListener("beforeinstallprompt",e=>{e.preventDefault();installEvt=e;$("#cInstall").hidden=false});
+if(!IS_APP&&"serviceWorker" in navigator&&location.protocol!=="file:")addEventListener("load",()=>navigator.serviceWorker.register("sw.js").catch(()=>{}));
+addEventListener("beforeinstallprompt",e=>{e.preventDefault();if(IS_APP)return;installEvt=e;$("#cInstall").hidden=false});
 addEventListener("appinstalled",()=>{installEvt=null;$("#cInstall").hidden=true;$("#installMsg").hidden=true});
 const standalone=matchMedia("(display-mode: standalone)").matches||navigator.standalone;
-if(!standalone&&/iphone|ipad|ipod/i.test(navigator.userAgent))$("#cInstall").hidden=false;
+if(!IS_APP&&!standalone&&/iphone|ipad|ipod/i.test(navigator.userAgent))$("#cInstall").hidden=false;
 $("#cInstall").onclick=async()=>{
   if(installEvt){installEvt.prompt();try{await installEvt.userChoice}catch(_){}installEvt=null;$("#cInstall").hidden=true;return}
   $("#installMsg").textContent="On iPhone: tap the Share button in Safari, then “Add to Home Screen”. Practice and games on one phone then work without internet.";$("#installMsg").hidden=false};
