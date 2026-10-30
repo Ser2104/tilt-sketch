@@ -133,7 +133,9 @@ async def go(pg, pts, sens):
 
 AIM = """(()=>{if(window.__aimBy)return;window.__lx=0;window.__ly=0;const o=__o;
   window.__o=(x,y)=>{window.__lx=x;window.__ly=y;o(x,y)};
-  window.__aimBy=(dx,dy)=>__o(__lx+dx,__ly+dy)})()"""
+  window.__aimBy=(dx,dy)=>__o(__lx+dx,__ly+dy);
+  window.__trackTo=(tx,ty,sens,step)=>new Promise(res=>{const ex=tx-D.pos.x,ey=ty-D.pos.y,n=Math.max(1,Math.ceil(Math.hypot(ex,ey)/step));let i=0;
+    const f=()=>{__aimBy(ex/n*sens,ey/n*sens);if(++i<n)setTimeout(f,16);else setTimeout(res,16)};f()})})()"""
 
 
 async def move_by(pg, dx, dy, sens, step=.012):
@@ -153,8 +155,8 @@ async def go_watching(pg, pts, sens):
             break
         await move_by(pg, ex, ey, sens); await pg.wait_for_timeout(140)
     await pg.mouse.down()
-    for (x0, y0), (x1, y1) in zip(pts, pts[1:]):
-        await move_by(pg, x1 - x0, y1 - y0, sens)
+    for x1, y1 in pts[1:]:
+        await pg.evaluate(f"__trackTo({x1},{y1},{sens},.012)")
     await pg.wait_for_timeout(100); await pg.mouse.up(); await pg.wait_for_timeout(60)
 
 
