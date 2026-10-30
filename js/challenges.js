@@ -49,7 +49,8 @@ function showChallengeResult({label,title,score,img,info,starsN,actions}){
 async function startDaily(){
   if(!(await readyToDraw()))return;
   const date=todayUTC(),word=dailyWord(date),prev=store.get("ts-daily-"+date,null),tries=(prev&&prev.tries||1)+(prev?1:0);
-  playChallenge({word,time:DAILY_TIME,label:`Daily challenge · try ${tries}`,onScore:async(r,img)=>{
+  /* A brand-new player gets 10 extra seconds on their very first drawing */
+  playChallenge({word,time:DAILY_TIME+(typeof Game!=="undefined"&&!Game.state().draws?10:0),label:`Daily challenge · try ${tries}`,onScore:async(r,img)=>{
     const best=Math.max(prev?prev.score:0,r.acc),better=!prev||r.acc>prev.score;
     store.set("ts-daily-"+date,{word,score:best,tries,date});
     let info=prev?(better?`New best today: ${best}%.`:`Your best today is still ${best}%. Keep trying!`):"";const n=playerName();
@@ -74,7 +75,9 @@ function openLevels(){
   const banners=WORLDS.map((w,wi)=>`<div class="lvworld" style="top:${P[wi*8].y+82}px"><b>World ${wi+1} · ${esc(w.name)}</b><span>${w.time} s · pass ${w.pass}%</span></div>`).join("");
   $("#lvWorlds").innerHTML=`<div class="lvmap" style="height:${H}px"><svg viewBox="0 0 100 ${H}" preserveAspectRatio="none" aria-hidden="true"><path d="${path(N-1)}" class="lvroad"/><path d="${path(reached)}" class="lvdone"/></svg><div class="lvgoal" style="top:${pad/2-20}px">🏆</div>${banners}${nodes}</div>`;
   show("s-levels");
-  const cur=$("#lvWorlds .lv.cur")||$("#lvWorlds .lv[data-k='0']");if(cur)cur.scrollIntoView({block:"center"});
+  const cur=$("#lvWorlds .lv.cur")||(st.unlocked>=N?$("#lvWorlds .lvgoal"):$("#lvWorlds .lv[data-k='0']"));if(cur)cur.scrollIntoView({block:"center"});
+  const nx=Math.min(st.unlocked,N-1),pb=$("#lvPlay");pb.textContent=st.unlocked>=N?`Play again: level 1`:`Play level ${nx+1}: ${LEVEL_LIST[nx].word}`;
+  pb.onclick=async()=>{if(!(await readyToDraw()))return;playLevel(st.unlocked>=N?0:nx)};
 }
 $("#lvWorlds").onclick=async e=>{const b=e.target.closest(".lv");if(!b||b.disabled)return;if(!(await readyToDraw()))return;playLevel(+b.dataset.k)};
 function playLevel(k){
@@ -88,7 +91,7 @@ function playLevel(k){
     const actions=[];if(passed&&k+1<LEVEL_LIST.length)actions.push({text:`Next level: ${LEVEL_LIST[k+1].word}`,fn:()=>playLevel(k+1)});
     const again={text:passed?"Try for more stars":"Try again",fn:()=>playLevel(k)},all={text:"All levels",fn:openLevels};
     actions.push(...(passed&&k+1<LEVEL_LIST.length?[all,again]:[again,all]),{text:"Levels ranking",fn:()=>openRanking("levels")});
-    showChallengeResult({label:`Level ${k+1} · ${L.word}`,title:passed?(k+1===LEVEL_LIST.length?"You finished every level!":"Level passed"):`Need ${L.pass}% to pass`,score:r.acc,img,
+    showChallengeResult({label:`Level ${k+1} · ${L.word}`,title:passed?(k+1===LEVEL_LIST.length?"You finished every level!":"Level passed"):prevBest>=L.pass?"Not your best this time":`Need ${L.pass}% to pass`,score:r.acc,img,
       info:(passed?"":"Compare with the example drawings and add the main parts."+" ")+sync.trim(),starsN:s,actions})}});
 }
 

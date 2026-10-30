@@ -290,7 +290,10 @@ const I18N=(()=>{
     "🔥 1-day streak":"🔥 racha de 1 día","1-day streak":"racha de 1 día","You":"Tú","need {}%":"necesitas {1}%","Some lines are missing":"Faltan algunas líneas",
     "Trace every line, from its green dot to its orange ring.":"Traza cada línea, desde su punto verde hasta su anillo naranja.","Player level {}":"Nivel de jugador {1}",
     "🔒 Player level {} unlocks this color":"🔒 El nivel de jugador {1} desbloquea este color","Test gyroscope":"Probar giroscopio",
-    "Add your name in Settings to appear on it.":"Agrega tu nombre en Ajustes para aparecer.","Back to the game":"Volver al juego","Voice guidance on":"Guía por voz activada","{} percent":"{1} por ciento"
+    "Add your name in Settings to appear on it.":"Agrega tu nombre en Ajustes para aparecer.","Back to the game":"Volver al juego",
+    "Rank {}!":"¡Rango {1}!","Rank {}":"Rango {1}","{} XP to rank {}":"{1} XP para el rango {2}","Unlocks at rank {}":"Se desbloquea en el rango {1}","{}: unlocks at rank {}":"{1}: se desbloquea en el rango {2}",
+    "🔒 Rank {} unlocks this color":"🔒 El rango {1} desbloquea este color","Reach rank 5":"Llega al rango 5","Reach rank 10":"Llega al rango 10","Beat your best score for full XP":"Supera tu mejor puntaje para ganar todos los XP",
+    "Play level {}: {}":"Jugar nivel {1}: {2}","Play again: level 1":"Jugar otra vez: nivel 1","Not your best this time":"Esta vez no superaste tu mejor puntaje","Play":"Jugar","Voice guidance on":"Guía por voz activada","{} percent":"{1} por ciento"
   };
   const LC=new Map(Object.entries({...W,...D}).map(([k,v])=>[k.toLowerCase(),v]));
   const esc=s=>s.replace(/[.*+?^${}()|[\]\\]/g,"\\$&");

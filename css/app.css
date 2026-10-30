@@ -308,3 +308,5 @@ details.panel[open]>summary::after{content:"−"}
 .profchip{min-width:0;flex-shrink:1}
 @media (max-width:380px){#profName{display:none}.profchip{padding-right:8px}}
 .ranklist .who{font-family:inherit;font-size:inherit;line-height:inherit;color:inherit}
+.lvgrid.gd .lv.cur{box-shadow:0 0 0 3px var(--accent)}
+@media (max-height:680px){#crActions .btn.big{padding:12px;font-size:17px}#crActions{gap:6px}}

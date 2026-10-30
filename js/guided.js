@@ -8,7 +8,7 @@ function openGuided(){
   const st=guidedState();
   $("#gdStars").textContent=`${guidedStars(st)} of ${GUIDED.length*3} ★ · figure ${Math.min(st.unlocked+1,GUIDED.length)} of ${GUIDED.length}`;
   $("#gdWorlds").innerHTML=FIG.WORLDS.map((w,wi)=>`<section class="world"><div class="setting"><span class="label">World ${wi+1} · ${esc(w.name)}</span><span class="tag">no time limit</span></div><div class="lvgrid gd">${w.items.map((key,i)=>{const k=wi*6+i,open=k<=st.unlocked,b=st.best[k];
-    return`<button class="lv${open?"":" locked"}" data-k="${k}" ${open?"":"disabled"} aria-label="Figure ${k+1}: ${open?esc(FIG.F[key].name):"locked"}"><img src="${FIG.preview(key,96)}" alt=""><span>${open?esc(FIG.F[key].name):`🔒 ${k+1}`}</span><i>${b!=null?stars(gStars(b)):""}</i></button>`}).join("")}</div></section>`).join("");
+    return`<button class="lv${open?"":" locked"}${k===st.unlocked?" cur":""}" data-k="${k}" ${open?"":"disabled"} aria-label="Figure ${k+1}: ${open?esc(FIG.F[key].name):"locked"}"><img src="${FIG.preview(key,96)}" alt=""><span>${open?esc(FIG.F[key].name):`🔒 ${k+1}`}</span><i>${b!=null?stars(gStars(b)):""}</i></button>`}).join("")}</div></section>`).join("");
   show("s-guided");
 }
 $("#gdWorlds").onclick=async e=>{const b=e.target.closest(".lv");if(!b||b.disabled)return;if(!(await readyToDraw()))return;playGuided(+b.dataset.k)};

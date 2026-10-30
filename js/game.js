@@ -13,49 +13,54 @@ const Game=(()=>{
     ["guided10","🎯","Steady hand","Trace 10 guided drawings",()=>guidedState().unlocked>=10],
     ["party","🎉","Party starter","Play a game with friends",s=>s.party>=1],
     ["share","📣","Show-off","Share one of your drawings",s=>s.shares>=1],
-    ["lv5","🚀","Rising artist","Reach player level 5",s=>levelOf(s.xp).n>=5],
-    ["lv10","🏆","Art legend","Reach player level 10",s=>levelOf(s.xp).n>=10]];
+    ["lv5","🚀","Rising artist","Reach rank 5",s=>levelOf(s.xp).n>=5],
+    ["lv10","🏆","Art legend","Reach rank 10",s=>levelOf(s.xp).n>=10]];
   const UNLOCKS=[[3,"#E0A100","Gold"],[5,"#FF4FA3","Pink"],[7,"#16C79A","Mint"],[10,"#00B4D8","Sky blue"]];
   const S0={xp:0,draws:0,best:0,party:0,shares:0,streak:0,streakBest:0,last:"",got:[]};
   const st=()=>Object.assign({},S0,store.get("ts-game",{}));
   const save=s=>store.set("ts-game",s);
   function levelOf(xp){let n=1,base=0,need=100;while(xp>=base+need){base+=need;n++;need=100+(n-1)*50}return{n,into:xp-base,need}}
   const dayDiff=(a,b)=>Math.round((Date.parse(b)-Date.parse(a))/864e5);
-  function streakNow(s=st()){return s.last&&dayDiff(s.last,todayUTC())<=1?s.streak:0}
-  function markDaily(s){const d=todayUTC();if(s.last===d)return;s.streak=s.last&&dayDiff(s.last,d)===1?s.streak+1:1;s.last=d;s.streakBest=Math.max(s.streakBest,s.streak)}
+  /* Streaks follow the player's own calendar day, so "play today" means their today */
+  const today=()=>{const d=new Date();return`${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,"0")}-${String(d.getDate()).padStart(2,"0")}`};
+  function streakNow(s=st()){return s.last&&dayDiff(s.last,today())<=1?s.streak:0}
+  function markDaily(s){const d=today();if(s.last===d)return;s.streak=s.last&&dayDiff(s.last,d)===1?s.streak+1:1;s.last=d;s.streakBest=Math.max(s.streakBest,s.streak)}
 
-  function award({score=0,xp=null,daily=false,party=false,share=false}){
-    const s=st(),before=levelOf(s.xp).n,today=todayUTC(),repeat=daily&&s.dailyDay===today,gain=xp!=null?xp:repeat?5:10+Math.round(score*.9);
-    if(daily)s.dailyDay=today;
+  function award({score=0,xp=null,daily=false,party=false,share=false,key=null}){
+    const s=st(),before=levelOf(s.xp).n,dayU=todayUTC();s.bestBy=s.bestBy||{};
+    /* Replays only pay full XP when they beat your best on that level or figure */
+    const replay=!daily&&key!=null&&s.bestBy[key]!=null&&score<=s.bestBy[key];if(key!=null&&!daily)s.bestBy[key]=Math.max(s.bestBy[key]??-1,score);
+    const repeat=(daily&&s.dailyDay===dayU)||replay,gain=xp!=null?xp:repeat?5:10+Math.round(score*.9);
+    if(daily)s.dailyDay=dayU;
     if(party)s.party++;else if(share)s.shares++;else{s.draws++;s.best=Math.max(s.best,score)}
     if(daily)markDaily(s);
     s.xp+=gain;const after=levelOf(s.xp).n;
     const fresh=ACH.filter(a=>!s.got.includes(a[0])&&a[4](s));s.got.push(...fresh.map(a=>a[0]));save(s);
-    const parts=[];if(after>before){const u=UNLOCKS.find(x=>x[0]===after);parts.push({i:"⭐",b:`Level ${after}!`,s:u?`New brush color: ${u[2]}`:""});setTimeout(()=>{SFX.win();confetti()},share?250:1900)}
+    const parts=[];if(after>before){const u=UNLOCKS.find(x=>x[0]===after);parts.push({i:"⭐",b:`Rank ${after}!`,s:u?`New brush color: ${u[2]}`:""});setTimeout(()=>{SFX.win();confetti()},share?250:1900)}
     fresh.forEach(a=>parts.push({i:a[1],b:a[2],s:a[3]}));if(fresh.length)setTimeout(()=>{SFX.badge();buzz([40,60,40])},share?400:1900);
     /* Wait until the result headline (winner, score, impostor) has been seen before the badge slides over it */
     const msg=parts.length===1?`<i>${parts[0].i}</i><b>${parts[0].b}</b>${parts[0].s?`<span>${parts[0].s}</span>`:""}`:
       parts.length?`<i>${parts[0].i}</i><b>${parts[0].b}</b><span>${parts.slice(1).map(p=>p.i+" "+p.b).join(" · ")}</span>`:null;
     if(msg)setTimeout(()=>toast(msg),share?0:1800);
     renderSwatches();renderLevelChip();
-    return{gain,after,s}}
+    return{gain,after,s,replay}}
 
   function renderSwatches(){
     const n=levelOf(st().xp).n,cur=D.color;
     $("#swatches").innerHTML=COLORS.map((c,i)=>`<button class="sw" style="background:${c}" data-c="${c}" aria-label="Color ${i+1}" aria-pressed="${c===cur}"></button>`).join("")+
       UNLOCKS.filter(([lv])=>n>=lv).map(([lv,c,name])=>`<button class="sw" style="background:${c}" data-c="${c}" aria-label="${name}" aria-pressed="${c===cur}"></button>`).join("")+
-      ((u=>u?`<button class="sw locked" data-lock="${u[0]}" aria-label="${u[2]}: unlocks at level ${u[0]}">🔒</button>`:"")(UNLOCKS.find(([lv])=>n<lv)))+
+      ((u=>u?`<button class="sw locked" data-lock="${u[0]}" aria-label="${u[2]}: unlocks at rank ${u[0]}">🔒</button>`:"")(UNLOCKS.find(([lv])=>n<lv)))+
       `<button class="sw eraser" data-c="eraser" aria-label="Eraser" aria-pressed="${cur==="eraser"}"></button>`}
   $("#swatches").addEventListener("click",e=>{const b=e.target.closest("[data-lock]");if(!b)return;
-    if(D.state==="run"||D.state==="count"){const w=$("#dWho"),old=w.textContent;w.textContent=`🔒 Player level ${b.dataset.lock} unlocks this color`;clearTimeout(w._t);w._t=setTimeout(()=>{if(w.textContent.startsWith("🔒"))w.textContent=old},2200)}
-    else toast(`<i>🔒</i><b>Player level ${b.dataset.lock}</b><span>Keep drawing to unlock this color.</span>`)});
+    if(D.state==="run"||D.state==="count"){const w=$("#dWho"),old=w.textContent;w.textContent=`🔒 Rank ${b.dataset.lock} unlocks this color`;clearTimeout(w._t);w._t=setTimeout(()=>{if(w.textContent.startsWith("🔒"))w.textContent=old},2200)}
+    else toast(`<i>🔒</i><b>Rank ${b.dataset.lock}</b><span>Keep drawing to unlock this color.</span>`)});
 
-  function renderLevelChip(){const b=$("#profLv");b.textContent="Lv "+levelOf(st().xp).n;b.hidden=false}
+  function renderLevelChip(){const b=$("#profLv");b.textContent="Rank "+levelOf(st().xp).n;b.hidden=false}
 
   function xpHTML(r,daily){
     const L=levelOf(r.s.xp),k=streakNow(r.s);
-    return`<div class="xprow"><b>+${r.gain} XP</b><span>Level ${L.n}</span></div><div class="xpbar"><i style="width:${Math.round(L.into/L.need*100)}%"></i></div>`+
-      `<p class="hint" style="margin:0">${L.need-L.into} XP to level ${L.n+1}${daily&&k?` · 🔥 ${k===1?"1-day streak":`${k}-day streak`}`:""}</p>`}
+    return`<div class="xprow"><b>+${r.gain} XP</b><span>Rank ${L.n}</span></div><div class="xpbar"><i style="width:${Math.round(L.into/L.need*100)}%"></i></div>`+
+      `<p class="hint" style="margin:0">${r.replay?"Beat your best score for full XP · ":""}${L.need-L.into} XP to rank ${L.n+1}${daily&&k?` · 🔥 ${k===1?"1-day streak":`${k}-day streak`}`:""}</p>`}
 
   async function shareDrawing({word,score,strokes,img,label}){
     const W=1080,H=1350,c=document.createElement("canvas");c.width=W;c.height=H;const x=c.getContext("2d");
@@ -90,17 +95,17 @@ const Game=(()=>{
 
   function openTrophies(){
     const s=st(),L=levelOf(s.xp),k=streakNow(s);
-    $("#tpLevel").innerHTML=`<div class="xprow"><b>Level ${L.n}</b><span>${s.xp} XP</span></div><div class="xpbar"><i style="width:${Math.round(L.into/L.need*100)}%"></i></div><p class="hint" style="margin:0;text-align:left">${L.need-L.into} XP to level ${L.n+1}</p>`;
+    $("#tpLevel").innerHTML=`<div class="xprow"><b>Rank ${L.n}</b><span>${s.xp} XP</span></div><div class="xpbar"><i style="width:${Math.round(L.into/L.need*100)}%"></i></div><p class="hint" style="margin:0;text-align:left">${L.need-L.into} XP to rank ${L.n+1}</p>`;
     $("#tpStats").innerHTML=[[`🔥 ${k}`,"Day streak"],[s.streakBest,"Best streak"],[s.draws,"Drawings"],[s.best+"%","Best score"]].map(([v,l])=>`<div class="kpi"><b>${v}</b><span>${l}</span></div>`).join("");
     $("#tpList").innerHTML=ACH.map(a=>{const got=s.got.includes(a[0]);return`<div class="tp${got?" got":""}"><i>${got?a[1]:"🔒"}</i><b>${a[2]}</b><span>${a[3]}</span></div>`}).join("")+
-      UNLOCKS.map(([lv,c,name])=>`<div class="tp${L.n>=lv?" got":""}"><i class="tpcolor" style="background:${L.n>=lv?c:"var(--chip)"}">${L.n>=lv?"":"🔒"}</i><b>${name} brush</b><span>Unlocks at level ${lv}</span></div>`).join("");
+      UNLOCKS.map(([lv,c,name])=>`<div class="tp${L.n>=lv?" got":""}"><i class="tpcolor" style="background:${L.n>=lv?c:"var(--chip)"}">${L.n>=lv?"":"🔒"}</i><b>${name} brush</b><span>Unlocks at rank ${lv}</span></div>`).join("");
     show("s-trophies")}
   $("#cTrophies").onclick=openTrophies;$("#tpBack").onclick=()=>{renderChallengeCards();show("s-home")};
 
   const _result=showChallengeResult;
   showChallengeResult=function(o){
     const offer=CR_OFFER;_result(o);
-    const daily=/^Daily challenge/.test(o.label),passed=o.starsN==null?o.score>=50:o.starsN>=1,r=award({score:o.score,daily});
+    const daily=/^Daily challenge/.test(o.label),passed=o.starsN==null?o.score>=50:o.starsN>=1,r=award({score:o.score,daily,key:o.label});
     const box=$("#crXP");box.innerHTML=xpHTML(r,daily);box.hidden=false;
     if(passed){SFX.win();buzz([30,50,30]);if(o.starsN===3||o.score>=90)confetti()}else SFX.miss();
     const f=$("#crActions");let links=f.querySelector(".homelinks");if(!links){links=document.createElement("div");links.className="row homelinks";f.append(links)}
@@ -110,7 +115,7 @@ const Game=(()=>{
 
   const _cards=renderChallengeCards;
   renderChallengeCards=function(){_cards();const k=streakNow(),s=st();if(!k)return;
-    const played=s.last===todayUTC();$("#cDaily").insertAdjacentHTML("beforeend",`<span class="streak">🔥 ${k===1?"1-day streak":`${k}-day streak`}${played?"":" · play today to keep it"}</span>`)};
+    const played=s.last===today();$("#cDaily").insertAdjacentHTML("beforeend",`<span class="streak">🔥 ${k===1?"1-day streak":`${k}-day streak`}${played?"":" · play today to keep it"}</span>`)};
 
   const _final=finalScreen;finalScreen=function(...a){const r=_final.apply(this,a);award({party:true,xp:40});return r};
   const _reveal=reveal;reveal=function(...a){const r=_reveal.apply(this,a);award({party:true,xp:40});return r};
