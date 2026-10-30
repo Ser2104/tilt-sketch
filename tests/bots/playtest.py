@@ -46,7 +46,8 @@ def real_drawings(word, n):
         return _drawings[word][:n]
     out = []
     try:
-        req = urllib.request.Request(QD.format(urllib.parse.quote(word)), headers={"Range": "bytes=0-400000"})
+        name = {"Eiffel Tower": "The Eiffel Tower"}.get(word, word)
+        req = urllib.request.Request(QD.format(urllib.parse.quote(name)), headers={"Range": "bytes=0-400000"})
         lines = urllib.request.urlopen(req, timeout=30).read().decode("utf8", "ignore").split("\n")[:-1]
         rows = [json.loads(l) for l in lines if l.startswith("{")]
         rows = [r for r in rows if r.get("recognized")]
@@ -267,7 +268,7 @@ async def party(b):
     pg = await new_page(b, "onephone", errors, fresh_player=False)
     try:
         await pg.click("#tPlay")
-        await pg.evaluate("S.players=['Ana','Leo'];renderPlayers();S.time.solo=12;S.rounds=1;syncSettings()")
+        await pg.evaluate("S.players=['Ana','Leo'];renderPlayers();S.time.solo=25;S.rounds=1;syncSettings()")
         await pg.click("#start")
         word = None
         for turn in range(2):
