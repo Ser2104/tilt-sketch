@@ -118,7 +118,10 @@ Juega en un espacio abierto, sujeta bien tu teléfono y descansa si se te cansa 
 |---|---|
 | App icon (512 × 512) | `icon-512.png` |
 | Feature graphic (1024 × 500) | `feature-graphic.png` |
-| Phone screenshots (1080 × 1920, use all 8 in order) | `screenshot-1.png` … `screenshot-8.png` |
+| Phone screenshots, English (1080 × 1920, use all 8 in order) | `screenshot-1.png` … `screenshot-8.png` |
+| Phone screenshots, Spanish (es-419) | `screenshot-es-1.png` … `screenshot-es-8.png` |
+
+The screenshots are made from the real game with `python3 scripts/store_screens.py en` and `... es` (serve the repo on port 8766 first).
 
 ## Other fields
 

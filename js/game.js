@@ -55,7 +55,7 @@ const Game=(()=>{
     if(D.state==="run"||D.state==="count"){const w=$("#dWho"),old=w.textContent;w.textContent=`🔒 Rank ${b.dataset.lock} unlocks this color`;clearTimeout(w._t);w._t=setTimeout(()=>{if(w.textContent.startsWith("🔒"))w.textContent=old},2200)}
     else toast(`<i>🔒</i><b>Rank ${b.dataset.lock}</b><span>Keep drawing to unlock this color.</span>`)});
 
-  function renderLevelChip(){const b=$("#profLv");b.textContent="Rank "+levelOf(st().xp).n;b.hidden=false}
+  function renderLevelChip(){const b=$("#profLv");const n=levelOf(st().xp).n;b.textContent=n;b.title=b.ariaLabel=I18N.t(`Rank ${n}`);b.setAttribute("role","img");b.hidden=false}
 
   function xpHTML(r,daily){
     const L=levelOf(r.s.xp),k=streakNow(r.s);
